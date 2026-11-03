@@ -1,0 +1,279 @@
+# my-metrics: Technical Design (Draft v0.2)
+
+> Companion to [spec.md](spec.md), which describes the product. This file describes how it is built. Items marked **[OPEN]** are undecided.
+
+---
+
+## 1. Architecture
+
+```
+Browser (React SPA)
+  │  static files                       │  supabase-js (HTTPS)
+  ▼                                     ▼
+Firebase Hosting (GCP)         Supabase (EU, Frankfurt)
+                                 ├─ Auth (email/password, invite-only)
+                                 ├─ Postgres (tables, RLS, SQL functions, triggers)
+                                 ├─ Auto-generated REST API (PostgREST)
+                                 └─ Edge Functions (invite redemption, invite emails, account deletion)
+                                        │
+                                        ▼
+                               Custom SMTP (own hosting provider)
+
+GitHub Actions: CI, deploys, keep-alive ping, nightly backup
+```
+
+- There's **no custom backend server**. The SPA talks directly to Supabase.
+- **Authorization is enforced in the database** through Row-Level Security (RLS), never only in the frontend.
+- Business rules live in Postgres: constraints, triggers and SQL functions called via RPC.
+
+---
+
+## 2. Stack
+
+| Area | Choice |
+|---|---|
+| Language | TypeScript (strict) |
+| Build tool | Vite |
+| UI library | React |
+| Routing | React Router v7 (SPA / data mode) |
+| Server state | TanStack Query (wrapping supabase-js) |
+| Styling / components | Tailwind CSS + shadcn/ui |
+| Forms & validation | React Hook Form + Zod |
+| Charts | Recharts (through shadcn/ui chart components) |
+| Dates | date-fns |
+| Backend platform | Supabase: Postgres, Auth, Edge Functions (Deno/TypeScript) |
+| DB types | Generated with `supabase gen types typescript` |
+| Frontend hosting | Firebase Hosting (Spark plan, free) |
+| Email | Custom SMTP on the owner's hosting provider: configured in Supabase Auth (password reset) and as Edge Function secrets (invite emails) |
+| Unit / component tests | Vitest + React Testing Library |
+| E2E tests | Playwright |
+| DB / RLS tests | pgTAP (`supabase test db`) |
+| Lint / format | ESLint + Prettier |
+| CI/CD | GitHub Actions |
+
+---
+
+## 3. Authentication & Accounts
+
+### Invite-only sign-up (spec FR-1)
+- "Allow new users to sign up" is **turned off** in Supabase Auth, so the public sign-up endpoint can't create accounts.
+- "Confirm email" is **off**: receiving an invite is treated as proof of the address.
+- New accounts are created by the **`redeem-invite` Edge Function**, which runs with the service role:
+  1. It checks the invite token: valid, not expired or revoked, and for email invites not yet used.
+  2. It creates the auth user with the admin API (email + password, email marked as confirmed).
+  3. It calls `accept_invite` for the new user (§5).
+- **Email/password is the only provider.** All OAuth providers (Google included) stay disabled in Supabase Auth.
+- The **operator** creates the first account(s) in the Supabase dashboard.
+
+### Other auth flows
+- **Password reset** uses Supabase Auth's reset email, sent through the custom SMTP provider.
+- **Profile changes** (spec FR-2): display name in `profiles`; password and email through `supabase.auth.updateUser`. **[OPEN: whether an email change must be confirmed through a link to the new address. Supabase does this by default once SMTP is set up.]**
+- A trigger on `auth.users` creates the `profiles` row and the user's **default group** (spec FR-13), in one transaction:
+  - a `groups` row named "Personal", with `default_for_user_id` set to the user
+  - an `owner` membership for the user
+  - a subject linked to the user, named after their display name
+- The suggested attributes in the default group's empty state are defined in the frontend, not in the database.
+
+### Account deletion (spec FR-3)
+The `delete-account` Edge Function needs the service role key, because deleting from `auth.users` requires it.
+1. It refuses while the user owns any group other than their default group.
+2. It deletes the default group and the user's linked subjects in other groups, together with their entries.
+3. Foreign keys handle the rest:
+   - `profiles` → `auth.users`: on delete cascade
+   - `memberships.user_id`: on delete cascade
+   - `entries.created_by`: on delete set null
+
+### Invite emails (spec FR-20)
+- The `send-invite` Edge Function checks that the caller is the group's owner or an editor. It then creates an `invites` row with `email` set, and sends the link through the custom SMTP provider.
+- The SMTP credentials are stored as Edge Function secrets. Supabase Auth's SMTP settings only cover auth emails, so the function needs its own copy.
+
+---
+
+## 4. Data Model
+
+All IDs are `uuid`. All tables have `created_at timestamptz default now()`.
+
+```
+profiles      id (= auth.users.id), display_name
+
+groups        id, name, description, archived_at,
+              starts_on date null, ends_on date null,             -- FR-15; both set or both null, ends_on >= starts_on
+              members_edit_own_subject_only boolean default false,
+              default_for_user_id → profiles null UNIQUE          -- FR-13: set only on a user's default group
+
+memberships   group_id → groups, user_id → profiles,
+              role ('owner' | 'editor' | 'viewer')
+              PK (group_id, user_id)
+              -- exactly one 'owner' per group (partial unique index)
+
+invites       id, group_id → groups, token (random, unique), role ('editor' | 'viewer'),
+              email text null,                                    -- email invites: single use, bound to this address
+              expires_at, revoked_at, accepted_at, created_by → profiles
+
+subjects      id, group_id → groups, name, birthdate date null, color,
+              linked_user_id → profiles null, archived_at,
+              name_customized boolean default false,              -- FR-33: stop following the display name
+              visibility_frozen boolean default false             -- FR-23: former member's subject
+              UNIQUE (group_id, linked_user_id)
+
+subject_link_requests                                             -- FR-22
+              id, subject_id → subjects, user_id → profiles,
+              status ('pending' | 'approved' | 'rejected'), decided_by → profiles null, decided_at
+              UNIQUE (subject_id) WHERE status = 'pending'
+
+attributes    id, group_id → groups, name, unit, precision smallint default 1,
+              direction ('higher_better' | 'lower_better' | 'neutral'),
+              min_value, max_value, sort_order, archived_at
+
+value_visibility                                                  -- FR-43; no row = 'absolute'
+              subject_id → subjects, attribute_id → attributes,
+              visibility ('absolute' | 'relative')
+              PK (subject_id, attribute_id)
+
+entries       id, subject_id → subjects, attribute_id → attributes,
+              value numeric, measured_at timestamptz, comment text null,
+              created_by → profiles, updated_by → profiles, updated_at
+              UNIQUE (subject_id, attribute_id, measured_at)      -- FR-54
+              INDEX  (subject_id, attribute_id, measured_at)
+```
+
+Notes:
+- `measured_at` is stored as `timestamptz` and shown in the viewer's local time zone (FR-50). `birthdate` is a plain `date`.
+- Rejecting future timestamps (FR-53) is done in a trigger, allowing a few minutes of clock skew, because CHECK constraints shouldn't depend on `now()`.
+- Triggers on `entries`:
+  - check that the subject and attribute belong to the same group
+  - check min/max on insert and on changes to `value` only (FR-40)
+  - set `created_by`, `updated_by` and `updated_at` from `auth.uid()`, so the client can't fake them
+- **FR-33:** a trigger on `profiles` updates the names of linked subjects where `name_customized = false`. Renaming a subject in a group sets `name_customized = true`.
+- **Limits (FR-80):** text lengths are CHECK constraints (`char_length`). Count limits (groups per user, members per group, attributes per group) are enforced by triggers.
+- Age (FR-63) is calculated in the client from `birthdate` and `measured_at`.
+
+---
+
+## 5. Authorization (RLS)
+
+Helper functions (`security definer`, `stable`) avoid recursive policies on `memberships`:
+
+- `is_member(group_id) → boolean`
+- `member_role(group_id) → role`
+- `visibility_of(subject_id, attribute_id) → 'absolute' | 'relative'`: the `value_visibility` row, or `'absolute'` if there's none
+- `can_write_subject(subject_id) → boolean`: false if the subject or its group is archived. Otherwise true if:
+  - the subject is linked to `auth.uid()` (any role, viewers included), or
+  - the role is owner or editor and the group setting `members_edit_own_subject_only` is off
+- `can_write_entry(subject_id, attribute_id) → boolean`: `can_write_subject(subject_id)`, the attribute isn't archived, and if `visibility_of(...) = 'relative'` and the subject is linked, it's linked to `auth.uid()`
+- `can_see_values(subject_id, attribute_id) → boolean`: the user is a member **and** one of these holds:
+  - `visibility_of(...) = 'absolute'`
+  - the subject is linked to `auth.uid()`
+  - the subject is unlinked, not `visibility_frozen`, and `can_write_subject(subject_id)`
+- `can_set_visibility(subject_id) → boolean`: the subject isn't `visibility_frozen`, and it's either linked to `auth.uid()` or unlinked with `can_write_subject(subject_id)`. **The owner role grants nothing extra here.**
+
+| Table | Read | Insert / update / delete |
+|---|---|---|
+| groups | member | Insert: any signed-in user. Update: owner or editor; a trigger only lets the owner change `archived_at` and `members_edit_own_subject_only`. Delete: owner |
+| memberships | member of same group | only through SQL functions (see below) |
+| invites | owner, and the invite's creator | Insert: owner or editor (role must be `editor` or `viewer`). Revoke: owner, or the invite's creator |
+| subjects | member | owner, editor |
+| subject_link_requests | owner, and the requester | only through SQL functions |
+| attributes | member | Insert/update: owner or editor. Delete: owner, or an editor if the attribute has no entries (trigger) |
+| value_visibility | member | `can_set_visibility(subject_id)` |
+| entries | `can_see_values(subject_id, attribute_id)` | `can_write_entry(subject_id, attribute_id)` |
+
+**SQL functions (RPC)** for multi-step or privileged actions:
+
+- `get_invite_preview(token)`: returns the group name, inviter, role, and the group's unlinked subjects that can be requested (names only), so a non-member can see what they're joining.
+- `accept_invite(token, choice, subject_id?)`: checks the invite and creates the membership. For email invites it also checks that the user's email matches `invites.email` and sets `accepted_at`, so the invite can only be used once. Then, depending on `choice` (FR-22):
+  - `new`: creates a subject linked to the user
+  - `request`: creates a pending `subject_link_requests` row for an unlinked subject that isn't `visibility_frozen`
+  - `none`: no subject
+- `decide_link_request(request_id, approve)`: owner only. Approving links the subject to the user.
+- `change_member_role(group_id, user_id, role)`: owner only.
+- `remove_member(group_id, user_id)`: owner only. Keeps the subject's entries, unlinks it, and sets `visibility_frozen = true` (FR-23).
+- `leave_group(group_id, keep_entries)`: refused for the owner and for default groups. With `keep_entries`, unlinks the subject and sets `visibility_frozen = true`. Otherwise deletes the subject and its entries.
+- `transfer_ownership(group_id, new_owner_id)`: makes sure a group always has exactly one owner. Refused for default groups.
+
+**Triggers:**
+- New group: the creator becomes the `owner` membership.
+- Default group protection: deleting a group with `default_for_user_id` set is blocked, except when the account is being deleted.
+
+All data belongs to exactly one group. There are no references between groups, which keeps every RLS check limited to a single group.
+
+Quick entry (FR-51) is a single bulk insert, which runs as one statement, so it either fully succeeds or fully fails.
+
+### Value visibility (spec FR-43)
+
+The setting is per subject and attribute, and each entry row has exactly one subject and one attribute, so RLS can hide actual values by filtering whole rows:
+
+- The `entries` read policy (`can_see_values`) hides rows whose actual values the user may not see. This applies to the owner too.
+- `get_series(group_id, attribute_ids[], from, to, baseline)` is a `security definer` function that checks `is_member` itself. It returns every entry in the range with either `value` (when `can_see_values`) or `pct_change` filled in, never both for hidden rows, plus the comment. The dashboard, charts, comparison and CSV export all use it.
+  - `baseline = 'first'`: % change relative to the subject's first entry ever for that attribute.
+  - `baseline = 'group_start'` (FR-64, only for groups with a duration): relative to the subject's first entry on or after `starts_on`.
+  - `pct_change` is `null` (shown as "n/a") when the baseline value is 0.
+- `get_dashboard(group_id)` returns the first, previous and latest entry per subject and attribute, under the same rules, so the dashboard doesn't load every entry for groups with years of data.
+- **Percentages are never stored.** They're calculated at query time, so back-filled entries (FR-53) and edits or deletions of the baseline automatically move it.
+- For subjects whose values the user can see, the frontend can also calculate % itself, so the user can switch between actual values and % (same formula).
+- Because the policies are checked on every query, changing a visibility setting takes effect on the next data load.
+- Known limitation: anyone who knows a member's starting value can work out their actual values from the percentages. This is accepted.
+
+---
+
+## 6. Project Structure
+
+```
+/
+├─ src/
+│  ├─ app/            routes, layouts, providers
+│  ├─ features/       groups, subjects, attributes, entries, charts, auth
+│  ├─ components/ui/  shadcn/ui components
+│  ├─ lib/            supabase client, query client, utils
+│  └─ types/          generated database types
+├─ supabase/
+│  ├─ migrations/     SQL migrations (the source of truth for the schema)
+│  ├─ functions/      Edge Functions (redeem-invite, send-invite, delete-account)
+│  ├─ tests/          pgTAP tests for RLS and SQL functions
+│  └─ seed.sql        local demo data
+├─ e2e/               Playwright tests
+└─ .github/workflows/
+```
+
+---
+
+## 7. Environments & Configuration
+
+- **Local:** `supabase start` (Docker) runs the whole Supabase stack locally, and `vite dev` runs the frontend. Local emails are caught by Supabase's built-in mail testing tool (Inbucket/Mailpit).
+- **Production:** one Supabase project (EU Frankfurt) and one Firebase Hosting site.
+- A second free Supabase project could be added as staging later.
+
+Frontend environment variables: `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`. Both are safe to expose; RLS protects the data. The secret/service-role key and the SMTP credentials are only used in Edge Functions and CI.
+
+Firebase Hosting needs an SPA rewrite: all routes go to `/index.html`.
+
+---
+
+## 8. CI/CD & Operations (GitHub Actions)
+
+| Workflow | Trigger | Steps |
+|---|---|---|
+| CI | pull request | lint, type-check, Vitest, `supabase test db`, build |
+| Deploy | push to `main` | `supabase db push` (migrations), deploy Edge Functions, `firebase deploy --only hosting` |
+| Keep-alive | daily cron | a light query against Supabase, so the free project isn't paused after 7 days without activity |
+| Backup | nightly cron | `pg_dump` saved to off-site storage (a GCS bucket or similar) **[OPEN: where]** |
+
+---
+
+## 9. Free-Tier Constraints
+
+| Service | Relevant limits (check current values) |
+|---|---|
+| Supabase Free | 500 MB database, 50k monthly active users, ~500k Edge Function calls/month, paused after 7 days without activity, no automatic backups, 2 projects |
+| Firebase Hosting (Spark) | ~10 GB storage, ~360 MB/day transfer |
+| Supabase Auth email | must use custom SMTP (built-in: 2 emails/hour, team addresses only) |
+| Own SMTP provider | check the hosting provider's sending limits per hour/day |
+
+---
+
+## 10. Open Technical Questions
+
+1. Whether email changes need confirmation of the new address (§3).
+2. Where nightly backups are stored.
+3. i18n library, if the product supports more than one language (spec open question 2).
+4. Package manager (npm or pnpm).
