@@ -226,7 +226,7 @@
 - **Data ownership:** Users can export their groups' data (FR-70), can take their data out of a group when leaving (FR-23), and deleting an account removes the user's personal data (FR-3).
 - **Accessibility:** Best effort, following good practice (contrast, keyboard use, labels, information never shown by colour alone). There's no formal WCAG target.
 - **Browsers:** The last two versions of Chrome, Edge, Firefox and Safari, including iOS Safari and Android Chrome.
-- **Language & formats:** UI language and date/number formats are **[OPEN]**. English is assumed first, possibly German.
+- **Language & formats:** The UI is in English only. Dates and numbers are formatted according to the viewer's browser settings (e.g. `03.11.2026` and `72.5`, or `11/3/2026`).
 
 ---
 
@@ -246,6 +246,7 @@
 - Logging while offline
 - Importing existing data (e.g. from spreadsheets)
 - Account-wide data export
+- More UI languages (e.g. German)
 - Undo or a bin for deleted entries, and edit history
 
 ---
@@ -253,7 +254,6 @@
 ## 8. Open Questions
 
 1. **Units:** fixed free-text units per attribute (current proposal), or structured units with conversion?
-2. **Language:** English only, or multilingual (e.g. English + German) from the start?
 
 ---
 
@@ -266,6 +266,7 @@
 | 2026-11-03 | A leaving member chooses whether their entries stay or are deleted; removed members' entries stay. Kept subjects keep their visibility settings, which can't be changed afterwards. | FR-23 |
 | 2026-11-03 | CSV export stays per group; no account-wide export. | FR-70 |
 | 2026-11-03 | No Google sign-in: email and password only, to avoid reconciling a Google identity with the invited account. | FR-1 |
+| 2026-11-03 | The UI is in English only, with no translation setup. Dates and numbers follow the viewer's browser settings. | §6 |
 | 2026-11-03 | The owner can't leave without transferring ownership first. | FR-23 |
 | 2026-11-03 | Owners and editors manage attributes; only the owner deletes attributes that have entries. | FR-40, FR-42 |
 | 2026-11-03 | Account deletion is blocked while the user owns groups other than their default group. | FR-3 |

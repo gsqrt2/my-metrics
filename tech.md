@@ -33,6 +33,7 @@ GitHub Actions: CI, deploys, keep-alive ping, nightly backup
 | Area | Choice |
 |---|---|
 | Language | TypeScript (strict) |
+| Package manager | pnpm |
 | Build tool | Vite |
 | UI library | React |
 | Routing | React Router v7 (SPA / data mode) |
@@ -275,5 +276,3 @@ Firebase Hosting needs an SPA rewrite: all routes go to `/index.html`.
 
 1. Whether email changes need confirmation of the new address (§3).
 2. Where nightly backups are stored.
-3. i18n library, if the product supports more than one language (spec open question 2).
-4. Package manager (npm or pnpm).
