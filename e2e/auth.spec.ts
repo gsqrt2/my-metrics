@@ -31,8 +31,9 @@ test('logging in returns to the requested page, logging out ends the session', a
   page,
   isMobile,
 }) => {
+  const user = isMobile ? users.max : users.pat
   await page.goto('/profile')
-  await page.getByLabel('Email').fill(users.alex.email)
+  await page.getByLabel('Email').fill(user.email)
   await page.getByLabel('Password').fill(SEED_PASSWORD)
   await page.getByRole('button', { name: 'Log in' }).click()
 
@@ -40,9 +41,7 @@ test('logging in returns to the requested page, logging out ends the session', a
   await expect(page.getByRole('heading', { name: 'Profile' })).toBeVisible()
 
   if (isMobile) await page.getByRole('button', { name: 'Open menu' }).click()
-  await page
-    .getByRole('button', { name: new RegExp(users.alex.displayName) })
-    .click()
+  await page.getByRole('button', { name: new RegExp(user.displayName) }).click()
   await page.getByRole('menuitem', { name: 'Log out' }).click()
 
   await expect(page).toHaveURL(/\/login$/)

@@ -4,9 +4,17 @@ import { createClient } from '@supabase/supabase-js'
 
 // Seeded demo accounts (supabase/seed.sql). Local only.
 export const SEED_PASSWORD = 'password'
+// Tests that change an account each use their own, so they can run in parallel.
 export const users = {
-  alex: { email: 'alex@example.com', displayName: 'Alex Example' },
-  kim: { email: 'kim@example.com', displayName: 'Kim Example' },
+  alex: { email: 'alex@example.com', displayName: 'Alex Example' }, // read-only
+  sam: { email: 'sam@example.com', displayName: 'Sam Example' }, // display name
+  kim: { email: 'kim@example.com', displayName: 'Kim Example' }, // password reset
+  lee: { email: 'lee@example.com', displayName: 'Lee Example' }, // email change
+  robin: { email: 'robin@example.com', displayName: 'Robin Example' }, // password change
+  // Log in and out. Logging out ends all of an account's sessions, so each
+  // device size gets its own account.
+  pat: { email: 'pat@example.com', displayName: 'Pat Example' }, // desktop
+  max: { email: 'max@example.com', displayName: 'Max Example' }, // phone
 }
 
 export const MAILPIT_URL = 'http://127.0.0.1:54324'

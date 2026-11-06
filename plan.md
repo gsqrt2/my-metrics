@@ -61,7 +61,7 @@ Goal: an empty but complete project that runs locally, with the app layout and t
 ## Step 2: Profile (FR-2)
 
 - Profile page: change display name, email and password.
-- **Decide:** whether an email change needs confirmation of the new address (tech.md open question 1).
+- Email changes are confirmed by a link to the new address, with a notice to the old one; password changes need the current password and send a notice.
 
 **Not yet:** account deletion (step 15), linked subject names following the display name (step 4).
 
@@ -196,10 +196,10 @@ At this point every feature in [features.md](features.md) is built.
 
 ## Step 16: Go live
 
-- Supabase cloud project (EU Frankfurt): auth settings matching `config.toml` (sign-ups off, minimum password length, site URL and redirect URLs), the password reset email template, custom SMTP, Edge Function secrets.
+- Supabase cloud project (EU Frankfurt): auth settings matching `config.toml` (sign-ups off, minimum password length, site URL and redirect URLs), the email templates and notifications (password reset, email change, change notices), custom SMTP, Edge Function secrets.
 - Firebase Hosting site with the SPA rewrite.
 - Deploy workflow on push to `main`: migrations, Edge Functions, hosting.
-- Keep-alive workflow (daily) and nightly backup workflow. **Decide:** backup location (tech.md open question 2).
+- Keep-alive workflow (daily) and nightly backup workflow. **Decide:** backup location (tech.md open question 1).
 - Create the first account(s) in the Supabase dashboard; smoke-test every main flow in production.
 
 ---

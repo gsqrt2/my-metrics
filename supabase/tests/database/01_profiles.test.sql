@@ -1,6 +1,6 @@
 -- Step 1: profiles are created with the account and only visible to their owner.
 begin;
-select plan(9);
+select plan(10);
 
 insert into auth.users (id, email, raw_user_meta_data) values
   ('11111111-1111-1111-1111-111111111111', 'alex@test.local', '{"display_name": "Alex"}'),
@@ -50,6 +50,12 @@ select throws_ok(
   '23514',
   null,
   'display names longer than 80 characters are rejected'
+);
+select throws_ok(
+  $$ update public.profiles set display_name = '   ' where id = '11111111-1111-1111-1111-111111111111' $$,
+  '23514',
+  null,
+  'display names of only spaces are rejected'
 );
 select throws_ok(
   $$ insert into public.profiles (id, display_name) values (gen_random_uuid(), 'Intruder') $$,

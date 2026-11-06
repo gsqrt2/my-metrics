@@ -8,6 +8,7 @@ import { LoginPage } from '@/features/auth/login-page'
 import { RequireAuth } from '@/features/auth/require-auth'
 import { ResetPasswordPage } from '@/features/auth/reset-password-page'
 import { GroupsPage } from '@/features/groups/groups-page'
+import { ConfirmEmailPage } from '@/features/profile/confirm-email-page'
 import { ProfilePage } from '@/features/profile/profile-page'
 
 export const routes: RouteObject[] = [
@@ -18,6 +19,7 @@ export const routes: RouteObject[] = [
       { path: 'login', element: <LoginPage /> },
       { path: 'forgot-password', element: <ForgotPasswordPage /> },
       { path: 'reset-password', element: <ResetPasswordPage /> },
+      { path: 'confirm-email', element: <ConfirmEmailPage /> },
     ],
   },
   {

@@ -69,13 +69,17 @@ GitHub Actions: CI, deploys, keep-alive ping, nightly backup
 
 ### Other auth flows
 - **Sessions:** supabase-js keeps the session in `localStorage` and refreshes it automatically. An `AuthProvider` listens to `onAuthStateChange`; a `RequireAuth` route wrapper sends logged-out visitors to `/login` and back to the requested page afterwards.
+  - The session's user (email, pending email) is a copy stored with the tokens and only renewed with the access token, up to an hour later. So on start and whenever the tab becomes visible again, `AuthProvider` asks the server for the current user (`getUser`) and refreshes the session if the email differs, e.g. after an email change confirmed on another device. If the session was ended elsewhere (logout ends all of an account's sessions), this check logs the tab out too.
 - **Passwords:** at least 8 characters (`minimum_password_length` in `config.toml`, mirrored in the frontend validation).
 - **Password reset** uses Supabase Auth's reset email, sent through the custom SMTP provider.
   - The email uses our own template (`supabase/templates/recovery.html`). Its link goes straight to the app, `/reset-password?token_hash=…&type=recovery`, and the page calls `supabase.auth.verifyOtp`. Unlike the default link, this works when the email is opened on another device than the one that requested it, and link scanners in mail clients can't use up the token, because verifying needs JavaScript.
   - The same template and subject must be set in the cloud project (step 16).
   - The request form always shows the same confirmation, so it doesn't reveal which addresses have accounts.
-- **Seed accounts (local only):** `alex@example.com`, `sam@example.com` and `kim@example.com`, all with the password `password`, created in `supabase/seed.sql`.
-- **Profile changes** (spec FR-2): display name in `profiles`; password and email through `supabase.auth.updateUser`. **[OPEN: whether an email change must be confirmed through a link to the new address. Supabase does this by default once SMTP is set up.]**
+- **Seed accounts (local only):** `alex`, `sam`, `kim`, `lee`, `robin`, `pat` and `max`, all `@example.com` and all with the password `password`, created in `supabase/seed.sql`. The end-to-end tests that change an account each use their own (see `e2e/support/local-supabase.ts`).
+- **Profile changes** (spec FR-2): display name in `profiles`; password and email through `supabase.auth.updateUser`.
+  - **Email change:** `double_confirm_changes = false`, so only the new address confirms. Its email uses our template (`supabase/templates/email_change.html`) with a `token_hash` link to `/confirm-email`, which calls `verifyOtp({ type: 'email_change' })`, like the password reset. Until then, the pending address is in `user.new_email` and the profile page shows it. The `email_changed` notification then goes to the old address.
+  - **Password change:** the `password_changed` notification is on. Supabase's `updateUser` doesn't check the current password, so the profile page checks it first with a throwaway login (`verify-password.ts`), whose session it ends right away. This protects against someone using an unlocked device, but it isn't a server-side check: a stolen session token could still change the password directly. Supabase's `secure_password_change` (re-authentication by emailed code) would close that gap, at the cost of an extra email step.
+  - Supabase sends at most one email per account per second (`max_frequency`). Locally, the hourly email limit is raised to 100 for tests; the cloud project keeps its own limit.
 - A trigger on `auth.users` creates the `profiles` row and the user's **default group** (spec FR-13), in one transaction:
   - a `groups` row named "Personal", with `default_for_user_id` set to the user
   - an `owner` membership for the user
@@ -281,5 +285,4 @@ Firebase Hosting needs an SPA rewrite: all routes go to `/index.html`.
 
 ## 10. Open Technical Questions
 
-1. Whether email changes need confirmation of the new address (§3).
-2. Where nightly backups are stored.
+1. Where nightly backups are stored.

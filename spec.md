@@ -85,6 +85,8 @@
   - Users can reset a forgotten password by email. The reset link works once and expires after an hour. The reset form answers the same way whether or not an account exists for the address.
   - Passwords have at least 8 characters.
 - FR-2: Users have a display name and an email address. In their profile, users can change their **display name**, **email address** and **password**.
+  - A new email address only takes effect once the user confirms it through a link sent to that address. Until then, they keep logging in with the old one. Afterwards, the old address gets a notice that the address was changed.
+  - Changing the password needs the current password. The user gets an email notice after a password change.
 - FR-3: Users can delete their account.
   - Deletion is blocked while the user owns groups other than their default group. They must first transfer ownership of each of those groups or delete them.
   - The default group is deleted together with the account.
@@ -288,4 +290,5 @@
 | 2026-11-03 | Invite-only: accounts are only created through invites or by the operator. | FR-1, FR-20 |
 | 2026-11-03 | Email in v1: invites by email and password reset. No email confirmation, because there's no public sign-up. | FR-1, FR-20 |
 | 2026-11-03 | Accessibility: best effort. Browsers: current evergreen. | §6 |
+| 2026-11-06 | Email changes are confirmed by a link to the new address; the old address is notified afterwards. Password changes need the current password and send a notice. | FR-2 |
 | 2026-11-06 | Passwords have at least 8 characters. Password reset links work once and expire after an hour. | FR-1 |

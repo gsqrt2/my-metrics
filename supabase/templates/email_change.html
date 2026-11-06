@@ -1,0 +1,16 @@
+<h2>Confirm your new email address</h2>
+<p>
+  You asked to change the email address of your my-metrics account from {{
+  .Email }} to {{ .NewEmail }}. Confirm the new address here:
+</p>
+<p>
+  <a
+    href="{{ .SiteURL }}/confirm-email?token_hash={{ .TokenHash }}&type=email_change"
+    >Confirm new email address</a
+  >
+</p>
+<p>
+  The link works once and expires after an hour. Until you confirm, you keep
+  logging in with {{ .Email }}. If you didn't ask for this, you can ignore this
+  email.
+</p>
