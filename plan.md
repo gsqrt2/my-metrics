@@ -6,6 +6,44 @@ Everything is built and tested locally first (`supabase start` + `vite dev`, see
 
 ---
 
+## Progress
+
+**This table is the source of truth for where the project stands.** It is updated in the same commit that finishes (or pauses) a step, so it never falls behind the code. Read it first when picking the work back up.
+
+Status: ✅ done · 🚧 in progress · ⏸️ paused with open items · ⬜ not started
+
+| Step | Feature | Status | Finished | Commit |
+|---|---|---|---|---|
+| 0 | Boilerplate and app layout | ✅ | 2026-11-06 | `8017ea6` |
+| 1 | Sign-in | ✅ | 2026-11-06 | `9fcd4aa` |
+| 2 | Profile | ✅ | 2026-11-06 | `125043f` |
+| 3 | Groups | ⬜ | | |
+| 4 | Subjects | ⬜ | | |
+| 5 | Attributes | ⬜ | | |
+| 6 | Logging | ⬜ | | |
+| 7 | Group dashboard | ⬜ | | |
+| 8 | Charts and tables | ⬜ | | |
+| 9 | Invitations and joining | ⬜ | | |
+| 10 | Managing members and leaving | ⬜ | | |
+| 11 | Value visibility | ⬜ | | |
+| 12 | "Own subject only" setting, CSV export | ⬜ | | |
+| 13 | Email invites | ⬜ | | |
+| 14 | Archive and delete groups | ⬜ | | |
+| 15 | Account deletion | ⬜ | | |
+| 16 | Go live | ⬜ | | |
+
+**Next:** step 3 (Groups).
+
+### Open items
+
+Anything left unfinished, deferred or worth knowing before the next step. Each item says where it gets resolved. Remove an item when it's done.
+
+- **Current-password check is client-side** (step 2). Supabase doesn't verify `current_password` on password change, so the app checks it with a throwaway sign-in ([verify-password.ts](src/features/profile/verify-password.ts)). It stops mistakes, not someone who already holds the session. Revisit if a server-side check (Edge Function) becomes worth it; see [tech.md §3](tech.md).
+- **Cloud auth settings** (steps 1–2). Everything set in `supabase/config.toml` (sign-ups off, minimum password length 8, site/redirect URLs, `double_confirm_changes = false`, email templates, change notifications) has to be repeated in the cloud project. Resolved in step 16.
+- **CI** (2026-11-06): green on `main` (`a1ffb71`). Chromium is cached per Playwright version and installed without `--with-deps`; if a runner image update ever breaks Chromium with missing libraries, add `pnpm exec playwright install-deps chromium` back. The slowest e2e step is now starting Supabase (~80 s).
+
+---
+
 ## How we work
 
 **One step = one vertical slice = one branch/PR.** Each step delivers a feature end to end, so the app works after every step.
@@ -20,6 +58,7 @@ Each step is done when:
 6. **Seed:** `supabase/seed.sql` extended with demo data for the feature.
 7. **Docs:** spec/tech updated if anything was decided along the way; open questions closed in the decision log.
 8. **CI green:** lint, type-check, tests, build.
+9. **Progress:** the [Progress](#progress) table and open items updated in the same commit. A step stopped part-way is marked ⏸️, with its unfinished tasks listed under open items.
 
 Things deliberately left for later steps are listed under **Not yet** in each step, so nothing is half-built by accident.
 
