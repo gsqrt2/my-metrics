@@ -41,7 +41,21 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium
+      # Chromium is downloaded once per Playwright version and cached. Its system
+      # libraries are already on GitHub's Ubuntu image (it ships Google Chrome),
+      # so `--with-deps` (an apt install that can take minutes) is skipped.
+      - name: Get Playwright version
+        id: playwright
+        run: echo "version=$(pnpm exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}-chromium
+      - name: Download Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install chromium
       # Only what the app uses so far: database, auth, REST API, gateway, Mailpit.
       - name: Start local Supabase
         run: pnpm exec supabase start -x studio,storage-api,imgproxy,realtime,edge-runtime,logflare,vector,supavisor,postgres-meta
