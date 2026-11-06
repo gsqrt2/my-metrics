@@ -1,0 +1,2 @@
+-- Local demo data, loaded by `supabase db reset` after the migrations.
+-- Each implementation step adds the data its feature needs (see plan.md).

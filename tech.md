@@ -33,10 +33,11 @@ GitHub Actions: CI, deploys, keep-alive ping, nightly backup
 | Area | Choice |
 |---|---|
 | Language | TypeScript (strict) |
-| Package manager | pnpm |
+| Tooling runtime | Node.js 26 LTS (pinned in `.nvmrc`; minimum 22.22) |
+| Package manager | pnpm 10 |
 | Build tool | Vite |
 | UI library | React |
-| Routing | React Router v7 (SPA / data mode) |
+| Routing | React Router v8 (SPA / data mode) |
 | Server state | TanStack Query (wrapping supabase-js) |
 | Styling / components | Tailwind CSS + shadcn/ui |
 | Forms & validation | React Hook Form + Zod |
@@ -240,7 +241,7 @@ The setting is per subject and attribute, and each entry row has exactly one sub
 
 ## 7. Environments & Configuration
 
-- **Local:** `supabase start` (Docker) runs the whole Supabase stack locally, and `vite dev` runs the frontend. Local emails are caught by Supabase's built-in mail testing tool (Inbucket/Mailpit).
+- **Local:** `supabase start` (Docker Desktop; on Windows it needs WSL 2) runs the whole Supabase stack locally, and `vite dev` runs the frontend. Local emails are caught by Supabase's built-in mail testing tool (Inbucket/Mailpit).
 - **Production:** one Supabase project (EU Frankfurt) and one Firebase Hosting site.
 - A second free Supabase project could be added as staging later.
 

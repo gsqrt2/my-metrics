@@ -29,7 +29,7 @@ Things deliberately left for later steps are listed under **Not yet** in each st
 
 Goal: an empty but complete project that runs locally, with the app layout and the full toolchain.
 
-- **Frontend project:** pnpm, Vite + React + TypeScript (strict), Tailwind, shadcn/ui, React Router v7, TanStack Query, React Hook Form + Zod, date-fns. Folder layout as in [tech.md §6](tech.md#6-project-structure). UI text in English, written directly in the components (no i18n library).
+- **Frontend project:** pnpm, Vite + React + TypeScript (strict), Tailwind, shadcn/ui, React Router v8, TanStack Query, React Hook Form + Zod, date-fns. Folder layout as in [tech.md §6](tech.md#6-project-structure). UI text in English, written directly in the components (no i18n library).
 - **App layout (design only, not functional):**
   - text-based logo
   - main menu (e.g. Groups, Profile) with placeholder routes
@@ -37,7 +37,7 @@ Goal: an empty but complete project that runs locally, with the app layout and t
   - the main content area, where each route renders
   - responsive: side or top navigation on desktop, compact navigation on phones (mobile-first, spec §1.3)
   - light and dark theme
-- **Supabase:** `supabase init`; `config.toml` with sign-ups disabled and email confirmation off (FR-1); empty first migration; seed file.
+- **Supabase:** `supabase init`; `config.toml` with sign-ups disabled and email confirmation off (FR-1); empty migrations folder (the first migration comes with step 1); seed file.
 - **Supabase client** and query client in `src/lib/`, reading `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` from `.env.local`; `.env.example` committed.
 - **Tooling:** ESLint, Prettier, Vitest + React Testing Library, Playwright, pgTAP (`supabase test db`) — each with one trivial passing test.
 - **CI workflow:** lint, type-check, Vitest, `supabase test db`, build on every pull request.

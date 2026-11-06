@@ -1,0 +1,8 @@
+dist
+coverage
+playwright-report
+test-results
+pnpm-lock.yaml
+supabase/.temp
+src/types/database.ts
+*.md
