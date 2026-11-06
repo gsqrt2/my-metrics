@@ -82,7 +82,8 @@
 ### 4.1 Authentication & accounts
 - FR-1: **Invite-only accounts.** There's no public sign-up. A new account can only be created by accepting an invite (FR-20), or by the app operator. Users then log in with **email and password** and can log out. There's no social login (e.g. Google).
   - Email addresses aren't confirmed separately; receiving an invite is enough.
-  - Users can reset a forgotten password by email.
+  - Users can reset a forgotten password by email. The reset link works once and expires after an hour. The reset form answers the same way whether or not an account exists for the address.
+  - Passwords have at least 8 characters.
 - FR-2: Users have a display name and an email address. In their profile, users can change their **display name**, **email address** and **password**.
 - FR-3: Users can delete their account.
   - Deletion is blocked while the user owns groups other than their default group. They must first transfer ownership of each of those groups or delete them.
@@ -287,3 +288,4 @@
 | 2026-11-03 | Invite-only: accounts are only created through invites or by the operator. | FR-1, FR-20 |
 | 2026-11-03 | Email in v1: invites by email and password reset. No email confirmation, because there's no public sign-up. | FR-1, FR-20 |
 | 2026-11-03 | Accessibility: best effort. Browsers: current evergreen. | §6 |
+| 2026-11-06 | Passwords have at least 8 characters. Password reset links work once and expire after an hour. | FR-1 |

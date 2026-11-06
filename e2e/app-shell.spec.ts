@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test'
 
+import { users } from './support/local-supabase'
+
 test('opens the group list and navigates to the profile', async ({
   page,
   isMobile,
@@ -11,6 +13,9 @@ test('opens the group list and navigates to the profile', async ({
   if (isMobile) {
     await page.getByRole('button', { name: 'Open menu' }).click()
   }
+  await expect(
+    page.getByRole('button', { name: new RegExp(users.alex.displayName) }),
+  ).toBeVisible()
   await page
     .getByRole('navigation', { name: 'Main' })
     .getByRole('link', { name: 'Profile' })

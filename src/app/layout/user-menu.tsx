@@ -1,5 +1,6 @@
 import { ChevronsUpDown, LogOut, UserRound } from 'lucide-react'
-import { Link } from 'react-router'
+import { useQueryClient } from '@tanstack/react-query'
+import { Link, useNavigate } from 'react-router'
 
 import { useTheme, type Theme } from '@/app/theme'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -13,12 +14,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-
-// Placeholder until sign-in exists (plan step 1).
-const placeholderUser = {
-  displayName: 'Alex Example',
-  email: 'alex@example.com',
-}
+import { useAuth } from '@/features/auth/use-auth'
+import { useProfile } from '@/features/profile/use-profile'
+import { supabase } from '@/lib/supabase'
 
 function initials(name: string) {
   return name
@@ -31,7 +29,22 @@ function initials(name: string) {
 
 export function UserMenu() {
   const { theme, setTheme } = useTheme()
-  const user = placeholderUser
+  const { session } = useAuth()
+  const profile = useProfile()
+  const queryClient = useQueryClient()
+  const navigate = useNavigate()
+
+  const email = session?.user.email ?? ''
+  const user = {
+    displayName: profile.data?.display_name ?? email.split('@')[0],
+    email,
+  }
+
+  const logOut = async () => {
+    await supabase.auth.signOut()
+    queryClient.clear()
+    navigate('/login', { replace: true })
+  }
 
   return (
     <DropdownMenu>
@@ -68,7 +81,7 @@ export function UserMenu() {
           <DropdownMenuRadioItem value="dark">Dark</DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        <DropdownMenuItem onSelect={logOut}>
           <LogOut aria-hidden />
           Log out
         </DropdownMenuItem>

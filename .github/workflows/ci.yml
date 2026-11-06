@@ -39,6 +39,15 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
+      # Only what the app uses so far: database, auth, REST API, gateway, Mailpit.
+      - name: Start local Supabase
+        run: pnpm exec supabase start -x studio,storage-api,imgproxy,realtime,edge-runtime,logflare,vector,supavisor,postgres-meta
+      - name: Write .env.local
+        run: |
+          pnpm exec supabase status -o env \
+            | sed -n 's/^API_URL=/VITE_SUPABASE_URL=/p; s/^PUBLISHABLE_KEY=/VITE_SUPABASE_PUBLISHABLE_KEY=/p' \
+            > .env.local
+          cut -d= -f1 .env.local
       - run: pnpm e2e
       - uses: actions/upload-artifact@v4
         if: failure()

@@ -2,12 +2,31 @@ import { Navigate, type RouteObject } from 'react-router'
 
 import { AppLayout } from '@/app/layout/app-layout'
 import { NotFoundPage } from '@/app/not-found-page'
+import { AuthLayout } from '@/features/auth/auth-layout'
+import { ForgotPasswordPage } from '@/features/auth/forgot-password-page'
+import { LoginPage } from '@/features/auth/login-page'
+import { RequireAuth } from '@/features/auth/require-auth'
+import { ResetPasswordPage } from '@/features/auth/reset-password-page'
 import { GroupsPage } from '@/features/groups/groups-page'
 import { ProfilePage } from '@/features/profile/profile-page'
 
 export const routes: RouteObject[] = [
   {
-    element: <AppLayout />,
+    // Public pages
+    element: <AuthLayout />,
+    children: [
+      { path: 'login', element: <LoginPage /> },
+      { path: 'forgot-password', element: <ForgotPasswordPage /> },
+      { path: 'reset-password', element: <ResetPasswordPage /> },
+    ],
+  },
+  {
+    // Everything else needs a logged-in user
+    element: (
+      <RequireAuth>
+        <AppLayout />
+      </RequireAuth>
+    ),
     children: [
       // The group list is the first page after login (FR-12).
       { index: true, element: <Navigate to="/groups" replace /> },

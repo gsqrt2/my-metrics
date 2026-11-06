@@ -196,7 +196,7 @@ At this point every feature in [features.md](features.md) is built.
 
 ## Step 16: Go live
 
-- Supabase cloud project (EU Frankfurt): auth settings matching `config.toml`, custom SMTP, Edge Function secrets.
+- Supabase cloud project (EU Frankfurt): auth settings matching `config.toml` (sign-ups off, minimum password length, site URL and redirect URLs), the password reset email template, custom SMTP, Edge Function secrets.
 - Firebase Hosting site with the SPA rewrite.
 - Deploy workflow on push to `main`: migrations, Edge Functions, hosting.
 - Keep-alive workflow (daily) and nightly backup workflow. **Decide:** backup location (tech.md open question 2).

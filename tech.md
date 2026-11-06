@@ -68,7 +68,13 @@ GitHub Actions: CI, deploys, keep-alive ping, nightly backup
 - The **operator** creates the first account(s) in the Supabase dashboard.
 
 ### Other auth flows
+- **Sessions:** supabase-js keeps the session in `localStorage` and refreshes it automatically. An `AuthProvider` listens to `onAuthStateChange`; a `RequireAuth` route wrapper sends logged-out visitors to `/login` and back to the requested page afterwards.
+- **Passwords:** at least 8 characters (`minimum_password_length` in `config.toml`, mirrored in the frontend validation).
 - **Password reset** uses Supabase Auth's reset email, sent through the custom SMTP provider.
+  - The email uses our own template (`supabase/templates/recovery.html`). Its link goes straight to the app, `/reset-password?token_hash=…&type=recovery`, and the page calls `supabase.auth.verifyOtp`. Unlike the default link, this works when the email is opened on another device than the one that requested it, and link scanners in mail clients can't use up the token, because verifying needs JavaScript.
+  - The same template and subject must be set in the cloud project (step 16).
+  - The request form always shows the same confirmation, so it doesn't reveal which addresses have accounts.
+- **Seed accounts (local only):** `alex@example.com`, `sam@example.com` and `kim@example.com`, all with the password `password`, created in `supabase/seed.sql`.
 - **Profile changes** (spec FR-2): display name in `profiles`; password and email through `supabase.auth.updateUser`. **[OPEN: whether an email change must be confirmed through a link to the new address. Supabase does this by default once SMTP is set up.]**
 - A trigger on `auth.users` creates the `profiles` row and the user's **default group** (spec FR-13), in one transaction:
   - a `groups` row named "Personal", with `default_for_user_id` set to the user

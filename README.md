@@ -17,18 +17,20 @@ An invite-only web app for logging personal measurements over time (height, weig
 
 ```sh
 pnpm install
-pnpm dev            # app at http://localhost:5173
-```
-
-The app shell runs without a database. Once features talk to Supabase:
-
-```sh
 pnpm db:start                 # local Supabase in Docker; prints the URL and keys
 cp .env.example .env.local    # fill in VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY
 pnpm db:reset                 # apply migrations and seed.sql
+pnpm dev                      # app at http://localhost:5173
 ```
 
-Local Supabase also runs Studio (database UI) and Mailpit, which catches every email the app sends. `pnpm db:start` prints their URLs.
+Log in with one of the demo accounts from `supabase/seed.sql`: `alex@example.com`, `sam@example.com` or `kim@example.com`, password `password` (local only).
+
+Local Supabase also runs:
+
+- **Studio**, a database UI: http://127.0.0.1:54323
+- **Mailpit**, which catches every email the app sends (e.g. password resets) instead of delivering it: http://127.0.0.1:54324
+
+After changing `supabase/config.toml` or an email template, restart with `pnpm db:stop && pnpm db:start`. After adding a migration, run `pnpm db:reset`.
 
 ## Scripts
 
@@ -40,7 +42,7 @@ Local Supabase also runs Studio (database UI) and Mailpit, which catches every e
 | `pnpm lint` / `pnpm typecheck` | ESLint / TypeScript |
 | `pnpm format` / `pnpm format:check` | Prettier |
 | `pnpm test` / `pnpm test:watch` | Unit and component tests (Vitest) |
-| `pnpm e2e` | End-to-end tests (Playwright; run `pnpm exec playwright install chromium` once) |
+| `pnpm e2e` | End-to-end tests (Playwright; needs local Supabase running; run `pnpm exec playwright install chromium` once) |
 | `pnpm db:start` / `pnpm db:stop` | Start / stop local Supabase |
 | `pnpm db:reset` | Recreate the local database from migrations and seed |
 | `pnpm db:test` | Database and RLS tests (pgTAP) |
