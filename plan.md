@@ -8,7 +8,10 @@ Everything is built and tested locally first (`supabase start` + `vite dev`, see
 
 ## Progress
 
-**This table is the source of truth for where the project stands.** It is updated in the same commit that finishes (or pauses) a step, so it never falls behind the code. Read it first when picking the work back up.
+**This table is the source of truth for where the project stands.** Read it first when picking the work back up.
+
+- **Open items are added the moment a gap is found:** while building, testing, reviewing or discussing. Don't wait for the end of the step or the next commit.
+- **Statuses change when the work does:** 🚧 when a step starts, ✅ when it's merged, ⏸️ when work stops part-way.
 
 Status: ✅ done · 🚧 in progress · ⏸️ paused with open items · ⬜ not started
 
@@ -58,7 +61,7 @@ Each step is done when:
 6. **Seed:** `supabase/seed.sql` extended with demo data for the feature.
 7. **Docs:** spec/tech updated if anything was decided along the way; open questions closed in the decision log.
 8. **CI green:** lint, type-check, tests, build.
-9. **Progress:** the [Progress](#progress) table and open items updated in the same commit. A step stopped part-way is marked ⏸️, with its unfinished tasks listed under open items.
+9. **Progress:** the [Progress](#progress) table shows the step as ✅, and its open items are either resolved or still listed. Gaps are added to open items as soon as they're found, not at the end (see [Progress](#progress)). A step stopped part-way is marked ⏸️, with its unfinished tasks listed.
 
 Things deliberately left for later steps are listed under **Not yet** in each step, so nothing is half-built by accident.
 
