@@ -24,7 +24,8 @@ from (values
   ('a0000000-0000-0000-0000-000000000006'::uuid, 'pat@example.com', 'Pat Example'),
   ('a0000000-0000-0000-0000-000000000007'::uuid, 'max@example.com', 'Max Example'),
   ('a0000000-0000-0000-0000-000000000008'::uuid, 'jo@example.com', 'Jo Example'),
-  ('a0000000-0000-0000-0000-000000000009'::uuid, 'ari@example.com', 'Ari Example')
+  ('a0000000-0000-0000-0000-000000000009'::uuid, 'ari@example.com', 'Ari Example'),
+  ('a0000000-0000-0000-0000-000000000010'::uuid, 'noa@example.com', 'Noa Example')
 ) as u (id, email, display_name);
 
 insert into auth.identities (
@@ -67,3 +68,12 @@ insert into public.subjects (id, group_id, name, birthdate, linked_user_id, arch
   ('c0000000-0000-0000-0000-000000000004', 'b0000000-0000-0000-0000-000000000002', 'Alex Example', null, 'a0000000-0000-0000-0000-000000000001', null),
   ('c0000000-0000-0000-0000-000000000005', 'b0000000-0000-0000-0000-000000000002', 'Kim Example', null, 'a0000000-0000-0000-0000-000000000003', null),
   ('c0000000-0000-0000-0000-000000000006', 'b0000000-0000-0000-0000-000000000002', 'Lee Example', null, 'a0000000-0000-0000-0000-000000000004', null);
+
+-- Demo attributes, shown as "metrics" (step 5). Personal groups start with
+-- none, so they show the suggested attributes. The trigger sets the order.
+insert into public.attributes (id, group_id, name, unit, precision, direction, min_value, max_value) values
+  ('d1000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000001', 'Height', 'cm', 1, 'neutral', 40, 220),
+  ('d1000000-0000-0000-0000-000000000002', 'b0000000-0000-0000-0000-000000000001', 'Weight', 'kg', 1, 'neutral', 2, 150),
+  ('d1000000-0000-0000-0000-000000000003', 'b0000000-0000-0000-0000-000000000002', 'Weight', 'kg', 1, 'lower_better', 40, 250),
+  ('d1000000-0000-0000-0000-000000000004', 'b0000000-0000-0000-0000-000000000002', 'Waist', 'cm', 0, 'lower_better', null, null),
+  ('d1000000-0000-0000-0000-000000000005', 'b0000000-0000-0000-0000-000000000002', 'Body fat', '%', 1, 'lower_better', 0, 70);

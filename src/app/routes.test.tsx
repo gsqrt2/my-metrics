@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { createMemoryRouter } from 'react-router'
 import { RouterProvider } from 'react-router/dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -7,6 +8,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ThemeProvider } from '@/app/theme'
 import { routes } from '@/app/routes'
 import type { AuthState } from '@/features/auth/auth-context'
+import type { Attribute } from '@/features/attributes/use-attributes'
 import type { GroupRow } from '@/features/groups/types'
 import type { Subject } from '@/features/subjects/use-subjects'
 
@@ -14,6 +16,7 @@ const auth = vi.hoisted(() => ({ state: null as AuthState | null }))
 const data = vi.hoisted(() => ({
   groups: [] as GroupRow[],
   subjects: [] as Subject[],
+  attributes: [] as Attribute[],
 }))
 
 vi.mock('@/features/auth/use-auth', () => ({ useAuth: () => auth.state }))
@@ -32,6 +35,13 @@ vi.mock('@/features/subjects/use-subjects', async (importOriginal) => ({
   ...(await importOriginal()),
   useSubjects: (groupId: string) => ({
     data: data.subjects.filter((subject) => subject.group_id === groupId),
+  }),
+}))
+
+vi.mock('@/features/attributes/use-attributes', async (importOriginal) => ({
+  ...(await importOriginal()),
+  useAttributes: (groupId: string) => ({
+    data: data.attributes.filter((a) => a.group_id === groupId),
   }),
 }))
 
@@ -77,6 +87,20 @@ describe('when logged in', () => {
   beforeEach(() => {
     auth.state = loggedIn
     data.groups = [personal, diet]
+    data.attributes = [
+      {
+        id: 'a-weight',
+        group_id: 'g-diet',
+        name: 'Weight',
+        unit: 'kg',
+        precision: 1,
+        direction: 'lower_better',
+        min_value: null,
+        max_value: null,
+        sort_order: 0,
+        archived_at: null,
+      },
+    ]
     data.subjects = [
       {
         id: 's-me',
@@ -157,11 +181,48 @@ describe('when logged in', () => {
     )
   })
 
-  it('offers editing to owners and editors only', async () => {
+  it('offers owners and editors the logbook options in one menu', async () => {
+    renderAt('/logbooks/g-personal')
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Options' }),
+    )
+    const menu = await screen.findByRole('menu')
+    expect(
+      within(menu).getByRole('menuitem', { name: 'Participants' }),
+    ).toHaveAttribute('href', '/logbooks/g-personal/participants')
+    expect(
+      within(menu).getByRole('menuitem', { name: 'Metrics' }),
+    ).toHaveAttribute('href', '/logbooks/g-personal/metrics')
+    expect(
+      within(menu).getByRole('menuitem', { name: 'Edit logbook' }),
+    ).toHaveAttribute('href', '/logbooks/g-personal/edit')
+  })
+
+  it("shows a logbook's metrics, and invites editors to add the first", async () => {
+    renderAt('/logbooks/g-diet')
+    expect(
+      await screen.findByRole('list', { name: 'Metrics' }),
+    ).toHaveTextContent('Weight (kg)')
+  })
+
+  it('leads owners and editors from an empty logbook to its metrics', async () => {
     renderAt('/logbooks/g-personal')
     expect(
-      await screen.findByRole('link', { name: 'Edit logbook' }),
-    ).toHaveAttribute('href', '/logbooks/g-personal/edit')
+      await screen.findByRole('link', { name: 'Choose what to measure' }),
+    ).toHaveAttribute('href', '/logbooks/g-personal/metrics')
+  })
+
+  it('suggests metrics while a logbook has none', async () => {
+    renderAt('/logbooks/g-personal/metrics')
+    expect(
+      await screen.findByRole('heading', { name: 'No metrics yet' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Weight (kg)' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: 'Custom metric…' }),
+    ).toHaveAttribute('href', '/logbooks/g-personal/metrics/new')
   })
 
   it('links from a group back to the group list', async () => {
@@ -178,9 +239,6 @@ describe('when logged in', () => {
     const list = await screen.findByRole('list', { name: 'Participants' })
     expect(list).toHaveTextContent('Alex Example(you)')
     expect(list).not.toHaveTextContent('Old Friend')
-    expect(
-      screen.getByRole('link', { name: 'Manage participants' }),
-    ).toHaveAttribute('href', '/logbooks/g-personal/participants')
   })
 
   it('lets owners and editors manage subjects on their own page', async () => {
@@ -208,7 +266,7 @@ describe('when logged in', () => {
     const list = await screen.findByRole('list', { name: 'Participants' })
     expect(list).toHaveTextContent('Kim')
     expect(
-      screen.queryByRole('link', { name: 'Manage participants' }),
+      screen.queryByRole('button', { name: 'Options' }),
     ).not.toBeInTheDocument()
   })
 
@@ -229,7 +287,7 @@ describe('when logged in', () => {
     await screen.findByRole('heading', { name: 'Diet Challenge' })
     expect(screen.getByText('Viewer')).toBeInTheDocument()
     expect(
-      screen.queryByRole('link', { name: 'Edit logbook' }),
+      screen.queryByRole('button', { name: 'Options' }),
     ).not.toBeInTheDocument()
   })
 

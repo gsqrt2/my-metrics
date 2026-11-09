@@ -18,6 +18,7 @@ export const users = {
   max: { email: 'max@example.com', displayName: 'Max Example' }, // phone
   jo: { email: 'jo@example.com', displayName: 'Jo Example' }, // creates groups
   ari: { email: 'ari@example.com', displayName: 'Ari Example' }, // subjects
+  noa: { email: 'noa@example.com', displayName: 'Noa Example' }, // attributes
 }
 
 export const MAILPIT_URL = 'http://127.0.0.1:54324'

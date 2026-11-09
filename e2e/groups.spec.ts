@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 
 import { deleteOwnedGroups, users } from './support/local-supabase'
-import { logIn } from './support/login'
+import { logIn, openLogbookOption } from './support/login'
 
 test('the group list shows the default group first, then the shared ones', async ({
   page,
@@ -73,7 +73,7 @@ test.describe('creating and editing', () => {
     await expect(page.getByText('Owner')).toBeVisible()
     await expect(page.getByText(/Jun 1\D+Aug 31, 2027/)).toBeVisible()
 
-    await page.getByRole('link', { name: 'Edit logbook' }).click()
+    await openLogbookOption(page, 'Edit logbook')
     await expect(page.getByLabel('Name')).toHaveValue('Summer Steps')
     await page.getByLabel('Name').fill('Summer Steps 2027')
     await page.getByLabel('Runs between two dates').uncheck()

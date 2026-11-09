@@ -34,6 +34,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      attributes: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          direction: Database['public']['Enums']['attribute_direction']
+          group_id: string
+          id: string
+          max_value: number | null
+          min_value: number | null
+          name: string
+          precision: number
+          sort_order: number
+          unit: string | null
+        }
+        ComputedFields: never
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          direction?: Database['public']['Enums']['attribute_direction']
+          group_id: string
+          id?: string
+          max_value?: number | null
+          min_value?: number | null
+          name: string
+          precision?: number
+          sort_order?: number
+          unit?: string | null
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          direction?: Database['public']['Enums']['attribute_direction']
+          group_id?: string
+          id?: string
+          max_value?: number | null
+          min_value?: number | null
+          name?: string
+          precision?: number
+          sort_order?: number
+          unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'attributes_group_id_fkey'
+            columns: ['group_id']
+            isOneToOne: false
+            referencedRelation: 'groups'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       groups: {
         Row: {
           archived_at: string | null
@@ -197,8 +248,13 @@ export type Database = {
         Args: { target_group_id: string }
         Returns: Database['public']['Enums']['group_role']
       }
+      reorder_attributes: {
+        Args: { attribute_ids: string[]; target_group_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
+      attribute_direction: 'higher_better' | 'lower_better' | 'neutral'
       group_role: 'owner' | 'editor' | 'viewer'
       subject_color:
         | 'blue'
@@ -336,6 +392,7 @@ export const Constants = {
   },
   public: {
     Enums: {
+      attribute_direction: ['higher_better', 'lower_better', 'neutral'],
       group_role: ['owner', 'editor', 'viewer'],
       subject_color: [
         'blue',
