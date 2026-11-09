@@ -77,6 +77,16 @@ test('the by-participant view shows each person with every metric as % change', 
   await page.getByRole('button', { name: 'By metric' }).click()
 })
 
+test('only the expand button opens a chart full screen', async ({ page }) => {
+  await page.goto('/logbooks/b0000000-0000-0000-0000-000000000002') // Diet Challenge
+  await page.getByRole('img', { name: /^Weight over time/ }).click()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await page
+    .getByRole('button', { name: 'Open Weight (kg) full screen' })
+    .click()
+  await expect(page.getByRole('dialog', { name: 'Weight (kg)' })).toBeVisible()
+})
+
 test('a chart opens full screen with time spans, y-axis and age options', async ({
   page,
 }) => {

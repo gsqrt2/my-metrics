@@ -15,7 +15,8 @@ import { formatDecimal } from '@/lib/numbers'
 
 // One attribute's card in the "by metric" view: a line per subject, in real
 // values, with each subject's latest value and changes below (also the
-// legend). Tapping the chart opens it full screen.
+// legend). The button in its title opens it full screen; the chart itself
+// only shows tooltips.
 export function MetricChart({
   attribute,
   subjects,
@@ -45,14 +46,12 @@ export function MetricChart({
         </p>
       ) : (
         <>
-          <OpenArea label={label} onOpen={onOpen}>
-            <MetricLines
-              attribute={attribute}
-              subjects={subjects}
-              points={points}
-              className="h-48"
-            />
-          </OpenArea>
+          <MetricLines
+            attribute={attribute}
+            subjects={subjects}
+            points={points}
+            className="h-48"
+          />
           <ul
             aria-label={`${attribute.name}: latest values`}
             className="flex flex-col gap-2"
@@ -138,29 +137,6 @@ export function ChartCard({
       </div>
       {children}
     </article>
-  )
-}
-
-// The chart area of a card, which opens it full screen when tapped. Not a
-// button itself, so the tooltip still works; keyboard users have the button
-// in the card's title.
-export function OpenArea({
-  label,
-  onOpen,
-  children,
-}: {
-  label: string
-  onOpen: () => void
-  children: React.ReactNode
-}) {
-  return (
-    <div
-      className="cursor-zoom-in"
-      title={`Open ${label} full screen`}
-      onClick={onOpen}
-    >
-      {children}
-    </div>
   )
 }
 

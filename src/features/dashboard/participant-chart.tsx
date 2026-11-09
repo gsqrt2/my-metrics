@@ -2,7 +2,7 @@ import type { Attribute } from '@/features/attributes/use-attributes'
 import { attributesWithoutChange } from '@/features/dashboard/chart-data'
 import { formatPercent } from '@/features/dashboard/chart-format'
 import { ParticipantLines } from '@/features/dashboard/chart-lines'
-import { ChartCard, OpenArea } from '@/features/dashboard/metric-chart'
+import { ChartCard } from '@/features/dashboard/metric-chart'
 import {
   MAX_METRICS_PER_CHART,
   metricColors,
@@ -19,7 +19,7 @@ import type { Subject } from '@/features/subjects/use-subjects'
 // One subject's card in the "by participant" view (decided 2026-11-09):
 // every attribute as its % change since its first entry, so different units
 // can share one axis. Actual values with units show on hover and in the list
-// below (also the legend). Tapping the chart opens it full screen.
+// below (also the legend). The button in its title opens it full screen.
 export function ParticipantChart({
   subject,
   attributes,
@@ -67,14 +67,12 @@ export function ParticipantChart({
         </p>
       ) : (
         <>
-          <OpenArea label={subject.name} onOpen={onOpen}>
-            <ParticipantLines
-              subject={subject}
-              attributes={shown}
-              points={points}
-              className="h-48"
-            />
-          </OpenArea>
+          <ParticipantLines
+            subject={subject}
+            attributes={shown}
+            points={points}
+            className="h-48"
+          />
           <ul
             aria-label={`${subject.name}: latest values`}
             className="flex flex-col gap-2"
