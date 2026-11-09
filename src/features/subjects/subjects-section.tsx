@@ -4,7 +4,7 @@ import { SubjectAvatar } from '@/features/subjects/subject-avatar'
 import { useSubjects } from '@/features/subjects/use-subjects'
 
 // Compact row of the group's active subjects on the group page. Owners and
-// editors manage them on the subjects page ("Manage participants" in the header; "participant" is the UI's word for a subject).
+// editors manage them on the subjects page (Options → Participants; "participant" is the UI's word for a subject).
 export function SubjectsSection({ group }: { group: GroupRow }) {
   const subjects = useSubjects(group.id)
   const { session } = useAuth()

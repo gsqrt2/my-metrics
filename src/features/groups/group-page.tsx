@@ -1,4 +1,3 @@
-import { Pencil, Users } from 'lucide-react'
 import { Link, useParams } from 'react-router'
 
 import { BackLink } from '@/app/layout/back-link'
@@ -9,6 +8,8 @@ import { Button } from '@/components/ui/button'
 import { GroupMeta } from '@/features/groups/group-meta'
 import { canEditGroup, type GroupRow } from '@/features/groups/types'
 import { useGroup } from '@/features/groups/use-groups'
+import { AttributesSection } from '@/features/attributes/attributes-section'
+import { GroupOptionsMenu } from '@/features/groups/group-options-menu'
 import { SubjectsSection } from '@/features/subjects/subjects-section'
 
 // Loads the group in the URL and shows loading, error and not-found states, so
@@ -49,8 +50,8 @@ export function WithGroup({
   return children(group.data)
 }
 
-// The group's home: its subjects, and from steps 5–8 its attributes, entries
-// and dashboard.
+// The group's home: its subjects and attributes, and from steps 6–8 its
+// entries and dashboard.
 export function GroupPage() {
   return (
     <WithGroup>
@@ -60,32 +61,16 @@ export function GroupPage() {
           <PageHeader
             title={group.name}
             description={group.description ?? undefined}
-            actions={
-              canEditGroup(group) && (
-                <div className="flex flex-wrap gap-2">
-                  <Button asChild variant="outline">
-                    <Link to={`/logbooks/${group.id}/participants`}>
-                      <Users aria-hidden />
-                      Manage participants
-                    </Link>
-                  </Button>
-                  <Button asChild variant="outline">
-                    <Link to={`/logbooks/${group.id}/edit`}>
-                      <Pencil aria-hidden />
-                      Edit logbook
-                    </Link>
-                  </Button>
-                </div>
-              )
-            }
+            actions={canEditGroup(group) && <GroupOptionsMenu group={group} />}
           />
           <div className="-mt-4 mb-8">
             <GroupMeta group={group} />
           </div>
-          <div className="flex flex-col gap-10">
+          <div className="flex flex-col gap-4">
             <SubjectsSection group={group} />
-            <Placeholder>
-              Attributes and entries will appear here (plan steps 5–6).
+            <AttributesSection group={group} />
+            <Placeholder className="mt-6">
+              Entries will appear here (plan step 6).
             </Placeholder>
           </div>
         </>

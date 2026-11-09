@@ -13,3 +13,12 @@ export async function logIn(
   await page.getByRole('button', { name: 'Log in' }).click()
   await expect(page.getByRole('heading', { name: 'Logbooks' })).toBeVisible()
 }
+
+// Opens one of the logbook's management pages through its Options menu.
+export async function openLogbookOption(
+  page: Page,
+  option: 'Participants' | 'Metrics' | 'Edit logbook',
+) {
+  await page.getByRole('button', { name: 'Options' }).click()
+  await page.getByRole('menuitem', { name: option }).click()
+}

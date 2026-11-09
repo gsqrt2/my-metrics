@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 
 import { deleteOwnedGroups, users } from './support/local-supabase'
-import { logIn } from './support/login'
+import { logIn, openLogbookOption } from './support/login'
 
 test('a group shows its subjects; managing them shows archived ones on request', async ({
   page,
@@ -12,7 +12,7 @@ test('a group shows its subjects; managing them shows archived ones on request',
   await expect(subjects.getByRole('listitem')).toHaveText([/^MIMia/, /^NONoah/])
   await expect(page.getByText('Biscuit (dog)')).toHaveCount(0)
 
-  await page.getByRole('link', { name: 'Manage participants' }).click()
+  await openLogbookOption(page, 'Participants')
   await expect(
     page.getByRole('heading', { name: 'Participants' }),
   ).toBeVisible()
@@ -52,7 +52,7 @@ test.describe('managing subjects', () => {
   async function openPersonalSubjects(page: Page) {
     await page.goto('/logbooks')
     await page.getByRole('link', { name: /^Personal/ }).click()
-    await page.getByRole('link', { name: 'Manage participants' }).click()
+    await openLogbookOption(page, 'Participants')
     const subjects = page.getByRole('list', { name: 'Participants' })
     await expect(subjects).toBeVisible()
     return subjects
@@ -65,8 +65,10 @@ test.describe('managing subjects', () => {
     await page.getByRole('link', { name: 'New logbook' }).click()
     await page.getByLabel('Name').fill('Ari Kids')
     await page.getByRole('button', { name: 'Create logbook' }).click()
-    await expect(page.getByText('None yet.')).toBeVisible()
-    await page.getByRole('link', { name: 'Manage participants' }).click()
+    await expect(
+      page.getByRole('region', { name: 'Participants' }),
+    ).toContainText('None yet.')
+    await openLogbookOption(page, 'Participants')
     await expect(
       page.getByText('No participants yet. Add who or what you measure here'),
     ).toBeVisible()

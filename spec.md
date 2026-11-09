@@ -41,7 +41,7 @@
 | **Member** | A user who has access to a group, with a **role**. |
 | **Role** | `owner`, `editor` or `viewer`; see §5. Every group has exactly one owner. |
 | **Subject** | Who (or what) is measured within a group. A subject belongs to exactly one group. It can be **linked to a user** (a friend tracking themselves) or **unlinked** (a child without an account). The app calls subjects **participants**; "subject" stays the term in this spec and in the code. |
-| **Attribute** | A custom-named metric that exists only within its group. The group gives it its meaning: "Height" in a group "Growth" is how tall the subject is, while "Height" in a group "Performance" is how high the subject can jump. Attributes aren't shared or reused across groups. |
+| **Attribute** | A custom-named metric that exists only within its group. The group gives it its meaning: "Height" in a group "Growth" is how tall the subject is, while "Height" in a group "Performance" is how high the subject can jump. Attributes aren't shared or reused across groups. The app calls attributes **metrics**; "attribute" stays the term in this spec and in the code. |
 | **Entry** | One recorded value: subject + attribute + value + date and time (+ optional comment). |
 | **Value visibility** | Per subject and attribute: whether other members see the **actual values** or only the **% change** (FR-43). |
 
@@ -134,7 +134,7 @@
 ### 4.5 Attributes
 - FR-40: Owners and editors can create, edit and reorder attributes, with these fields:
   - **name** (free text, required)
-  - **unit** (free text, e.g. "cm", "kg"; optional)
+  - **unit** (free text, e.g. "cm", "kg"; optional; up to 20 characters). The form suggests common units, but any text is allowed. There's no unit conversion in v1 (§7).
   - **value type**: `number` in v1
   - **precision** (number of decimals; default 1)
   - **direction**: `higher is better` / `lower is better` / `neutral` (used for colouring progress)
@@ -256,7 +256,7 @@
 
 ## 8. Open Questions
 
-1. **Units:** fixed free-text units per attribute (current proposal), or structured units with conversion?
+None at the moment.
 
 ---
 
@@ -295,4 +295,8 @@
 | 2026-11-09 | Every subject has a colour from a fixed palette of eight, suggested automatically (the one least used in the group) and changeable. Its avatar shows its initials in that colour; there are no uploaded pictures in v1. | FR-30 |
 | 2026-11-09 | Renaming a linked subject back to the user's display name makes it follow the display name again. | FR-33 |
 | 2026-11-09 | Subjects are called "participants" in the app (text and URLs), since "subject" would confuse users. The spec, database and code keep "subject". | Glossary |
+| 2026-11-09 | Units are free text per attribute (up to 20 characters), with common units suggested in the form. No structured units or conversion in v1. | FR-40, §8 |
+| 2026-11-09 | Attributes are called "metrics" in the app (text and URLs). The spec, database and code keep "attribute". | Glossary |
+| 2026-11-09 | Attribute names are unique within a group, ignoring case (archived ones included). Suggested attributes are offered in any group without attributes, not only the default group. | FR-13, FR-40 |
+| 2026-11-09 | A group's management pages (participants, metrics, editing the group, later members) sit behind one "Options" menu on the group page. | FR-11 |
 | 2026-11-09 | Groups are called "logbooks" in the app (text and URLs, e.g. `/logbooks/…`), as a more intuitive name for a shared or personal measurement record. The spec, database and code keep "group". | Glossary |

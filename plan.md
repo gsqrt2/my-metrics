@@ -21,8 +21,8 @@ Status: ✅ done · 🚧 in progress · ⏸️ paused with open items · ⬜ not
 | 1 | Sign-in | ✅ | 2026-11-06 | `9fcd4aa` |
 | 2 | Profile | ✅ | 2026-11-06 | `125043f` |
 | 3 | Groups | ✅ | 2026-11-09 | `57c8b00` |
-| 4 | Subjects (participants) | ✅ | 2026-11-09 | |
-| 5 | Attributes | ⬜ | | |
+| 4 | Subjects (participants) | ✅ | 2026-11-09 | `987e1dc` |
+| 5 | Attributes | 🚧 | | |
 | 6 | Logging | ⬜ | | |
 | 7 | Group dashboard | ⬜ | | |
 | 8 | Charts and tables | ⬜ | | |
@@ -35,7 +35,7 @@ Status: ✅ done · 🚧 in progress · ⏸️ paused with open items · ⬜ not
 | 15 | Account deletion | ⬜ | | |
 | 16 | Go live | ⬜ | | |
 
-**Next:** step 5 (Attributes).
+**Next:** finish step 5 (Attributes).
 
 ### Open items
 
@@ -53,7 +53,11 @@ Anything left unfinished, deferred or worth knowing before the next step. Each i
   - Changing the logbook reloads participants and attributes, and asks before discarding values already typed in.
   - Full-screen sheet on phones, dialog or side sheet on desktop. Last logbook and participant are remembered per device (browser storage), not in the database.
   - Step 6 adds this flow to spec FR-51.
-- **Group page header actions** (step 4). Owners and editors see "Manage subjects" and "Edit group" side by side. Once step 5 adds attribute management, decide whether to fold these into one "group options" menu, so the header stays compact on phones.
+- **Attribute rules that need entries** (step 5, to finish in step 6):
+  - Only the owner may delete an attribute that has entries (FR-42). The delete policy lets editors delete any attribute for now, since none can have entries yet.
+  - Archived attributes are read-only: no new entries (FR-42), enforced with `can_write_entry`.
+  - Changing the unit or decimals of an attribute that has entries shows a warning first (FR-41). The edit form has a `notice` slot for it.
+  - Deleting an attribute with entries should say how many entries go with it.
 - **Archived subjects can still be edited** (step 4). FR-32 makes them read-only for *entries*; renaming or recolouring an archived subject is allowed. Step 6 enforces "no new entries" through `can_write_subject`.
 - **CI** (2026-11-06): green on `main` (`a1ffb71`). Chromium is cached per Playwright version and installed without `--with-deps`; if a runner image update ever breaks Chromium with missing libraries, add `pnpm exec playwright install-deps chromium` back. The slowest e2e step is now starting Supabase (~80 s).
 
