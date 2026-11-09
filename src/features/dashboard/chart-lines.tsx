@@ -97,7 +97,8 @@ function Lines({
           tickFormatter={yFormat}
           tickLine={false}
           axisLine={false}
-          width={48}
+          // As wide as its labels, so the chart lines up with the card's text.
+          width="auto"
         />
         {zeroLine && (
           <ReferenceLine
