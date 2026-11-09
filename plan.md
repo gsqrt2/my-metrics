@@ -20,7 +20,7 @@ Status: ✅ done · 🚧 in progress · ⏸️ paused with open items · ⬜ not
 | 0 | Boilerplate and app layout | ✅ | 2026-11-06 | `8017ea6` |
 | 1 | Sign-in | ✅ | 2026-11-06 | `9fcd4aa` |
 | 2 | Profile | ✅ | 2026-11-06 | `125043f` |
-| 3 | Groups | 🚧 | | |
+| 3 | Groups | ✅ | 2026-11-09 | |
 | 4 | Subjects | ⬜ | | |
 | 5 | Attributes | ⬜ | | |
 | 6 | Logging | ⬜ | | |
@@ -35,7 +35,7 @@ Status: ✅ done · 🚧 in progress · ⏸️ paused with open items · ⬜ not
 | 15 | Account deletion | ⬜ | | |
 | 16 | Go live | ⬜ | | |
 
-**Next:** finish step 3 (Groups): review and merge.
+**Next:** step 4 (Subjects).
 
 ### Open items
 
