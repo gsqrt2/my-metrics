@@ -292,3 +292,5 @@
 | 2026-11-03 | Accessibility: best effort. Browsers: current evergreen. | §6 |
 | 2026-11-06 | Email changes are confirmed by a link to the new address; the old address is notified afterwards. Password changes need the current password and send a notice. | FR-2 |
 | 2026-11-06 | Passwords have at least 8 characters. Password reset links work once and expire after an hour. | FR-1 |
+| 2026-11-09 | Every subject has a colour from a fixed palette of eight, suggested automatically (the one least used in the group) and changeable. Its avatar shows its initials in that colour; there are no uploaded pictures in v1. | FR-30 |
+| 2026-11-09 | Renaming a linked subject back to the user's display name makes it follow the display name again. | FR-33 |

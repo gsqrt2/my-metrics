@@ -23,7 +23,8 @@ from (values
   ('a0000000-0000-0000-0000-000000000005'::uuid, 'robin@example.com', 'Robin Example'),
   ('a0000000-0000-0000-0000-000000000006'::uuid, 'pat@example.com', 'Pat Example'),
   ('a0000000-0000-0000-0000-000000000007'::uuid, 'max@example.com', 'Max Example'),
-  ('a0000000-0000-0000-0000-000000000008'::uuid, 'jo@example.com', 'Jo Example')
+  ('a0000000-0000-0000-0000-000000000008'::uuid, 'jo@example.com', 'Jo Example'),
+  ('a0000000-0000-0000-0000-000000000009'::uuid, 'ari@example.com', 'Ari Example')
 ) as u (id, email, display_name);
 
 insert into auth.identities (
@@ -54,3 +55,15 @@ insert into public.memberships (group_id, user_id, role) values
   ('b0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000005', 'viewer'), -- Robin
   ('b0000000-0000-0000-0000-000000000002', 'a0000000-0000-0000-0000-000000000003', 'editor'), -- Kim
   ('b0000000-0000-0000-0000-000000000002', 'a0000000-0000-0000-0000-000000000004', 'editor'); -- Lee
+
+-- Demo subjects (step 4). Every Personal group already has its user's linked
+-- subject. "Kids" tracks two children without accounts (and an archived one);
+-- in "Diet Challenge" each member tracks themselves, linked as accepting an
+-- invite will do (step 9). Colours are picked by the trigger, in palette order.
+insert into public.subjects (id, group_id, name, birthdate, linked_user_id, archived_at) values
+  ('c0000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000001', 'Mia', '2019-04-12', null, null),
+  ('c0000000-0000-0000-0000-000000000002', 'b0000000-0000-0000-0000-000000000001', 'Noah', '2022-09-03', null, null),
+  ('c0000000-0000-0000-0000-000000000003', 'b0000000-0000-0000-0000-000000000001', 'Biscuit (dog)', '2020-06-20', null, '2026-08-01'),
+  ('c0000000-0000-0000-0000-000000000004', 'b0000000-0000-0000-0000-000000000002', 'Alex Example', null, 'a0000000-0000-0000-0000-000000000001', null),
+  ('c0000000-0000-0000-0000-000000000005', 'b0000000-0000-0000-0000-000000000002', 'Kim Example', null, 'a0000000-0000-0000-0000-000000000003', null),
+  ('c0000000-0000-0000-0000-000000000006', 'b0000000-0000-0000-0000-000000000002', 'Lee Example', null, 'a0000000-0000-0000-0000-000000000004', null);

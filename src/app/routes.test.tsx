@@ -8,9 +8,13 @@ import { ThemeProvider } from '@/app/theme'
 import { routes } from '@/app/routes'
 import type { AuthState } from '@/features/auth/auth-context'
 import type { GroupRow } from '@/features/groups/types'
+import type { Subject } from '@/features/subjects/use-subjects'
 
 const auth = vi.hoisted(() => ({ state: null as AuthState | null }))
-const data = vi.hoisted(() => ({ groups: [] as GroupRow[] }))
+const data = vi.hoisted(() => ({
+  groups: [] as GroupRow[],
+  subjects: [] as Subject[],
+}))
 
 vi.mock('@/features/auth/use-auth', () => ({ useAuth: () => auth.state }))
 vi.mock('@/features/profile/use-profile', () => ({
@@ -21,6 +25,13 @@ vi.mock('@/features/groups/use-groups', async (importOriginal) => ({
   useGroups: () => ({ data: data.groups }),
   useGroup: (id: string) => ({
     data: data.groups.find((group) => group.id === id) ?? null,
+  }),
+}))
+
+vi.mock('@/features/subjects/use-subjects', async (importOriginal) => ({
+  ...(await importOriginal()),
+  useSubjects: (groupId: string) => ({
+    data: data.subjects.filter((subject) => subject.group_id === groupId),
   }),
 }))
 
@@ -66,6 +77,38 @@ describe('when logged in', () => {
   beforeEach(() => {
     auth.state = loggedIn
     data.groups = [personal, diet]
+    data.subjects = [
+      {
+        id: 's-me',
+        group_id: 'g-personal',
+        name: 'Alex Example',
+        birthdate: null,
+        color: 'blue',
+        linked_user_id: 'u1',
+        name_customized: false,
+        archived_at: null,
+      },
+      {
+        id: 's-kim',
+        group_id: 'g-diet',
+        name: 'Kim',
+        birthdate: null,
+        color: 'orange',
+        linked_user_id: 'u2',
+        name_customized: false,
+        archived_at: null,
+      },
+      {
+        id: 's-old',
+        group_id: 'g-diet',
+        name: 'Old Friend',
+        birthdate: null,
+        color: 'aqua',
+        linked_user_id: null,
+        name_customized: false,
+        archived_at: '2026-10-01T00:00:00Z',
+      },
+    ]
   })
 
   it('redirects the start page to the group list', async () => {
@@ -129,6 +172,35 @@ describe('when logged in', () => {
       'href',
       '/groups',
     )
+  })
+
+  it("shows a group's subjects, marking the user's own", async () => {
+    renderAt('/groups/g-personal')
+    const list = await screen.findByRole('list', { name: 'Subjects' })
+    expect(list).toHaveTextContent('Alex Example')
+    expect(within(list).getByText('You')).toBeInTheDocument()
+    expect(
+      within(list).getByRole('link', { name: 'Edit Alex Example' }),
+    ).toHaveAttribute('href', '/groups/g-personal/subjects/s-me/edit')
+    expect(screen.getByRole('link', { name: 'Add subject' })).toHaveAttribute(
+      'href',
+      '/groups/g-personal/subjects/new',
+    )
+  })
+
+  it('hides archived subjects until asked, and subject editing from viewers', async () => {
+    renderAt('/groups/g-diet')
+    const list = await screen.findByRole('list', { name: 'Subjects' })
+    expect(list).toHaveTextContent('Kim')
+    expect(within(list).getByText('Member')).toBeInTheDocument()
+    expect(screen.queryByText('Old Friend')).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /^Edit Kim/ })).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Add subject' })).toBeNull()
+
+    screen.getByRole('button', { name: 'Show archived subjects (1)' }).click()
+    expect(
+      await screen.findByRole('list', { name: 'Archived subjects' }),
+    ).toHaveTextContent('Old Friend')
   })
 
   it('shows viewers the group without editing', async () => {

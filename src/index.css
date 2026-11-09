@@ -16,6 +16,15 @@
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
+  /* Subject colours (src/features/subjects/colors.ts) */
+  --color-subject-blue: var(--subject-blue);
+  --color-subject-orange: var(--subject-orange);
+  --color-subject-aqua: var(--subject-aqua);
+  --color-subject-yellow: var(--subject-yellow);
+  --color-subject-magenta: var(--subject-magenta);
+  --color-subject-green: var(--subject-green);
+  --color-subject-violet: var(--subject-violet);
+  --color-subject-red: var(--subject-red);
   --color-chart-5: var(--chart-5);
   --color-chart-4: var(--chart-4);
   --color-chart-3: var(--chart-3);
@@ -81,6 +90,15 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  /* Categorical palette: fixed order, validated for colour-blind separation. */
+  --subject-blue: #2a78d6;
+  --subject-orange: #eb6834;
+  --subject-aqua: #1baf7a;
+  --subject-yellow: #eda100;
+  --subject-magenta: #e87ba4;
+  --subject-green: #008300;
+  --subject-violet: #6250d6;
+  --subject-red: #e34948;
 }
 
 .dark {
@@ -115,6 +133,15 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  /* The same hues, stepped for the dark surface. */
+  --subject-blue: #3987e5;
+  --subject-orange: #d95926;
+  --subject-aqua: #199e70;
+  --subject-yellow: #c98500;
+  --subject-magenta: #d55181;
+  --subject-green: #008300;
+  --subject-violet: #9085e9;
+  --subject-red: #e66767;
 }
 
 @layer base {
