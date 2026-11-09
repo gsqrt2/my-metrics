@@ -28,7 +28,7 @@ const directionHints = {
 // Add and edit form for an attribute, shown as a "metric" (FR-40).
 export function AttributeForm({
   defaultValues,
-  notice,
+  entryCount = 0,
   submitLabel,
   pendingLabel,
   cancelTo,
@@ -37,7 +37,8 @@ export function AttributeForm({
   onSubmit,
 }: {
   defaultValues: AttributeFormValues
-  notice?: React.ReactNode
+  // Entries already logged for this attribute, for the FR-41 warning.
+  entryCount?: number
   submitLabel: string
   pendingLabel: string
   cancelTo: string
@@ -50,6 +51,12 @@ export function AttributeForm({
     defaultValues,
   })
   const { errors } = form.formState
+  const unit = form.watch('unit')
+  const precision = form.watch('precision')
+  const meaningChanged =
+    entryCount > 0 &&
+    (unit.trim() !== defaultValues.unit.trim() ||
+      precision !== defaultValues.precision)
 
   return (
     <form
@@ -108,7 +115,16 @@ export function AttributeForm({
         </div>
       </div>
 
-      {notice}
+      {meaningChanged && (
+        <Alert>
+          <AlertDescription>
+            {entryCount === 1 ? '1 entry has' : `${entryCount} entries have`}{' '}
+            already been logged. They keep their numbers: changing the unit
+            (e.g. kg to lb) changes what they mean, and fewer decimals only
+            changes how they're shown.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <fieldset className="flex flex-col gap-3">
         <legend className="mb-1 text-sm leading-none font-medium">

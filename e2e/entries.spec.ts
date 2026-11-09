@@ -1,0 +1,174 @@
+import { expect, test, type Page } from '@playwright/test'
+
+import {
+  clearDefaultGroup,
+  deleteOwnedGroups,
+  users,
+} from './support/local-supabase'
+import { logIn, openLogbookOption } from './support/login'
+
+test('a logbook lists its latest entries, newest first', async ({ page }) => {
+  await page.goto('/logbooks/b0000000-0000-0000-0000-000000000001') // Kids
+
+  const entries = page.getByRole('list', { name: 'Recent entries' })
+  await expect(entries.getByRole('listitem')).toHaveCount(50)
+  // The seed's latest measurements are this month's, for both children.
+  await expect(entries.getByRole('listitem').first()).toContainText(
+    /(Height|Weight)\s*\d+\.\d (cm|kg)\s*(Mia|Noah)/,
+  )
+  await expect(page.getByText('Showing the latest 50 entries.')).toBeVisible()
+})
+
+// Eli logs in a logbook the test creates (and deletes) and in Eli's Personal
+// logbook, which is emptied afterwards. Runs once rather than per device.
+test.describe('logging', () => {
+  test.use({ storageState: { cookies: [], origins: [] } })
+  test.beforeEach(({ isMobile }) => {
+    test.skip(isMobile, 'runs on desktop only')
+  })
+  // Only where the test ran: Playwright runs afterEach for skipped tests too.
+  test.afterEach(async ({ isMobile }) => {
+    if (isMobile) return
+    await deleteOwnedGroups(users.eli.email)
+    await clearDefaultGroup(users.eli.email)
+  })
+
+  async function addSuggestedMetrics(page: Page, names: string[]) {
+    await openLogbookOption(page, 'Metrics')
+    for (const name of names) {
+      await page.getByRole('button', { name }).click()
+      await expect(
+        page.getByRole('list', { name: 'Metrics' }).getByText(name),
+      ).toBeVisible()
+    }
+    await page.getByRole('main').getByRole('link').first().click() // back
+  }
+
+  test('entries are logged, edited and deleted through the same form everywhere', async ({
+    page,
+  }) => {
+    const logEntry = page.getByRole('complementary').getByRole('button', {
+      name: 'Log entry',
+    })
+    const sheet = page.getByRole('dialog', { name: 'Log entry' })
+    const entries = page.getByRole('list', { name: 'Recent entries' })
+
+    await logIn(page, users.eli.email)
+
+    // Nowhere to log yet: no logbook has metrics.
+    await logEntry.click()
+    await expect(sheet.getByText("There's nowhere to log yet.")).toBeVisible()
+    await page.keyboard.press('Escape')
+
+    // A logbook with a participant and two metrics
+    await page.getByRole('link', { name: 'New logbook' }).click()
+    await page.getByLabel('Name').fill('Eli Log')
+    await page.getByRole('button', { name: 'Create logbook' }).click()
+    await openLogbookOption(page, 'Participants')
+    await page.getByRole('link', { name: 'Add participant' }).click()
+    await page.getByLabel('Name').fill('Bea')
+    await page.getByRole('button', { name: 'Add participant' }).click()
+    await page.getByRole('main').getByRole('link', { name: 'Eli Log' }).click()
+    await addSuggestedMetrics(page, ['Weight (kg)', 'Waist (cm)'])
+    await expect(page.getByText('Nothing logged yet.')).toBeVisible()
+
+    // From the logbook: it's preselected, with its participant.
+    await logEntry.click()
+    await expect(sheet.getByLabel('Logbook')).toHaveValue(/.+/)
+    await expect(
+      sheet.getByLabel('Logbook').locator('option:checked'),
+    ).toHaveText('Eli Log')
+    await expect(
+      sheet.getByLabel('Participant').locator('option:checked'),
+    ).toHaveText('Bea')
+    await sheet.getByRole('button', { name: 'Save' }).click()
+    await expect(sheet.getByText('Enter at least one value.')).toBeVisible()
+    await sheet.getByLabel('Weight (kg)').fill('72,45')
+    await sheet.getByRole('button', { name: 'Save' }).click()
+    await expect(sheet.getByText('Use at most 1 decimal.')).toBeVisible()
+    await sheet.getByLabel('Weight (kg)').fill('72,4')
+    await sheet.getByLabel('Waist (cm)').fill('81')
+    await sheet.getByLabel('Comment (optional)').fill('After a run')
+    await sheet.getByRole('button', { name: 'Save 2 values' }).click()
+
+    await expect(sheet).toHaveCount(0)
+    await expect(entries.getByRole('listitem')).toHaveCount(2)
+    await expect(entries).toContainText('72.4 kg')
+    await expect(entries).toContainText('81.0 cm')
+    await expect(entries).toContainText('After a run')
+
+    // The same moment twice is refused; an earlier time is fine.
+    await logEntry.click()
+    await sheet.getByLabel('Weight (kg)').fill('72')
+    const when = sheet.getByLabel('When')
+    const loggedAt = await when.inputValue()
+    await sheet.getByRole('button', { name: 'Save' }).click()
+    if (await sheet.isVisible()) {
+      // Still the same minute as the first save: refused as a duplicate.
+      await expect(
+        sheet.getByText('There is already an entry for this participant'),
+      ).toBeVisible()
+    }
+    if (await sheet.isVisible()) {
+      const [date, time] = loggedAt.split('T')
+      const hour = String((Number(time.slice(0, 2)) + 23) % 24).padStart(2, '0')
+      await when.fill(`${date}T${hour}${time.slice(2)}`)
+      await sheet.getByRole('button', { name: 'Save' }).click()
+    }
+    await expect(sheet).toHaveCount(0)
+    await expect(entries.getByRole('listitem')).toHaveCount(3)
+
+    // From elsewhere: starts in the last logbook used.
+    await page
+      .getByRole('navigation', { name: 'Main' })
+      .getByRole('link', { name: 'Profile' })
+      .click()
+    await logEntry.click()
+    await expect(
+      sheet.getByLabel('Logbook').locator('option:checked'),
+    ).toHaveText('Eli Log')
+    await page.keyboard.press('Escape')
+
+    // Switching logbook with values typed in asks first.
+    await page.goto('/logbooks')
+    await page.getByRole('link', { name: /^Personal/ }).click()
+    await addSuggestedMetrics(page, ['Height (cm)'])
+    await page.goto('/logbooks')
+    await logEntry.click()
+    await sheet.getByLabel('Weight (kg)').fill('71')
+    await sheet.getByLabel('Logbook').selectOption({ label: 'Personal' })
+    await expect(sheet.getByText('will be discarded')).toBeVisible()
+    await sheet.getByRole('button', { name: 'Keep editing' }).click()
+    await expect(sheet.getByLabel('Weight (kg)')).toHaveValue('71')
+    await sheet.getByLabel('Logbook').selectOption({ label: 'Personal' })
+    await sheet.getByRole('button', { name: 'Switch and discard' }).click()
+    await expect(sheet.getByLabel('Height (cm)')).toBeVisible()
+    await expect(
+      sheet.getByLabel('Participant').locator('option:checked'),
+    ).toHaveText('Eli Example (you)')
+    await page.keyboard.press('Escape')
+
+    // Edit and delete
+    await page.goto('/logbooks')
+    await page.getByRole('link', { name: /^Eli Log/ }).click()
+    await entries.getByRole('link', { name: /^Edit Waist of Bea/ }).click()
+    await expect(page.getByText(/Logged by Eli Example on/)).toBeVisible()
+    await page.getByLabel('Waist (cm)').fill('80.5')
+    await page.getByRole('button', { name: 'Save changes' }).click()
+    await expect(entries).toContainText('80.5 cm')
+
+    await entries.getByRole('link', { name: /^Edit Waist of Bea/ }).click()
+    await expect(page.getByText(/Last changed by Eli Example on/)).toBeVisible()
+    await page.getByRole('button', { name: 'Delete entry…' }).click()
+    await page.getByRole('button', { name: 'Delete for good' }).click()
+    await expect(entries.getByRole('listitem')).toHaveCount(2)
+
+    // Metrics with entries warn before their unit changes.
+    await openLogbookOption(page, 'Metrics')
+    await page.getByRole('link', { name: 'Edit Weight' }).click()
+    await page.getByLabel('Unit (optional)').fill('lb')
+    await expect(
+      page.getByText('2 entries have already been logged.'),
+    ).toBeVisible()
+  })
+})

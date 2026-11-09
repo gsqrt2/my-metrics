@@ -16,6 +16,7 @@ import {
   useUpdateAttribute,
   type Attribute,
 } from '@/features/attributes/use-attributes'
+import { useAttributeEntryCount } from '@/features/entries/use-entries'
 import { WithGroup } from '@/features/groups/group-page'
 import { canEditGroup, type GroupRow } from '@/features/groups/types'
 
@@ -54,6 +55,7 @@ function FindAttribute({ group }: { group: GroupRow }) {
   return (
     <EditAttribute
       attribute={attribute}
+      isOwner={group.role === 'owner'}
       metricsPath={metricsPath}
       back={back}
     />
@@ -62,13 +64,17 @@ function FindAttribute({ group }: { group: GroupRow }) {
 
 function EditAttribute({
   attribute,
+  isOwner,
   metricsPath,
   back,
 }: {
   attribute: Attribute
+  isOwner: boolean
   metricsPath: string
   back: React.ReactNode
 }) {
+  const entryCount = useAttributeEntryCount(attribute.id).data ?? 0
+  const entries = entryCount === 1 ? '1 entry' : `${entryCount} entries`
   const navigate = useNavigate()
   const update = useUpdateAttribute(attribute)
   const archive = useUpdateAttribute(attribute)
@@ -84,6 +90,7 @@ function EditAttribute({
       <div className="flex max-w-xl flex-col gap-8">
         <AttributeForm
           defaultValues={toAttributeForm(attribute)}
+          entryCount={entryCount}
           submitLabel="Save changes"
           pendingLabel="Saving…"
           cancelTo={metricsPath}
@@ -148,8 +155,11 @@ function EditAttribute({
             Delete
           </h2>
           <p className="text-sm text-muted-foreground">
-            Removes this metric for good, together with everything logged for
-            it. To keep the entries, archive it instead.
+            {entryCount === 0
+              ? 'Removes this metric for good. Nothing has been logged for it yet.'
+              : isOwner
+                ? `Removes this metric for good, together with its ${entries}. To keep them, archive it instead.`
+                : `This metric has ${entries}, so only the logbook's owner can delete it. You can archive it instead.`}
           </p>
           {remove.isError && (
             <Alert variant="destructive">
@@ -165,7 +175,9 @@ function EditAttribute({
               className="flex flex-col gap-3 rounded-lg border border-destructive/40 p-4"
             >
               <p className="text-sm font-medium">
-                Delete “{attribute.name}”? This can't be undone.
+                {entryCount === 0
+                  ? `Delete “${attribute.name}”? This can't be undone.`
+                  : `Delete “${attribute.name}” and its ${entries}? This can't be undone.`}
               </p>
               <div className="flex flex-wrap gap-2">
                 <Button
@@ -185,14 +197,16 @@ function EditAttribute({
               </div>
             </div>
           ) : (
-            <Button
-              variant="outline"
-              className="self-start text-destructive"
-              onClick={() => setConfirmingDelete(true)}
-            >
-              <Trash2 aria-hidden />
-              Delete metric…
-            </Button>
+            (entryCount === 0 || isOwner) && (
+              <Button
+                variant="outline"
+                className="self-start text-destructive"
+                onClick={() => setConfirmingDelete(true)}
+              >
+                <Trash2 aria-hidden />
+                Delete metric…
+              </Button>
+            )
           )}
         </section>
       </div>

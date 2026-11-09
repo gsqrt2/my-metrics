@@ -8,6 +8,9 @@ export type GroupRow = Pick<
   isDefault: boolean
   role: Enums<'group_role'>
   memberCount: number
+  // §5 "Members can only edit their own subject" (set by the owner, step 12).
+  membersEditOwnSubjectOnly: boolean
+  isArchived: boolean
 }
 
 export function canEditGroup(group: GroupRow) {

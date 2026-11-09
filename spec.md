@@ -155,7 +155,11 @@
 - FR-50: An entry has these fields: subject, attribute, numeric value, **date and time** (required, defaults to now), **comment** (optional, free text). The app also records who created the entry and who last changed it, and when. There's no further edit history.
   - Any number is allowed as a value, including 0 and negative numbers, within the attribute's min/max (FR-40).
   - Dates and times are shown in the **viewer's local time zone**.
-- FR-51: **Quick entry**: log several attributes for one subject at one date and time in a single form, sharing one comment.
+- FR-51: **Quick entry**: log several attributes for one subject at one date and time in a single form, sharing one comment. The form is the same wherever it's opened from (the "Log entry" button on every page, or inside a group); only its starting values differ:
+  - **Group** is always the first field and can be changed. Opened from a group, it starts there; otherwise in the group last logged in on this device, or the only one. Only groups the user can log in are offered (with attributes and a subject they may log for).
+  - **Subject** starts as the user's own linked subject in that group, else the one last logged for there.
+  - **Date and time** start at now; then one field per attribute (left empty if not measured) and one comment.
+  - Changing the group asks before discarding values already typed in. All values are saved together or none is.
 - FR-52: Entries can be edited and deleted (subject to permissions, §5). Deleting asks for confirmation and is **permanent**; there's no undo.
 - FR-53: Past dates and times are allowed, so historical data can be back-filled. Future dates and times are rejected.
 - FR-54: A subject can have several entries for the same attribute on the same day, as long as they are at different times (e.g. weight in the morning and in the evening). Two entries for the same subject and attribute at the identical date and time are not allowed. Charts show every entry.

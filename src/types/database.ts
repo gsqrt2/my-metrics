@@ -85,6 +85,75 @@ export type Database = {
           },
         ]
       }
+      entries: {
+        Row: {
+          attribute_id: string
+          comment: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          measured_at: string
+          subject_id: string
+          updated_at: string | null
+          updated_by: string | null
+          value: number
+        }
+        ComputedFields: never
+        Insert: {
+          attribute_id: string
+          comment?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          measured_at: string
+          subject_id: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value: number
+        }
+        Update: {
+          attribute_id?: string
+          comment?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          measured_at?: string
+          subject_id?: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'entries_attribute_id_fkey'
+            columns: ['attribute_id']
+            isOneToOne: false
+            referencedRelation: 'attributes'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'entries_created_by_fkey'
+            columns: ['created_by']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'entries_subject_id_fkey'
+            columns: ['subject_id']
+            isOneToOne: false
+            referencedRelation: 'subjects'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'entries_updated_by_fkey'
+            columns: ['updated_by']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       groups: {
         Row: {
           archived_at: string | null
@@ -243,6 +312,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      attribute_has_entries: {
+        Args: { target_attribute_id: string }
+        Returns: boolean
+      }
+      can_see_values: {
+        Args: { target_attribute_id: string; target_subject_id: string }
+        Returns: boolean
+      }
+      can_write_entry: {
+        Args: { target_attribute_id: string; target_subject_id: string }
+        Returns: boolean
+      }
+      can_write_subject: {
+        Args: { target_subject_id: string }
+        Returns: boolean
+      }
       is_member: { Args: { target_group_id: string }; Returns: boolean }
       member_role: {
         Args: { target_group_id: string }
@@ -251,6 +336,11 @@ export type Database = {
       reorder_attributes: {
         Args: { attribute_ids: string[]; target_group_id: string }
         Returns: undefined
+      }
+      shares_group_with: { Args: { target_user_id: string }; Returns: boolean }
+      visibility_of: {
+        Args: { target_attribute_id: string; target_subject_id: string }
+        Returns: string
       }
     }
     Enums: {

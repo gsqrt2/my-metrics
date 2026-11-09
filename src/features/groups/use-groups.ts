@@ -10,6 +10,7 @@ import type { Enums, Tables } from '@/types/database'
 // Each group with the signed-in user's role in it and its member count.
 const GROUP_COLUMNS = `
   id, name, description, starts_on, ends_on, default_for_user_id,
+  members_edit_own_subject_only, archived_at,
   me:memberships!inner(role),
   members:memberships(count)
 `
@@ -22,6 +23,8 @@ type GroupQueryRow = Pick<
   | 'starts_on'
   | 'ends_on'
   | 'default_for_user_id'
+  | 'members_edit_own_subject_only'
+  | 'archived_at'
 > & {
   me: { role: Enums<'group_role'> }[]
   members: { count: number }[]
@@ -37,6 +40,8 @@ function toGroup(row: GroupQueryRow): GroupRow {
     isDefault: row.default_for_user_id !== null,
     role: row.me[0].role,
     memberCount: row.members[0]?.count ?? 0,
+    membersEditOwnSubjectOnly: row.members_edit_own_subject_only,
+    isArchived: row.archived_at !== null,
   }
 }
 
