@@ -22,7 +22,7 @@ Status: ✅ done · 🚧 in progress · ⏸️ paused with open items · ⬜ not
 | 2 | Profile | ✅ | 2026-11-06 | `125043f` |
 | 3 | Groups | ✅ | 2026-11-09 | `57c8b00` |
 | 4 | Subjects (participants) | ✅ | 2026-11-09 | `987e1dc` |
-| 5 | Attributes | 🚧 | | |
+| 5 | Attributes (metrics) | ✅ | 2026-11-09 | |
 | 6 | Logging | ⬜ | | |
 | 7 | Group dashboard | ⬜ | | |
 | 8 | Charts and tables | ⬜ | | |
@@ -35,7 +35,7 @@ Status: ✅ done · 🚧 in progress · ⏸️ paused with open items · ⬜ not
 | 15 | Account deletion | ⬜ | | |
 | 16 | Go live | ⬜ | | |
 
-**Next:** finish step 5 (Attributes).
+**Next:** step 6 (Logging).
 
 ### Open items
 
