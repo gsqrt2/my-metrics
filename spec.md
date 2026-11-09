@@ -103,7 +103,6 @@
 - FR-14: Groups are private when created. A group is shared only by inviting members (FR-20).
 - FR-15: **Duration (optional).** A group can have a start date and an end date, e.g. for a 12-week diet challenge. If both are set:
   - the dashboard shows the progress (e.g. "Day 64 of 84 · 20 days left", or "Ended")
-  - charts use the duration as their default date range
   - entries outside the duration are still allowed, e.g. a baseline measured before the start
   - nothing changes automatically when the end date passes; the group stays editable until the owner archives it
 
@@ -181,7 +180,7 @@
 
   If any subject's values are hidden from the viewer (FR-43), only the % mode is available.
 - FR-63: X-axis choice: calendar date, or **age** (if a birthdate is set), which is useful for children.
-- FR-64: A time span selection: **Week**, **Month**, **Year** or **All**. If the group has a duration (FR-15), **Duration** is offered too and is the default; otherwise the default is All.
+- FR-64: A time span selection: **Week**, **Month**, **Year** or **All** (the default).
   - **Baseline for % change:** by default, each subject's first entry ever. Groups with a duration also offer **"since the group's start"**, which uses each subject's first entry on or after the start date. This makes people who joined late comparable.
 - FR-65: An entry list/table that can be sorted and filtered by subject and attribute.
 - FR-66: **Recent entries**: the dashboard lists the latest entries of the group, with links to the full entry table (FR-65). There are no notifications in v1.
@@ -313,6 +312,7 @@ None at the moment.
 | 2026-11-09 | Revised: the group page has two chart views, by attribute (real values, subjects filterable) and by subject (all attributes as % change since their first entry, attributes filterable). Using % change lets different units share one chart honestly. | FR-60 |
 | 2026-11-09 | Full-screen charts are an overlay: the group page's chart with its filter, plus time span, x-axis (date/age), y-axis (value/change/%), baseline, more points and the full width. No entry table under it. | FR-61 – FR-64 |
 | 2026-11-09 | Charts average entries per day, week or month when a line has more entries than the chart can show (about 100 points per line on the group page, 100–500 full screen, by width). | FR-61 |
+| 2026-11-09 | No "Duration" time span: entries rarely fall outside a group's dates, so it showed the same as "All". The dates still give the "since the group's start" baseline and the progress ("Day 36 of 84"). | FR-15, FR-64 |
 | 2026-11-09 | The app tracks without judging: attributes have no "higher/lower is better" direction, and changes aren't coloured as good or bad. | FR-40, FR-60 |
 | 2026-11-09 | A group's management pages (participants, metrics, editing the group, later members) sit behind one "Options" menu on the group page. | FR-11 |
 | 2026-11-09 | Groups are called "logbooks" in the app (text and URLs, e.g. `/logbooks/…`), as a more intuitive name for a shared or personal measurement record. The spec, database and code keep "group". | Glossary |

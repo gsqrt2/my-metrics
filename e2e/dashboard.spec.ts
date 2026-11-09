@@ -27,6 +27,10 @@ test('a logbook leads with a chart per metric, filterable by participant', async
 
   // The participant chips filter every chart.
   const participants = page.getByRole('list', { name: 'Participants' })
+  // ...and look clickable.
+  await expect(
+    participants.getByRole('button', { name: /Kim Example/ }),
+  ).toHaveCSS('cursor', 'pointer')
   await participants.getByRole('button', { name: /Kim Example/ }).click()
   await expect(weight.getByRole('listitem')).toHaveText([/^Kim Example/])
   await expect(
@@ -83,11 +87,12 @@ test('a chart opens full screen with time spans, y-axis and age options', async 
 
   const full = page.getByRole('dialog', { name: 'Weight (kg)' })
   const span = full.getByRole('group', { name: 'Time span' })
-  // The challenge has dates, so its duration is the default span.
-  await expect(span.getByRole('button', { name: 'Duration' })).toHaveAttribute(
+  // Everything by default; there's no "Duration" span.
+  await expect(span.getByRole('button', { name: 'All' })).toHaveAttribute(
     'aria-pressed',
     'true',
   )
+  await expect(span.getByRole('button', { name: 'Duration' })).toHaveCount(0)
   await expect(
     full.getByRole('img', { name: /Weight over time/ }),
   ).toBeVisible()

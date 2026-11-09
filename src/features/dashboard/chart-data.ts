@@ -1,11 +1,4 @@
-import {
-  endOfDay,
-  parseISO,
-  startOfDay,
-  subDays,
-  subMonths,
-  subYears,
-} from 'date-fns'
+import { parseISO, startOfDay, subDays, subMonths, subYears } from 'date-fns'
 
 import type { SeriesPoint } from '@/features/dashboard/use-dashboard'
 
@@ -139,12 +132,13 @@ export function ageTickFormat(locale?: string) {
   return (years: number) => format.format(years)
 }
 
-// FR-64 time spans for the full-screen charts.
-export type Period = 'week' | 'month' | 'year' | 'all' | 'duration'
+// FR-64 time spans for the full-screen charts. (A "Duration" span for groups
+// with dates was dropped on 2026-11-09: entries rarely fall outside the
+// dates, so it showed the same as "All".)
+export type Period = 'week' | 'month' | 'year' | 'all'
 
 export function periodRange(
   period: Period,
-  group: { starts_on: string | null; ends_on: string | null },
   now = new Date(),
 ): { from?: Date; to?: Date } {
   switch (period) {
@@ -154,13 +148,6 @@ export function periodRange(
       return { from: startOfDay(subMonths(now, 1)) }
     case 'year':
       return { from: startOfDay(subYears(now, 1)) }
-    case 'duration':
-      return group.starts_on && group.ends_on
-        ? {
-            from: startOfDay(parseISO(group.starts_on)),
-            to: endOfDay(parseISO(group.ends_on)),
-          }
-        : {}
     case 'all':
       return {}
   }

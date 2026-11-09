@@ -118,15 +118,14 @@ function FullScreenChart({
     { value: 'month', label: 'Month' },
     { value: 'year', label: 'Year' },
     { value: 'all', label: 'All' },
-    ...(hasDuration ? [{ value: 'duration' as const, label: 'Duration' }] : []),
   ]
-  const [period, setPeriod] = useState<Period>(hasDuration ? 'duration' : 'all')
+  const [period, setPeriod] = useState<Period>('all')
   const [y, setY] = useState<YMode>('value')
   const [x, setX] = useState<XMode>('date')
   const [baseline, setBaseline] = useState<Baseline>('first')
   const [maxPoints] = useState(() => fullScreenMaxPoints(window.innerWidth))
 
-  const range = periodRange(period, group)
+  const range = periodRange(period)
   const series = useSeries(group.id, { ...range, maxPoints, baseline })
 
   const isMetric = open.mode === 'metric'

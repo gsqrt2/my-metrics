@@ -191,31 +191,18 @@ describe('dateTickFormat', () => {
 
 describe('periodRange (FR-64)', () => {
   const now = new Date(2026, 10, 9, 15, 30)
-  const noDates = { starts_on: null, ends_on: null }
 
   it('counts back from today, from the start of that day', () => {
-    expect(periodRange('week', noDates, now)).toEqual({
+    expect(periodRange('week', now)).toEqual({
       from: new Date(2026, 10, 3),
     })
-    expect(periodRange('month', noDates, now)).toEqual({
+    expect(periodRange('month', now)).toEqual({
       from: new Date(2026, 9, 9),
     })
-    expect(periodRange('year', noDates, now)).toEqual({
+    expect(periodRange('year', now)).toEqual({
       from: new Date(2025, 10, 9),
     })
-    expect(periodRange('all', noDates, now)).toEqual({})
-  })
-
-  it("covers the group's whole duration, both days included", () => {
-    expect(
-      periodRange('duration', {
-        starts_on: '2026-10-05',
-        ends_on: '2026-12-27',
-      }),
-    ).toEqual({
-      from: new Date(2026, 9, 5),
-      to: new Date(2026, 11, 27, 23, 59, 59, 999),
-    })
+    expect(periodRange('all', now)).toEqual({})
   })
 })
 
