@@ -36,8 +36,10 @@ test.describe('creating and editing', () => {
   test.beforeEach(({ isMobile }) => {
     test.skip(isMobile, 'runs on desktop only')
   })
-  test.afterEach(async () => {
-    await deleteOwnedGroups(users.jo.email)
+  // Only where the test ran: Playwright runs afterEach for skipped tests too,
+  // and the phone run's cleanup would delete the desktop test's group mid-test.
+  test.afterEach(async ({ isMobile }) => {
+    if (!isMobile) await deleteOwnedGroups(users.jo.email)
   })
 
   test('a new group can be created with a duration and then edited', async ({

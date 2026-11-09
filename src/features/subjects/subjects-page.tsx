@@ -32,8 +32,8 @@ function ManageSubjects({ group }: { group: GroupRow }) {
       <>
         {back}
         <PageHeader
-          title="Subjects"
-          description="Only the group's owner and editors can manage subjects."
+          title="Participants"
+          description="Only the group's owner and editors can manage participants."
         />
         <Button asChild variant="outline">
           <Link to={groupPath}>Back to {group.name}</Link>
@@ -49,36 +49,40 @@ function ManageSubjects({ group }: { group: GroupRow }) {
     <>
       {back}
       <PageHeader
-        title="Subjects"
+        title="Participants"
         description={`Who or what you measure in ${group.name}.`}
         actions={
           <Button asChild>
-            <Link to={`${groupPath}/subjects/new`}>
+            <Link to={`${groupPath}/participants/new`}>
               <Plus aria-hidden />
-              Add subject
+              Add participant
             </Link>
           </Button>
         }
       />
       <div className="flex max-w-2xl flex-col gap-4">
         {subjects.isPending && (
-          <p className="text-sm text-muted-foreground">Loading subjects…</p>
+          <p className="text-sm text-muted-foreground">Loading participants…</p>
         )}
         {subjects.isError && (
           <Alert variant="destructive">
             <AlertDescription>
-              The subjects couldn't be loaded. Please reload the page.
+              The participants couldn't be loaded. Please reload the page.
             </AlertDescription>
           </Alert>
         )}
         {subjects.data && active.length === 0 && (
           <p className="text-sm text-muted-foreground">
-            No subjects yet. Add who or what you measure here, like a child or
-            yourself.
+            No participants yet. Add who or what you measure here, like a child
+            or yourself.
           </p>
         )}
         {active.length > 0 && (
-          <SubjectList label="Subjects" subjects={active} groupId={group.id} />
+          <SubjectList
+            label="Participants"
+            subjects={active}
+            groupId={group.id}
+          />
         )}
 
         {archived.length > 0 && (
@@ -91,12 +95,12 @@ function ManageSubjects({ group }: { group: GroupRow }) {
               onClick={() => setShowArchived((show) => !show)}
             >
               {showArchived
-                ? 'Hide archived subjects'
-                : `Show archived subjects (${archived.length})`}
+                ? 'Hide archived participants'
+                : `Show archived participants (${archived.length})`}
             </Button>
             {showArchived && (
               <SubjectList
-                label="Archived subjects"
+                label="Archived participants"
                 subjects={archived}
                 groupId={group.id}
               />
@@ -148,7 +152,7 @@ function SubjectList({
           </div>
           <Button asChild variant="ghost" size="icon">
             <Link
-              to={`/groups/${groupId}/subjects/${subject.id}/edit`}
+              to={`/groups/${groupId}/participants/${subject.id}/edit`}
               aria-label={`Edit ${subject.name}`}
             >
               <Pencil aria-hidden />

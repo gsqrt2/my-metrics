@@ -19,16 +19,16 @@ function NewSubject({ group }: { group: GroupRow }) {
   const subjects = useSubjects(group.id)
   const create = useCreateSubject(group.id)
   const groupPath = `/groups/${group.id}`
-  const subjectsPath = `${groupPath}/subjects`
-  const back = <BackLink to={subjectsPath}>Subjects</BackLink>
+  const subjectsPath = `${groupPath}/participants`
+  const back = <BackLink to={subjectsPath}>Participants</BackLink>
 
   if (!canEditGroup(group)) {
     return (
       <>
         {back}
         <PageHeader
-          title="Add subject"
-          description="Only the group's owner and editors can add subjects."
+          title="Add participant"
+          description="Only the group's owner and editors can add participants."
         />
         <Button asChild variant="outline">
           <Link to={groupPath}>Back to {group.name}</Link>
@@ -43,7 +43,7 @@ function NewSubject({ group }: { group: GroupRow }) {
     <>
       {back}
       <PageHeader
-        title="Add subject"
+        title="Add participant"
         description={`Who or what you measure in ${group.name}.`}
       />
       <SubjectForm
@@ -52,7 +52,7 @@ function NewSubject({ group }: { group: GroupRow }) {
           birthdate: '',
           color: nextSubjectColor(subjects.data.map((s) => s.color)),
         }}
-        submitLabel="Add subject"
+        submitLabel="Add participant"
         pendingLabel="Adding…"
         cancelTo={subjectsPath}
         isPending={create.isPending}

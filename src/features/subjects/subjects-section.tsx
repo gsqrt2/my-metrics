@@ -4,7 +4,7 @@ import { SubjectAvatar } from '@/features/subjects/subject-avatar'
 import { useSubjects } from '@/features/subjects/use-subjects'
 
 // Compact row of the group's active subjects on the group page. Owners and
-// editors manage them on the subjects page ("Manage subjects" in the header).
+// editors manage them on the subjects page ("Manage participants" in the header; "participant" is the UI's word for a subject).
 export function SubjectsSection({ group }: { group: GroupRow }) {
   const subjects = useSubjects(group.id)
   const { session } = useAuth()
@@ -19,18 +19,18 @@ export function SubjectsSection({ group }: { group: GroupRow }) {
         id="subjects-heading"
         className="text-sm font-medium text-muted-foreground"
       >
-        Subjects
+        Participants
       </h2>
       {subjects.isError && (
         <p className="text-sm text-destructive">
-          The subjects couldn't be loaded.
+          The participants couldn't be loaded.
         </p>
       )}
       {subjects.data && active.length === 0 && (
         <p className="text-sm text-muted-foreground">None yet.</p>
       )}
       {active.length > 0 && (
-        <ul aria-label="Subjects" className="flex flex-wrap gap-2">
+        <ul aria-label="Participants" className="flex flex-wrap gap-2">
           {active.map((subject) => (
             <li
               key={subject.id}

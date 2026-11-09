@@ -42,10 +42,10 @@ export const routes: RouteObject[] = [
       { path: 'groups/new', element: <NewGroupPage /> },
       { path: 'groups/:groupId', element: <GroupPage /> },
       { path: 'groups/:groupId/edit', element: <EditGroupPage /> },
-      { path: 'groups/:groupId/subjects', element: <SubjectsPage /> },
-      { path: 'groups/:groupId/subjects/new', element: <NewSubjectPage /> },
+      { path: 'groups/:groupId/participants', element: <SubjectsPage /> },
+      { path: 'groups/:groupId/participants/new', element: <NewSubjectPage /> },
       {
-        path: 'groups/:groupId/subjects/:subjectId/edit',
+        path: 'groups/:groupId/participants/:subjectId/edit',
         element: <EditSubjectPage />,
       },
       { path: 'profile', element: <ProfilePage /> },

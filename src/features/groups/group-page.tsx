@@ -64,9 +64,9 @@ export function GroupPage() {
               canEditGroup(group) && (
                 <div className="flex flex-wrap gap-2">
                   <Button asChild variant="outline">
-                    <Link to={`/groups/${group.id}/subjects`}>
+                    <Link to={`/groups/${group.id}/participants`}>
                       <Users aria-hidden />
-                      Manage subjects
+                      Manage participants
                     </Link>
                   </Button>
                   <Button asChild variant="outline">

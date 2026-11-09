@@ -26,8 +26,8 @@ function FindSubject({ group }: { group: GroupRow }) {
   const { subjectId } = useParams()
   const subjects = useSubjects(group.id)
   const groupPath = `/groups/${group.id}`
-  const subjectsPath = `${groupPath}/subjects`
-  const back = <BackLink to={subjectsPath}>Subjects</BackLink>
+  const subjectsPath = `${groupPath}/participants`
+  const back = <BackLink to={subjectsPath}>Participants</BackLink>
 
   if (subjects.isPending) return null
   const subject = subjects.data?.find((s) => s.id === subjectId)
@@ -37,10 +37,10 @@ function FindSubject({ group }: { group: GroupRow }) {
       <>
         {back}
         <PageHeader
-          title={subject ? 'Edit subject' : 'Subject not found'}
+          title={subject ? 'Edit participant' : 'Participant not found'}
           description={
             subject
-              ? "Only the group's owner and editors can change subjects."
+              ? "Only the group's owner and editors can change participants."
               : "It doesn't exist in this group."
           }
         />
@@ -67,7 +67,7 @@ function EditSubject({
   const update = useUpdateSubject(subject)
   const archive = useUpdateSubject(subject)
   const groupPath = `/groups/${group.id}`
-  const subjectsPath = `${groupPath}/subjects`
+  const subjectsPath = `${groupPath}/participants`
   const isArchived = subject.archived_at !== null
 
   let nameHint: string | undefined
@@ -84,7 +84,7 @@ function EditSubject({
   return (
     <>
       {back}
-      <PageHeader title="Edit subject" description={subject.name} />
+      <PageHeader title="Edit participant" description={subject.name} />
       <div className="flex max-w-xl flex-col gap-8">
         <SubjectForm
           defaultValues={toSubjectForm(subject)}
@@ -112,8 +112,8 @@ function EditSubject({
           </h2>
           <p className="text-sm text-muted-foreground">
             {isArchived
-              ? 'This subject is hidden from the group and no new entries can be logged for it. Restore it to log again.'
-              : 'Hides this subject from the group and stops new entries for it. Its entries are kept, and you can restore it at any time.'}
+              ? 'This participant is hidden from the group and no new entries can be logged for it. Restore it to log again.'
+              : 'Hides this participant from the group and stops new entries for it. Its entries are kept, and you can restore it at any time.'}
           </p>
           {archive.isError && (
             <Alert variant="destructive">
@@ -136,12 +136,12 @@ function EditSubject({
             {isArchived ? (
               <>
                 <ArchiveRestore aria-hidden />
-                Restore subject
+                Restore participant
               </>
             ) : (
               <>
                 <Archive aria-hidden />
-                Archive subject
+                Archive participant
               </>
             )}
           </Button>

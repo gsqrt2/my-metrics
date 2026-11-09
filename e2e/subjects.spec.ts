@@ -8,17 +8,21 @@ test('a group shows its subjects; managing them shows archived ones on request',
 }) => {
   await page.goto('/groups/b0000000-0000-0000-0000-000000000001') // Kids
 
-  const subjects = page.getByRole('list', { name: 'Subjects' })
+  const subjects = page.getByRole('list', { name: 'Participants' })
   await expect(subjects.getByRole('listitem')).toHaveText([/^MIMia/, /^NONoah/])
   await expect(page.getByText('Biscuit (dog)')).toHaveCount(0)
 
-  await page.getByRole('link', { name: 'Manage subjects' }).click()
-  await expect(page.getByRole('heading', { name: 'Subjects' })).toBeVisible()
+  await page.getByRole('link', { name: 'Manage participants' }).click()
+  await expect(
+    page.getByRole('heading', { name: 'Participants' }),
+  ).toBeVisible()
   await expect(subjects).toContainText('7 years')
   await expect(page.getByText('Biscuit (dog)')).toHaveCount(0)
-  await page.getByRole('button', { name: 'Show archived subjects (1)' }).click()
+  await page
+    .getByRole('button', { name: 'Show archived participants (1)' })
+    .click()
   await expect(
-    page.getByRole('list', { name: 'Archived subjects' }),
+    page.getByRole('list', { name: 'Archived participants' }),
   ).toContainText('Biscuit (dog)')
 })
 
@@ -31,8 +35,10 @@ test.describe('managing subjects', () => {
   test.beforeEach(({ isMobile }) => {
     test.skip(isMobile, 'runs on desktop only')
   })
-  test.afterEach(async () => {
-    await deleteOwnedGroups(users.ari.email)
+  // Only where the test ran: Playwright runs afterEach for skipped tests too,
+  // and the phone run's cleanup would delete the desktop test's group mid-test.
+  test.afterEach(async ({ isMobile }) => {
+    if (!isMobile) await deleteOwnedGroups(users.ari.email)
   })
 
   async function setDisplayName(page: Page, name: string) {
@@ -46,8 +52,8 @@ test.describe('managing subjects', () => {
   async function openPersonalSubjects(page: Page) {
     await page.goto('/groups')
     await page.getByRole('link', { name: /^Personal/ }).click()
-    await page.getByRole('link', { name: 'Manage subjects' }).click()
-    const subjects = page.getByRole('list', { name: 'Subjects' })
+    await page.getByRole('link', { name: 'Manage participants' }).click()
+    const subjects = page.getByRole('list', { name: 'Participants' })
     await expect(subjects).toBeVisible()
     return subjects
   }
@@ -60,32 +66,32 @@ test.describe('managing subjects', () => {
     await page.getByLabel('Name').fill('Ari Kids')
     await page.getByRole('button', { name: 'Create group' }).click()
     await expect(page.getByText('None yet.')).toBeVisible()
-    await page.getByRole('link', { name: 'Manage subjects' }).click()
+    await page.getByRole('link', { name: 'Manage participants' }).click()
     await expect(
-      page.getByText('No subjects yet. Add who or what you measure here'),
+      page.getByText('No participants yet. Add who or what you measure here'),
     ).toBeVisible()
 
     // Add, with a birthdate and the suggested first colour.
-    await page.getByRole('link', { name: 'Add subject' }).click()
+    await page.getByRole('link', { name: 'Add participant' }).click()
     await expect(page.getByRole('radio', { name: 'Blue' })).toBeChecked()
     await page.getByLabel('Name').fill('Theo')
     await page.getByLabel('Birthdate (optional)').fill('2099-01-01')
-    await page.getByRole('button', { name: 'Add subject' }).click()
+    await page.getByRole('button', { name: 'Add participant' }).click()
     await expect(
       page.getByText("A birthdate can't be in the future."),
     ).toBeVisible()
     await page.getByLabel('Birthdate (optional)').fill('2021-03-14')
-    await page.getByRole('button', { name: 'Add subject' }).click()
+    await page.getByRole('button', { name: 'Add participant' }).click()
 
-    const subjects = page.getByRole('list', { name: 'Subjects' })
+    const subjects = page.getByRole('list', { name: 'Participants' })
     await expect(subjects).toContainText('Theo')
     await expect(subjects).toContainText(/\d+ years/)
 
     // The next one starts with the next colour.
-    await page.getByRole('link', { name: 'Add subject' }).click()
+    await page.getByRole('link', { name: 'Add participant' }).click()
     await expect(page.getByRole('radio', { name: 'Orange' })).toBeChecked()
     await page.getByLabel('Name').fill('Ivy')
-    await page.getByRole('button', { name: 'Add subject' }).click()
+    await page.getByRole('button', { name: 'Add participant' }).click()
     await expect(subjects.getByRole('listitem')).toHaveCount(2)
 
     // Edit
@@ -97,16 +103,16 @@ test.describe('managing subjects', () => {
 
     // Archive and restore
     await page.getByRole('link', { name: 'Edit Ivy' }).click()
-    await page.getByRole('button', { name: 'Archive subject' }).click()
+    await page.getByRole('button', { name: 'Archive participant' }).click()
     await expect(subjects.getByRole('listitem')).toHaveCount(1)
     await page
-      .getByRole('button', { name: 'Show archived subjects (1)' })
+      .getByRole('button', { name: 'Show archived participants (1)' })
       .click()
     await page
-      .getByRole('list', { name: 'Archived subjects' })
+      .getByRole('list', { name: 'Archived participants' })
       .getByRole('link', { name: 'Edit Ivy' })
       .click()
-    await page.getByRole('button', { name: 'Restore subject' }).click()
+    await page.getByRole('button', { name: 'Restore participant' }).click()
     await expect(subjects.getByRole('listitem')).toHaveCount(2)
 
     // Back on the group page, both show in the compact row.

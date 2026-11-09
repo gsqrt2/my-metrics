@@ -40,7 +40,7 @@
 | **Default group** | A private group every user gets automatically when their account is created, so they can start tracking right away. |
 | **Member** | A user who has access to a group, with a **role**. |
 | **Role** | `owner`, `editor` or `viewer`; see §5. Every group has exactly one owner. |
-| **Subject** | Who (or what) is measured within a group. A subject belongs to exactly one group. It can be **linked to a user** (a friend tracking themselves) or **unlinked** (a child without an account). |
+| **Subject** | Who (or what) is measured within a group. A subject belongs to exactly one group. It can be **linked to a user** (a friend tracking themselves) or **unlinked** (a child without an account). The app calls subjects **participants**; "subject" stays the term in this spec and in the code. |
 | **Attribute** | A custom-named metric that exists only within its group. The group gives it its meaning: "Height" in a group "Growth" is how tall the subject is, while "Height" in a group "Performance" is how high the subject can jump. Attributes aren't shared or reused across groups. |
 | **Entry** | One recorded value: subject + attribute + value + date and time (+ optional comment). |
 | **Value visibility** | Per subject and attribute: whether other members see the **actual values** or only the **% change** (FR-43). |
@@ -294,3 +294,4 @@
 | 2026-11-06 | Passwords have at least 8 characters. Password reset links work once and expire after an hour. | FR-1 |
 | 2026-11-09 | Every subject has a colour from a fixed palette of eight, suggested automatically (the one least used in the group) and changeable. Its avatar shows its initials in that colour; there are no uploaded pictures in v1. | FR-30 |
 | 2026-11-09 | Renaming a linked subject back to the user's display name makes it follow the display name again. | FR-33 |
+| 2026-11-09 | Subjects are called "participants" in the app (text and URLs), since "subject" would confuse users. The spec, database and code keep "subject". | Glossary |

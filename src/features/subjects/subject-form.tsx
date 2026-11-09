@@ -93,7 +93,7 @@ export function SubjectForm({
           Colour
         </legend>
         <p className="-mt-1 text-sm text-muted-foreground">
-          Marks this subject in charts and lists.
+          Marks this participant in charts and lists.
         </p>
         <div className="flex flex-wrap gap-2">
           {SUBJECT_COLORS.map((color) => (
