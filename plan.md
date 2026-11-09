@@ -169,6 +169,7 @@ Goal: an empty but complete project that runs locally, with the app layout and t
 ## Step 8: Charts and tables (FR-61 – FR-65)
 
 - `get_series` gets the "since group start" baseline.
+- **Sampling large volumes** (requested 2026-11-09): charts must stay readable and fast with years of entries. `get_series` takes a span and groups values by day, week or month when a line would otherwise have more points than the chart can show (about 100 for the small charts on the group page, about 500 full screen), returning the average and the number of entries per point; the tooltip says "average of N entries" for combined points. Shorter spans show individual entries again. The latest values and changes always use real entries, never averages. Until then, the group page loads every entry.
 - Subject view: line chart per attribute, entry table with comments, chart points showing comments.
 - Full-screen chart with Week / Month / Year / All and Duration (default when the group has one); date/age switch for subjects with a birthdate.
 - Comparison view: one attribute, all subjects; absolute / change / % change.
