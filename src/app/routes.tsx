@@ -13,6 +13,9 @@ import { GroupsPage } from '@/features/groups/groups-page'
 import { NewGroupPage } from '@/features/groups/new-group-page'
 import { ConfirmEmailPage } from '@/features/profile/confirm-email-page'
 import { ProfilePage } from '@/features/profile/profile-page'
+import { EditSubjectPage } from '@/features/subjects/edit-subject-page'
+import { NewSubjectPage } from '@/features/subjects/new-subject-page'
+import { SubjectsPage } from '@/features/subjects/subjects-page'
 
 export const routes: RouteObject[] = [
   {
@@ -33,12 +36,21 @@ export const routes: RouteObject[] = [
       </RequireAuth>
     ),
     children: [
-      // The group list is the first page after login (FR-12).
-      { index: true, element: <Navigate to="/groups" replace /> },
-      { path: 'groups', element: <GroupsPage /> },
-      { path: 'groups/new', element: <NewGroupPage /> },
-      { path: 'groups/:groupId', element: <GroupPage /> },
-      { path: 'groups/:groupId/edit', element: <EditGroupPage /> },
+      // The logbook (group) list is the first page after login (FR-12).
+      { index: true, element: <Navigate to="/logbooks" replace /> },
+      { path: 'logbooks', element: <GroupsPage /> },
+      { path: 'logbooks/new', element: <NewGroupPage /> },
+      { path: 'logbooks/:groupId', element: <GroupPage /> },
+      { path: 'logbooks/:groupId/edit', element: <EditGroupPage /> },
+      { path: 'logbooks/:groupId/participants', element: <SubjectsPage /> },
+      {
+        path: 'logbooks/:groupId/participants/new',
+        element: <NewSubjectPage />,
+      },
+      {
+        path: 'logbooks/:groupId/participants/:subjectId/edit',
+        element: <EditSubjectPage />,
+      },
       { path: 'profile', element: <ProfilePage /> },
       { path: '*', element: <NotFoundPage /> },
     ],

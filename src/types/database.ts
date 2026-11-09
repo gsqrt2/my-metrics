@@ -135,6 +135,58 @@ export type Database = {
         }
         Relationships: []
       }
+      subjects: {
+        Row: {
+          archived_at: string | null
+          birthdate: string | null
+          color: Database['public']['Enums']['subject_color']
+          created_at: string
+          group_id: string
+          id: string
+          linked_user_id: string | null
+          name: string
+          name_customized: boolean
+        }
+        ComputedFields: never
+        Insert: {
+          archived_at?: string | null
+          birthdate?: string | null
+          color: Database['public']['Enums']['subject_color']
+          created_at?: string
+          group_id: string
+          id?: string
+          linked_user_id?: string | null
+          name: string
+          name_customized?: boolean
+        }
+        Update: {
+          archived_at?: string | null
+          birthdate?: string | null
+          color?: Database['public']['Enums']['subject_color']
+          created_at?: string
+          group_id?: string
+          id?: string
+          linked_user_id?: string | null
+          name?: string
+          name_customized?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'subjects_group_id_fkey'
+            columns: ['group_id']
+            isOneToOne: false
+            referencedRelation: 'groups'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'subjects_linked_user_id_fkey'
+            columns: ['linked_user_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -148,6 +200,15 @@ export type Database = {
     }
     Enums: {
       group_role: 'owner' | 'editor' | 'viewer'
+      subject_color:
+        | 'blue'
+        | 'orange'
+        | 'aqua'
+        | 'yellow'
+        | 'magenta'
+        | 'green'
+        | 'violet'
+        | 'red'
     }
     CompositeTypes: {
       [_ in never]: never
@@ -276,6 +337,16 @@ export const Constants = {
   public: {
     Enums: {
       group_role: ['owner', 'editor', 'viewer'],
+      subject_color: [
+        'blue',
+        'orange',
+        'aqua',
+        'yellow',
+        'magenta',
+        'green',
+        'violet',
+        'red',
+      ],
     },
   },
 } as const

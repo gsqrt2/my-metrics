@@ -6,17 +6,17 @@ import { logIn } from './support/login'
 test('the group list shows the default group first, then the shared ones', async ({
   page,
 }) => {
-  await page.goto('/groups')
+  await page.goto('/logbooks')
 
   const groups = page
-    .getByRole('list', { name: 'Your groups' })
+    .getByRole('list', { name: 'Your logbooks' })
     .getByRole('link')
   await expect(groups).toHaveText([/^Personal/, /^Diet Challenge/, /^Kids/])
   await expect(groups.first()).toContainText('1 member')
 
   await groups.filter({ hasText: 'Diet Challenge' }).click()
   await expect(page).toHaveURL(
-    /\/groups\/b0000000-0000-0000-0000-000000000002$/,
+    /\/logbooks\/b0000000-0000-0000-0000-000000000002$/,
   )
   await expect(
     page.getByRole('heading', { level: 1, name: 'Diet Challenge' }),
@@ -26,8 +26,8 @@ test('the group list shows the default group first, then the shared ones', async
   await expect(page.getByText(/Oct 5\D+Dec 27, 2026/)).toBeVisible()
 
   // Back to the list without the menu, which is folded away on phones.
-  await page.getByRole('main').getByRole('link', { name: 'Groups' }).click()
-  await expect(page).toHaveURL(/\/groups$/)
+  await page.getByRole('main').getByRole('link', { name: 'Logbooks' }).click()
+  await expect(page).toHaveURL(/\/logbooks$/)
 })
 
 test.describe('creating and editing', () => {
@@ -36,15 +36,17 @@ test.describe('creating and editing', () => {
   test.beforeEach(({ isMobile }) => {
     test.skip(isMobile, 'runs on desktop only')
   })
-  test.afterEach(async () => {
-    await deleteOwnedGroups(users.jo.email)
+  // Only where the test ran: Playwright runs afterEach for skipped tests too,
+  // and the phone run's cleanup would delete the desktop test's group mid-test.
+  test.afterEach(async ({ isMobile }) => {
+    if (!isMobile) await deleteOwnedGroups(users.jo.email)
   })
 
   test('a new group can be created with a duration and then edited', async ({
     page,
   }) => {
     await logIn(page, users.jo.email)
-    await page.getByRole('link', { name: 'New group' }).click()
+    await page.getByRole('link', { name: 'New logbook' }).click()
 
     await page.getByLabel('Name').fill('Summer Steps')
     await page
@@ -53,15 +55,15 @@ test.describe('creating and editing', () => {
     await page.getByLabel('Runs between two dates').check()
     await page.getByLabel('Start date').fill('2027-06-01')
     await page.getByLabel('End date').fill('2027-05-31')
-    await page.getByRole('button', { name: 'Create group' }).click()
+    await page.getByRole('button', { name: 'Create logbook' }).click()
     await expect(
       page.getByText("The end date can't be before the start date."),
     ).toBeVisible()
 
     await page.getByLabel('End date').fill('2027-08-31')
-    await page.getByRole('button', { name: 'Create group' }).click()
+    await page.getByRole('button', { name: 'Create logbook' }).click()
 
-    await expect(page).toHaveURL(/\/groups\/[0-9a-f-]{36}$/)
+    await expect(page).toHaveURL(/\/logbooks\/[0-9a-f-]{36}$/)
     await expect(
       page.getByRole('heading', { name: 'Summer Steps' }),
     ).toBeVisible()
@@ -71,7 +73,7 @@ test.describe('creating and editing', () => {
     await expect(page.getByText('Owner')).toBeVisible()
     await expect(page.getByText(/Jun 1\D+Aug 31, 2027/)).toBeVisible()
 
-    await page.getByRole('link', { name: 'Edit group' }).click()
+    await page.getByRole('link', { name: 'Edit logbook' }).click()
     await expect(page.getByLabel('Name')).toHaveValue('Summer Steps')
     await page.getByLabel('Name').fill('Summer Steps 2027')
     await page.getByLabel('Runs between two dates').uncheck()
@@ -84,10 +86,10 @@ test.describe('creating and editing', () => {
 
     await page
       .getByRole('navigation', { name: 'Main' })
-      .getByRole('link', { name: 'Groups' })
+      .getByRole('link', { name: 'Logbooks' })
       .click()
     await expect(
-      page.getByRole('list', { name: 'Your groups' }).getByRole('link'),
+      page.getByRole('list', { name: 'Your logbooks' }).getByRole('link'),
     ).toHaveText([/^Personal/, /^Summer Steps 2027/])
   })
 })

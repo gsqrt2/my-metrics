@@ -20,8 +20,8 @@ Status: ✅ done · 🚧 in progress · ⏸️ paused with open items · ⬜ not
 | 0 | Boilerplate and app layout | ✅ | 2026-11-06 | `8017ea6` |
 | 1 | Sign-in | ✅ | 2026-11-06 | `9fcd4aa` |
 | 2 | Profile | ✅ | 2026-11-06 | `125043f` |
-| 3 | Groups | ✅ | 2026-11-09 | |
-| 4 | Subjects | ⬜ | | |
+| 3 | Groups | ✅ | 2026-11-09 | `57c8b00` |
+| 4 | Subjects (participants) | ✅ | 2026-11-09 | |
 | 5 | Attributes | ⬜ | | |
 | 6 | Logging | ⬜ | | |
 | 7 | Group dashboard | ⬜ | | |
@@ -35,7 +35,7 @@ Status: ✅ done · 🚧 in progress · ⏸️ paused with open items · ⬜ not
 | 15 | Account deletion | ⬜ | | |
 | 16 | Go live | ⬜ | | |
 
-**Next:** step 4 (Subjects).
+**Next:** step 5 (Attributes).
 
 ### Open items
 
@@ -45,7 +45,16 @@ Anything left unfinished, deferred or worth knowing before the next step. Each i
 - **Cloud auth settings** (steps 1–2). Everything set in `supabase/config.toml` (sign-ups off, minimum password length 8, site/redirect URLs, `double_confirm_changes = false`, email templates, change notifications) has to be repeated in the cloud project. Resolved in step 16.
 - **Other members' display names aren't readable yet** (step 3). `profiles` RLS still lets users read only their own profile; the step 1 migration's comment expected this to open up in step 3, but nothing shows other members yet. Add a "members of a shared group can read each other's profile" policy when member names first appear (steps 9–10).
 - **End-to-end cleanup goes around the app** (step 3). `deleteOwnedGroups` in `e2e/support/local-supabase.ts` deletes test groups straight from the local database (`pg`), because the app can't delete groups yet. Switch the test to deleting through the app in step 14.
-- **Default group's linked subject** (step 3). FR-13's "one subject linked to them" isn't created yet, because subjects don't exist. Step 4 extends `handle_new_user` and backfills existing default groups.
+- **`subjects.visibility_frozen` not added yet** (step 4). tech.md's data model has it for former members' subjects (FR-23); it's added with leaving and removing members in step 10.
+- **"Log entry" flow agreed (2026-11-09), to build in step 6.** One form, the same from the global button and from inside a logbook; only the defaults differ:
+  - **Logbook** is always the first field, always shown and changeable. From a logbook page, it's that logbook. From the global button, it's the last logbook used (or the only one); otherwise it's empty and the attribute fields wait for a choice. Only logbooks the user can log in are listed (with attributes and a participant they may log for, not archived).
+  - **Participant**: the user's own participant in that logbook, else the last one used there.
+  - **When** defaults to now, then the logbook's attributes and one comment (FR-51).
+  - Changing the logbook reloads participants and attributes, and asks before discarding values already typed in.
+  - Full-screen sheet on phones, dialog or side sheet on desktop. Last logbook and participant are remembered per device (browser storage), not in the database.
+  - Step 6 adds this flow to spec FR-51.
+- **Group page header actions** (step 4). Owners and editors see "Manage subjects" and "Edit group" side by side. Once step 5 adds attribute management, decide whether to fold these into one "group options" menu, so the header stays compact on phones.
+- **Archived subjects can still be edited** (step 4). FR-32 makes them read-only for *entries*; renaming or recolouring an archived subject is allowed. Step 6 enforces "no new entries" through `can_write_subject`.
 - **CI** (2026-11-06): green on `main` (`a1ffb71`). Chromium is cached per Playwright version and installed without `--with-deps`; if a runner image update ever breaks Chromium with missing libraries, add `pnpm exec playwright install-deps chromium` back. The slowest e2e step is now starting Supabase (~80 s).
 
 ---

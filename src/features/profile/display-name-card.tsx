@@ -52,7 +52,7 @@ export function DisplayNameCard({
           <h2>Display name</h2>
         </CardTitle>
         <CardDescription>
-          How other members see you in shared groups.
+          How other members see you in shared logbooks.
         </CardDescription>
       </CardHeader>
       <CardContent>

@@ -75,7 +75,7 @@ GitHub Actions: CI, deploys, keep-alive ping, nightly backup
   - The email uses our own template (`supabase/templates/recovery.html`). Its link goes straight to the app, `/reset-password?token_hash=…&type=recovery`, and the page calls `supabase.auth.verifyOtp`. Unlike the default link, this works when the email is opened on another device than the one that requested it, and link scanners in mail clients can't use up the token, because verifying needs JavaScript.
   - The same template and subject must be set in the cloud project (step 16).
   - The request form always shows the same confirmation, so it doesn't reveal which addresses have accounts.
-- **Seed accounts (local only):** `alex`, `sam`, `kim`, `lee`, `robin`, `pat`, `max` and `jo`, all `@example.com` and all with the password `password`, created in `supabase/seed.sql`. The end-to-end tests that change an account each use their own (see `e2e/support/local-supabase.ts`).
+- **Seed accounts (local only):** `alex`, `sam`, `kim`, `lee`, `robin`, `pat`, `max`, `jo` and `ari`, all `@example.com` and all with the password `password`, created in `supabase/seed.sql`. The end-to-end tests that change an account each use their own (see `e2e/support/local-supabase.ts`).
 - **Profile changes** (spec FR-2): display name in `profiles`; password and email through `supabase.auth.updateUser`.
   - **Email change:** `double_confirm_changes = false`, so only the new address confirms. Its email uses our template (`supabase/templates/email_change.html`) with a `token_hash` link to `/confirm-email`, which calls `verifyOtp({ type: 'email_change' })`, like the password reset. Until then, the pending address is in `user.new_email` and the profile page shows it. The `email_changed` notification then goes to the old address.
   - **Password change:** the `password_changed` notification is on. Supabase's `updateUser` doesn't check the current password, so the profile page checks it first with a throwaway login (`verify-password.ts`), whose session it ends right away. This protects against someone using an unlocked device, but it isn't a server-side check: a stolen session token could still change the password directly. Supabase's `secure_password_change` (re-authentication by emailed code) would close that gap, at the cost of an extra email step.
@@ -122,10 +122,11 @@ invites       id, group_id → groups, token (random, unique), role ('editor' | 
               email text null,                                    -- email invites: single use, bound to this address
               expires_at, revoked_at, accepted_at, created_by → profiles
 
-subjects      id, group_id → groups, name, birthdate date null, color,
+subjects      id, group_id → groups, name, birthdate date null (>= 1900),
+              color subject_color,                                -- enum, the 8 palette colours in order
               linked_user_id → profiles null, archived_at,
               name_customized boolean default false,              -- FR-33: stop following the display name
-              visibility_frozen boolean default false             -- FR-23: former member's subject
+              visibility_frozen boolean default false             -- FR-23: former member's subject (added in step 10)
               UNIQUE (group_id, linked_user_id)
 
 subject_link_requests                                             -- FR-22
@@ -156,7 +157,9 @@ Notes:
   - check that the subject and attribute belong to the same group
   - check min/max on insert and on changes to `value` only (FR-40)
   - set `created_by`, `updated_by` and `updated_at` from `auth.uid()`, so the client can't fake them
-- **FR-33:** a trigger on `profiles` updates the names of linked subjects where `name_customized = false`. Renaming a subject in a group sets `name_customized = true`.
+- **FR-33:** a trigger on `profiles` updates the names of linked subjects where `name_customized = false`. A trigger on `subjects` sets `name_customized` whenever a linked subject's name changes: true if the new name differs from the display name, false if it matches, so renaming it back resumes following.
+- **Subject colours:** `subject_color` is an enum of the eight categorical chart colours in their fixed, colour-blind-safe order (blue, orange, aqua, yellow, magenta, green, violet, red). A subject inserted without a colour gets the one least used in its group, earliest on a tie (`set_subject_defaults` trigger); the form suggests the same one. The light and dark values are the `--subject-*` tokens in `src/index.css`.
+- **Subjects aren't deleted by the app** (no delete grant): they're archived (FR-32), and deleted only with their group, with their linked account (`linked_user_id` on delete cascade, FR-3) or when a member leaves (step 10). Only `handle_new_user` and, from step 9, accepting an invite set `linked_user_id`. A birthdate in the future is refused by the form, since a check constraint shouldn't depend on today's date.
 - **Limits (FR-80):** text lengths are CHECK constraints (`char_length`). Count limits (groups per user, members per group, attributes per group) are enforced by triggers. Groups per user counts memberships, the default group included; the trigger locks the user's profile row so two parallel joins can't both pass. It raises `group_limit_reached`, which the app turns into a message.
 - Age (FR-63) is calculated in the client from `birthdate` and `measured_at`.
 

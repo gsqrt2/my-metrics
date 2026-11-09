@@ -14,33 +14,33 @@ export function GroupsPage() {
   return (
     <>
       <PageHeader
-        title="Groups"
-        description="Every group you track in or share with others."
+        title="Logbooks"
+        description="Every logbook you keep or share with others."
         actions={
           <Button asChild>
-            <Link to="/groups/new">
+            <Link to="/logbooks/new">
               <Plus aria-hidden />
-              New group
+              New logbook
             </Link>
           </Button>
         }
       />
       {groups.isPending && (
-        <p className="text-sm text-muted-foreground">Loading your groups…</p>
+        <p className="text-sm text-muted-foreground">Loading your logbooks…</p>
       )}
       {groups.isError && (
         <Alert variant="destructive">
           <AlertDescription>
-            Your groups couldn't be loaded. Please reload the page.
+            Your logbooks couldn't be loaded. Please reload the page.
           </AlertDescription>
         </Alert>
       )}
       {groups.data && (
-        <ul aria-label="Your groups" className="grid gap-4 md:grid-cols-2">
+        <ul aria-label="Your logbooks" className="grid gap-4 md:grid-cols-2">
           {groups.data.map((group) => (
             <li key={group.id}>
               <Link
-                to={`/groups/${group.id}`}
+                to={`/logbooks/${group.id}`}
                 className="flex h-full flex-col gap-3 rounded-xl border bg-card p-5 text-card-foreground transition-colors hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
               >
                 <h2 className="font-heading text-lg font-semibold break-words">
