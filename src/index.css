@@ -159,4 +159,18 @@
   html.dark {
     color-scheme: dark;
   }
+  /* Everything clickable shows the pointer, so chips and toggles read as
+     buttons. (Tailwind's reset gives buttons the default arrow.) */
+  :where(
+    button,
+    [role='button'],
+    [role='menuitem'],
+    summary,
+    select,
+    label[for],
+    input[type='checkbox'],
+    input[type='radio']
+  ):not(:disabled, [aria-disabled='true']) {
+    cursor: pointer;
+  }
 }

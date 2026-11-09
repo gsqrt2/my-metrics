@@ -17,6 +17,7 @@ import { AttributesPage } from '@/features/attributes/attributes-page'
 import { EditAttributePage } from '@/features/attributes/edit-attribute-page'
 import { NewAttributePage } from '@/features/attributes/new-attribute-page'
 import { EditEntryPage } from '@/features/entries/edit-entry-page'
+import { EntriesPage } from '@/features/entries/entries-page'
 import { EditSubjectPage } from '@/features/subjects/edit-subject-page'
 import { NewSubjectPage } from '@/features/subjects/new-subject-page'
 import { SubjectsPage } from '@/features/subjects/subjects-page'
@@ -48,6 +49,7 @@ export const routes: RouteObject[] = [
       { path: 'logbooks/:groupId/edit', element: <EditGroupPage /> },
       { path: 'logbooks/:groupId/participants', element: <SubjectsPage /> },
       { path: 'logbooks/:groupId/metrics', element: <AttributesPage /> },
+      { path: 'logbooks/:groupId/entries', element: <EntriesPage /> },
       {
         path: 'logbooks/:groupId/entries/:entryId/edit',
         element: <EditEntryPage />,

@@ -210,3 +210,51 @@ test.describe('logging', () => {
     ).toBeVisible()
   })
 })
+
+test('all entries can be filtered, sorted and paged', async ({
+  page,
+  isMobile,
+}) => {
+  await page.goto('/logbooks/b0000000-0000-0000-0000-000000000001') // Kids
+  await page
+    .getByRole('link', { name: 'All entries, with filters and sorting' })
+    .click()
+  await expect(page.getByRole('heading', { name: 'All entries' })).toBeVisible()
+
+  // 13 months × 2 children × 2 metrics, 50 per page.
+  await expect(page.getByRole('status')).toHaveText('52 entries')
+  // A table on wide screens, a list on phones; one item per entry either way.
+  const rows = isMobile
+    ? page.getByRole('list', { name: 'Entries' }).getByRole('listitem')
+    : page
+        .getByRole('table')
+        .getByRole('row')
+        .filter({ has: page.locator('td') })
+  await expect(rows).toHaveCount(50)
+  await expect(page.getByText('Page 1 of 2')).toBeVisible()
+  await page.getByRole('button', { name: 'Older' }).click()
+  await expect(rows).toHaveCount(2)
+
+  // Value order needs one metric: values of different metrics don't compare.
+  await expect(
+    page
+      .getByLabel('Order', { exact: true })
+      .locator('option[value="highest"]'),
+  ).toBeDisabled()
+  await page
+    .getByLabel('Participant', { exact: true })
+    .selectOption({ label: 'Mia' })
+  await page
+    .getByLabel('Metric', { exact: true })
+    .selectOption({ label: 'Height (cm)' })
+  await expect(page.getByRole('status')).toHaveText('13 entries')
+  await expect(page.getByText('Page 1 of 2')).toHaveCount(0)
+
+  await page.getByLabel('Order', { exact: true }).selectOption('highest')
+  await expect(rows.first()).toContainText(/12\d\.\d cm/)
+  const values = await rows.allInnerTexts()
+  const numbers = values.map((v) =>
+    Number.parseFloat(v.match(/(\d+\.\d) cm/)![1]),
+  )
+  expect(numbers).toEqual([...numbers].sort((a, b) => b - a))
+})

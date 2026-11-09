@@ -1,10 +1,17 @@
-import { cn } from 'cn'
+import { useState } from 'react'
 
+import { Segmented } from '@/components/segmented'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import type { Attribute } from '@/features/attributes/use-attributes'
+import { SMALL_CHART_MAX_POINTS } from '@/features/dashboard/chart-data'
 import type { ChartMode } from '@/features/dashboard/chart-mode'
+import {
+  ChartOverlay,
+  type OpenChart,
+} from '@/features/dashboard/chart-overlay'
 import { MetricChart } from '@/features/dashboard/metric-chart'
 import { ParticipantChart } from '@/features/dashboard/participant-chart'
+import { isSelected, type Selection } from '@/features/dashboard/selection'
 import { useDashboard, useSeries } from '@/features/dashboard/use-dashboard'
 import type { GroupRow } from '@/features/groups/types'
 import type { Subject } from '@/features/subjects/use-subjects'
@@ -17,7 +24,9 @@ const modes: { value: ChartMode; label: string }[] = [
 // FR-60: the group page's charts, in one of two views (decided 2026-11-09):
 // - by metric: a chart per attribute with the chosen subjects, real values
 // - by participant: a chart per subject with the chosen attributes, % change
-// The chip rows above choose the subjects or the attributes.
+// The chip rows above choose the subjects or the attributes. Each chart opens
+// full screen (FR-61). The small charts get at most 100 points per line;
+// beyond that the database averages entries per day, week or month.
 export function ChartsSection({
   group,
   mode,
@@ -25,20 +34,34 @@ export function ChartsSection({
   canSwitch,
   subjects,
   attributes,
-  hasAttributes,
+  subjectFilter,
+  onSubjectFilterChange,
+  attributeFilter,
+  onAttributeFilterChange,
 }: {
   group: GroupRow
   mode: ChartMode
   onModeChange: (mode: ChartMode) => void
   // Only with more than one participant; with one, both views are the same.
   canSwitch: boolean
-  // The ones chosen in the chip filters.
+  // All active ones; the filters choose among them.
   subjects: Subject[]
   attributes: Attribute[]
-  hasAttributes: boolean
+  subjectFilter: Selection
+  onSubjectFilterChange: (selected: Selection) => void
+  attributeFilter: Selection
+  onAttributeFilterChange: (selected: Selection) => void
 }) {
-  const series = useSeries(group.id)
+  const series = useSeries(group.id, { maxPoints: SMALL_CHART_MAX_POINTS })
   const summary = useDashboard(group.id)
+  const [open, setOpen] = useState<OpenChart | null>(null)
+
+  const chartSubjects = subjects.filter(
+    (s) => mode === 'participant' || isSelected(subjectFilter, s.id),
+  )
+  const chartAttributes = attributes.filter(
+    (a) => mode === 'metric' || isSelected(attributeFilter, a.id),
+  )
 
   let body: React.ReactNode
   if (series.isError || summary.isError) {
@@ -51,20 +74,20 @@ export function ChartsSection({
     )
   } else if (!series.data || !summary.data) {
     body = <p className="text-sm text-muted-foreground">Loading charts…</p>
-  } else if (!hasAttributes) {
+  } else if (attributes.length === 0) {
     // The metrics row above already links to choosing them.
     body = (
       <p className="text-sm text-muted-foreground">
         Charts appear once the logbook has metrics.
       </p>
     )
-  } else if (mode === 'metric' && subjects.length === 0) {
+  } else if (mode === 'metric' && chartSubjects.length === 0) {
     body = (
       <p className="text-sm text-muted-foreground">
         Choose at least one participant above to see their charts.
       </p>
     )
-  } else if (mode === 'participant' && attributes.length === 0) {
+  } else if (mode === 'participant' && chartAttributes.length === 0) {
     body = (
       <p className="text-sm text-muted-foreground">
         Choose at least one metric above to see it in the charts.
@@ -74,22 +97,28 @@ export function ChartsSection({
     body = (
       <div className="grid gap-4 lg:grid-cols-2">
         {mode === 'metric'
-          ? attributes.map((attribute) => (
+          ? chartAttributes.map((attribute) => (
               <MetricChart
                 key={attribute.id}
                 attribute={attribute}
-                subjects={subjects}
+                subjects={chartSubjects}
                 points={series.data}
                 summary={summary.data}
+                onOpen={() =>
+                  setOpen({ mode: 'metric', attributeId: attribute.id })
+                }
               />
             ))
-          : subjects.map((subject) => (
+          : chartSubjects.map((subject) => (
               <ParticipantChart
                 key={subject.id}
                 subject={subject}
-                attributes={attributes}
+                attributes={chartAttributes}
                 points={series.data}
                 summary={summary.data}
+                onOpen={() =>
+                  setOpen({ mode: 'participant', subjectId: subject.id })
+                }
               />
             ))}
       </div>
@@ -103,28 +132,12 @@ export function ChartsSection({
           Charts
         </h2>
         {canSwitch && (
-          <div
-            role="group"
-            aria-label="Chart view"
-            className="inline-flex rounded-lg border p-0.5"
-          >
-            {modes.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                aria-pressed={mode === option.value}
-                onClick={() => onModeChange(option.value)}
-                className={cn(
-                  'rounded-md px-3 py-1 text-sm transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none',
-                  mode === option.value
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:text-foreground',
-                )}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
+          <Segmented
+            label="Chart view"
+            options={modes}
+            value={mode}
+            onChange={onModeChange}
+          />
         )}
       </div>
       {canSwitch && (
@@ -135,6 +148,17 @@ export function ChartsSection({
         </p>
       )}
       {body}
+      <ChartOverlay
+        group={group}
+        open={open}
+        onClose={() => setOpen(null)}
+        subjects={subjects}
+        attributes={attributes}
+        subjectFilter={subjectFilter}
+        onSubjectFilterChange={onSubjectFilterChange}
+        attributeFilter={attributeFilter}
+        onAttributeFilterChange={onAttributeFilterChange}
+      />
     </section>
   )
 }
