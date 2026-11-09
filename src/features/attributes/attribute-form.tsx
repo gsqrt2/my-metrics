@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { Link } from 'react-router'
 
 import { FormField } from '@/components/form-field'
+import { NativeSelect } from '@/components/native-select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -28,7 +29,7 @@ const directionHints = {
 // Add and edit form for an attribute, shown as a "metric" (FR-40).
 export function AttributeForm({
   defaultValues,
-  notice,
+  entryCount = 0,
   submitLabel,
   pendingLabel,
   cancelTo,
@@ -37,7 +38,8 @@ export function AttributeForm({
   onSubmit,
 }: {
   defaultValues: AttributeFormValues
-  notice?: React.ReactNode
+  // Entries already logged for this attribute, for the FR-41 warning.
+  entryCount?: number
   submitLabel: string
   pendingLabel: string
   cancelTo: string
@@ -50,6 +52,12 @@ export function AttributeForm({
     defaultValues,
   })
   const { errors } = form.formState
+  const unit = form.watch('unit')
+  const precision = form.watch('precision')
+  const meaningChanged =
+    entryCount > 0 &&
+    (unit.trim() !== defaultValues.unit.trim() ||
+      precision !== defaultValues.precision)
 
   return (
     <form
@@ -92,9 +100,8 @@ export function AttributeForm({
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="attribute-precision">Decimals</Label>
-          <select
+          <NativeSelect
             id="attribute-precision"
-            className="h-9 w-full rounded-lg border border-input bg-transparent px-2.5 text-base md:text-sm dark:bg-input/30"
             {...form.register('precision')}
           >
             {PRECISIONS.map((precision) => (
@@ -104,11 +111,20 @@ export function AttributeForm({
                   : `${precision} (e.g. ${(0).toFixed(precision).replace(/0$/, '5')})`}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </div>
       </div>
 
-      {notice}
+      {meaningChanged && (
+        <Alert>
+          <AlertDescription>
+            {entryCount === 1 ? '1 entry has' : `${entryCount} entries have`}{' '}
+            already been logged. They keep their numbers: changing the unit
+            (e.g. kg to lb) changes what they mean, and fewer decimals only
+            changes how they're shown.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <fieldset className="flex flex-col gap-3">
         <legend className="mb-1 text-sm leading-none font-medium">

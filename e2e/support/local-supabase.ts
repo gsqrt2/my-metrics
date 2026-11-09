@@ -19,6 +19,7 @@ export const users = {
   jo: { email: 'jo@example.com', displayName: 'Jo Example' }, // creates groups
   ari: { email: 'ari@example.com', displayName: 'Ari Example' }, // subjects
   noa: { email: 'noa@example.com', displayName: 'Noa Example' }, // attributes
+  eli: { email: 'eli@example.com', displayName: 'Eli Example' }, // entries
 }
 
 export const MAILPIT_URL = 'http://127.0.0.1:54324'
@@ -95,6 +96,23 @@ export async function deleteOwnedGroups(email: string) {
        using public.memberships m, auth.users u
        where m.group_id = g.id and m.user_id = u.id and m.role = 'owner'
          and u.email = $1 and g.default_for_user_id is null`,
+      [email],
+    )
+  } finally {
+    await client.end()
+  }
+}
+
+// Empties an account's default group of the attributes (and so the entries)
+// a test added, since the default group itself can't be deleted (FR-13).
+export async function clearDefaultGroup(email: string) {
+  const client = new pg.Client({ connectionString: DB_URL })
+  await client.connect()
+  try {
+    await client.query(
+      `delete from public.attributes a
+       using public.groups g, auth.users u
+       where a.group_id = g.id and g.default_for_user_id = u.id and u.email = $1`,
       [email],
     )
   } finally {

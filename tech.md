@@ -75,7 +75,7 @@ GitHub Actions: CI, deploys, keep-alive ping, nightly backup
   - The email uses our own template (`supabase/templates/recovery.html`). Its link goes straight to the app, `/reset-password?token_hash=…&type=recovery`, and the page calls `supabase.auth.verifyOtp`. Unlike the default link, this works when the email is opened on another device than the one that requested it, and link scanners in mail clients can't use up the token, because verifying needs JavaScript.
   - The same template and subject must be set in the cloud project (step 16).
   - The request form always shows the same confirmation, so it doesn't reveal which addresses have accounts.
-- **Seed accounts (local only):** `alex`, `sam`, `kim`, `lee`, `robin`, `pat`, `max`, `jo`, `ari` and `noa`, all `@example.com` and all with the password `password`, created in `supabase/seed.sql`. The end-to-end tests that change an account each use their own (see `e2e/support/local-supabase.ts`).
+- **Seed accounts (local only):** `alex`, `sam`, `kim`, `lee`, `robin`, `pat`, `max`, `jo`, `ari`, `noa` and `eli`, all `@example.com` and all with the password `password`, created in `supabase/seed.sql`. The end-to-end tests that change an account each use their own (see `e2e/support/local-supabase.ts`).
 - **Profile changes** (spec FR-2): display name in `profiles`; password and email through `supabase.auth.updateUser`.
   - **Email change:** `double_confirm_changes = false`, so only the new address confirms. Its email uses our template (`supabase/templates/email_change.html`) with a `token_hash` link to `/confirm-email`, which calls `verifyOtp({ type: 'email_change' })`, like the password reset. Until then, the pending address is in `user.new_email` and the profile page shows it. The `email_changed` notification then goes to the old address.
   - **Password change:** the `password_changed` notification is on. Supabase's `updateUser` doesn't check the current password, so the profile page checks it first with a throwaway login (`verify-password.ts`), whose session it ends right away. This protects against someone using an unlocked device, but it isn't a server-side check: a stolen session token could still change the password directly. Supabase's `secure_password_change` (re-authentication by emailed code) would close that gap, at the cost of an extra email step.
@@ -153,6 +153,9 @@ entries       id, subject_id → subjects, attribute_id → attributes,
 Notes:
 - `measured_at` is stored as `timestamptz` and shown in the viewer's local time zone (FR-50). `birthdate` is a plain `date`.
 - Rejecting future timestamps (FR-53) is done in a trigger, allowing a few minutes of clock skew, because CHECK constraints shouldn't depend on `now()`.
+- **`check_entry` trigger** (step 6): same-group check, future check, min/max for new or changed values, and `created_by`/`updated_by` stamping. An update that changes none of value, time or comment is passed through untouched: that's the database's own `on delete set null` when an account is deleted, and stamping it would break the foreign key and block the deletion.
+- **Quick entry** is one bulk insert without reading the rows back. Value checks (number, decimals, min/max) run in the form too, with the database as the authority. Values may be typed with a dot or a comma.
+- **Profiles of co-members** are readable (`shares_group_with`), so entries can show who logged them. Profiles hold only the display name.
 - Triggers on `entries`:
   - check that the subject and attribute belong to the same group
   - check min/max on insert and on changes to `value` only (FR-40)
@@ -197,7 +200,7 @@ Helper functions (`security definer`, `stable`) avoid recursive policies on `mem
 | invites | owner, and the invite's creator | Insert: owner or editor (role must be `editor` or `viewer`). Revoke: owner, or the invite's creator |
 | subjects | member | owner, editor |
 | subject_link_requests | owner, and the requester | only through SQL functions |
-| attributes | member | Insert/update: owner or editor. Delete: owner, or an editor if the attribute has no entries (trigger) |
+| attributes | member | Insert/update: owner or editor. Delete: owner, or an editor if the attribute has no entries (`attribute_has_entries` in the policy) |
 | value_visibility | member | `can_set_visibility(subject_id)` |
 | entries | `can_see_values(subject_id, attribute_id)` | `can_write_entry(subject_id, attribute_id)` |
 

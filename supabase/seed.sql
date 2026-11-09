@@ -25,7 +25,8 @@ from (values
   ('a0000000-0000-0000-0000-000000000007'::uuid, 'max@example.com', 'Max Example'),
   ('a0000000-0000-0000-0000-000000000008'::uuid, 'jo@example.com', 'Jo Example'),
   ('a0000000-0000-0000-0000-000000000009'::uuid, 'ari@example.com', 'Ari Example'),
-  ('a0000000-0000-0000-0000-000000000010'::uuid, 'noa@example.com', 'Noa Example')
+  ('a0000000-0000-0000-0000-000000000010'::uuid, 'noa@example.com', 'Noa Example'),
+  ('a0000000-0000-0000-0000-000000000011'::uuid, 'eli@example.com', 'Eli Example')
 ) as u (id, email, display_name);
 
 insert into auth.identities (
@@ -77,3 +78,51 @@ insert into public.attributes (id, group_id, name, unit, precision, direction, m
   ('d1000000-0000-0000-0000-000000000003', 'b0000000-0000-0000-0000-000000000002', 'Weight', 'kg', 1, 'lower_better', 40, 250),
   ('d1000000-0000-0000-0000-000000000004', 'b0000000-0000-0000-0000-000000000002', 'Waist', 'cm', 0, 'lower_better', null, null),
   ('d1000000-0000-0000-0000-000000000005', 'b0000000-0000-0000-0000-000000000002', 'Body fat', '%', 1, 'lower_better', 0, 70);
+
+-- Demo entries (step 6). The trigger records the signed-in user as who logged
+-- them, so the claims below say who that is. Times are 08:00 in Berlin.
+-- Kids: Alex measured Mia and Noah on the first of each month for a year.
+select set_config('request.jwt.claims', '{"sub": "a0000000-0000-0000-0000-000000000001"}', false);
+insert into public.entries (subject_id, attribute_id, value, measured_at)
+select k.subject_id, k.attribute_id,
+       round((k.start + k.per_month * m + (random() - 0.5) * k.noise)::numeric, 1),
+       (date_trunc('month', date '2025-11-01' + make_interval(months => m)) + time '08:00') at time zone 'Europe/Berlin'
+from generate_series(0, 12) m
+cross join (values
+  ('c0000000-0000-0000-0000-000000000001'::uuid, 'd1000000-0000-0000-0000-000000000001'::uuid, 119.0, 0.50, 0.4), -- Mia, height
+  ('c0000000-0000-0000-0000-000000000001'::uuid, 'd1000000-0000-0000-0000-000000000002'::uuid, 21.8, 0.16, 0.3),   -- Mia, weight
+  ('c0000000-0000-0000-0000-000000000002'::uuid, 'd1000000-0000-0000-0000-000000000001'::uuid, 94.5, 0.70, 0.4),  -- Noah, height
+  ('c0000000-0000-0000-0000-000000000002'::uuid, 'd1000000-0000-0000-0000-000000000002'::uuid, 14.1, 0.15, 0.3)   -- Noah, weight
+) as k (subject_id, attribute_id, start, per_month, noise);
+
+-- Diet Challenge: weekly Monday weigh-ins since the start, each by the member
+-- themselves.
+create temporary table diet_entries (user_id uuid, subject_id uuid, attribute_id uuid, start numeric, per_week numeric, noise numeric);
+insert into diet_entries values
+  ('a0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000004', 'd1000000-0000-0000-0000-000000000003', 92.0, -0.6, 0.6), -- Alex, weight
+  ('a0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000004', 'd1000000-0000-0000-0000-000000000004', 104, -0.7, 1.0),  -- Alex, waist
+  ('a0000000-0000-0000-0000-000000000003', 'c0000000-0000-0000-0000-000000000005', 'd1000000-0000-0000-0000-000000000003', 74.0, -0.4, 0.5), -- Kim, weight
+  ('a0000000-0000-0000-0000-000000000003', 'c0000000-0000-0000-0000-000000000005', 'd1000000-0000-0000-0000-000000000005', 31.0, -0.3, 0.4), -- Kim, body fat
+  ('a0000000-0000-0000-0000-000000000004', 'c0000000-0000-0000-0000-000000000006', 'd1000000-0000-0000-0000-000000000003', 81.0, -0.5, 0.6); -- Lee, weight
+
+do $$
+declare
+  member uuid;
+begin
+  for member in select distinct user_id from diet_entries loop
+    perform set_config('request.jwt.claims', json_build_object('sub', member)::text, false);
+    insert into public.entries (subject_id, attribute_id, value, measured_at)
+    select d.subject_id, d.attribute_id,
+           round((d.start + d.per_week * w + (random() - 0.5) * d.noise)::numeric,
+                 (select precision from public.attributes where id = d.attribute_id)),
+           ((date '2026-10-05' + 7 * w) + time '07:30') at time zone 'Europe/Berlin'
+    from diet_entries d
+    cross join generate_series(0, ((current_date - date '2026-10-05') / 7)) w
+    where d.user_id = member
+      and ((date '2026-10-05' + 7 * w) + time '07:30') at time zone 'Europe/Berlin' <= now();
+  end loop;
+end;
+$$;
+
+drop table diet_entries;
+select set_config('request.jwt.claims', '', false);

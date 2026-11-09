@@ -22,8 +22,8 @@ Status: ✅ done · 🚧 in progress · ⏸️ paused with open items · ⬜ not
 | 2 | Profile | ✅ | 2026-11-06 | `125043f` |
 | 3 | Groups | ✅ | 2026-11-09 | `57c8b00` |
 | 4 | Subjects (participants) | ✅ | 2026-11-09 | `987e1dc` |
-| 5 | Attributes (metrics) | ✅ | 2026-11-09 | |
-| 6 | Logging | ⬜ | | |
+| 5 | Attributes (metrics) | ✅ | 2026-11-09 | `147a174` |
+| 6 | Logging | ✅ | 2026-11-09 | |
 | 7 | Group dashboard | ⬜ | | |
 | 8 | Charts and tables | ⬜ | | |
 | 9 | Invitations and joining | ⬜ | | |
@@ -35,7 +35,7 @@ Status: ✅ done · 🚧 in progress · ⏸️ paused with open items · ⬜ not
 | 15 | Account deletion | ⬜ | | |
 | 16 | Go live | ⬜ | | |
 
-**Next:** step 6 (Logging).
+**Next:** step 7 (Group dashboard with charts).
 
 ### Open items
 
@@ -43,23 +43,9 @@ Anything left unfinished, deferred or worth knowing before the next step. Each i
 
 - **Current-password check is client-side** (step 2). Supabase doesn't verify `current_password` on password change, so the app checks it with a throwaway sign-in ([verify-password.ts](src/features/profile/verify-password.ts)). It stops mistakes, not someone who already holds the session. Revisit if a server-side check (Edge Function) becomes worth it; see [tech.md §3](tech.md).
 - **Cloud auth settings** (steps 1–2). Everything set in `supabase/config.toml` (sign-ups off, minimum password length 8, site/redirect URLs, `double_confirm_changes = false`, email templates, change notifications) has to be repeated in the cloud project. Resolved in step 16.
-- **Other members' display names aren't readable yet** (step 3). `profiles` RLS still lets users read only their own profile; the step 1 migration's comment expected this to open up in step 3, but nothing shows other members yet. Add a "members of a shared group can read each other's profile" policy when member names first appear (steps 9–10).
-- **End-to-end cleanup goes around the app** (step 3). `deleteOwnedGroups` in `e2e/support/local-supabase.ts` deletes test groups straight from the local database (`pg`), because the app can't delete groups yet. Switch the test to deleting through the app in step 14.
+- **End-to-end cleanup goes around the app** (step 3). `deleteOwnedGroups` in `e2e/support/local-supabase.ts` deletes test groups straight from the local database (`pg`), because the app can't delete groups yet. `clearDefaultGroup` (step 6) likewise removes what tests add to an account's default group. Switch the tests to deleting through the app in step 14.
 - **`subjects.visibility_frozen` not added yet** (step 4). tech.md's data model has it for former members' subjects (FR-23); it's added with leaving and removing members in step 10.
-- **"Log entry" flow agreed (2026-11-09), to build in step 6.** One form, the same from the global button and from inside a logbook; only the defaults differ:
-  - **Logbook** is always the first field, always shown and changeable. From a logbook page, it's that logbook. From the global button, it's the last logbook used (or the only one); otherwise it's empty and the attribute fields wait for a choice. Only logbooks the user can log in are listed (with attributes and a participant they may log for, not archived).
-  - **Participant**: the user's own participant in that logbook, else the last one used there.
-  - **When** defaults to now, then the logbook's attributes and one comment (FR-51).
-  - Changing the logbook reloads participants and attributes, and asks before discarding values already typed in.
-  - Full-screen sheet on phones, dialog or side sheet on desktop. Last logbook and participant are remembered per device (browser storage), not in the database.
-  - Step 6 adds this flow to spec FR-51.
-- **Attribute rules that need entries** (step 5, to finish in step 6):
-  - Only the owner may delete an attribute that has entries (FR-42). The delete policy lets editors delete any attribute for now, since none can have entries yet.
-  - Archived attributes are read-only: no new entries (FR-42), enforced with `can_write_entry`.
-  - Changing the unit or decimals of an attribute that has entries shows a warning first (FR-41). The edit form has a `notice` slot for it.
-  - Deleting an attribute with entries should say how many entries go with it.
-- **Archived subjects can still be edited** (step 4). FR-32 makes them read-only for *entries*; renaming or recolouring an archived subject is allowed. Step 6 enforces "no new entries" through `can_write_subject`.
-- **CI** (2026-11-06): green on `main` (`a1ffb71`). Chromium is cached per Playwright version and installed without `--with-deps`; if a runner image update ever breaks Chromium with missing libraries, add `pnpm exec playwright install-deps chromium` back. The slowest e2e step is now starting Supabase (~80 s).
+- **CI**: green on `main` through step 5 (`147a174`); step 6 checked after merging. Chromium is cached per Playwright version and installed without `--with-deps`; if a runner image update ever breaks Chromium with missing libraries, add `pnpm exec playwright install-deps chromium` back. The slowest e2e step is now starting Supabase (~80 s).
 
 ---
 
@@ -167,17 +153,18 @@ Goal: an empty but complete project that runs locally, with the app layout and t
 
 ---
 
-## Step 7: Group dashboard (FR-60, FR-66)
+## Step 7: Group dashboard with charts (FR-60, FR-66)
 
-- `get_dashboard` SQL function (first, previous and latest entry per subject and attribute).
-- Dashboard: latest values, change since previous and since first entry, coloured by direction; recent entries; duration progress if the group has one.
+- `get_series` SQL function (entries in a date range, with "first entry" as the baseline; step 8 adds "since group start") and `get_dashboard` (first, previous and latest entry per subject and attribute).
+- The group page leads with **a chart per attribute, all subjects overlaid** (decided 2026-11-09), replacing the "Charts" placeholder from step 6. Participant chips above the charts filter them all at once. Charts stack on phones, two columns on desktop. No chart mixes attributes (different units). Each chart shows the latest value and the change since the previous and the first entry per subject, coloured by direction.
+- Recent entries stay below the charts, secondary (5 shown, more on request; done in step 6). Duration progress if the group has one.
 - Empty states for groups without subjects, attributes or entries.
 
 ---
 
 ## Step 8: Charts and tables (FR-61 – FR-65)
 
-- `get_series` SQL function with both baselines ("first entry" and "since group start").
+- `get_series` gets the "since group start" baseline.
 - Subject view: line chart per attribute, entry table with comments, chart points showing comments.
 - Full-screen chart with Week / Month / Year / All and Duration (default when the group has one); date/age switch for subjects with a birthdate.
 - Comparison view: one attribute, all subjects; absolute / change / % change.

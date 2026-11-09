@@ -153,5 +153,10 @@
   }
   html {
     @apply font-sans;
+    color-scheme: light;
+  }
+  /* Native controls (dropdown lists, date pickers, scrollbars) follow the theme. */
+  html.dark {
+    color-scheme: dark;
   }
 }

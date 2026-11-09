@@ -45,6 +45,11 @@ vi.mock('@/features/attributes/use-attributes', async (importOriginal) => ({
   }),
 }))
 
+vi.mock('@/features/entries/use-entries', async (importOriginal) => ({
+  ...(await importOriginal()),
+  useRecentEntries: () => ({ data: [] }),
+}))
+
 const personal: GroupRow = {
   id: 'g-personal',
   name: 'Personal',
@@ -54,6 +59,8 @@ const personal: GroupRow = {
   isDefault: true,
   role: 'owner',
   memberCount: 1,
+  membersEditOwnSubjectOnly: false,
+  isArchived: false,
 }
 const diet: GroupRow = {
   id: 'g-diet',
@@ -64,6 +71,8 @@ const diet: GroupRow = {
   isDefault: false,
   role: 'viewer',
   memberCount: 3,
+  membersEditOwnSubjectOnly: false,
+  isArchived: false,
 }
 
 const loggedIn = {

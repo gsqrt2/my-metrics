@@ -9,6 +9,7 @@ import { GroupMeta } from '@/features/groups/group-meta'
 import { canEditGroup, type GroupRow } from '@/features/groups/types'
 import { useGroup } from '@/features/groups/use-groups'
 import { AttributesSection } from '@/features/attributes/attributes-section'
+import { EntriesSection } from '@/features/entries/entries-section'
 import { GroupOptionsMenu } from '@/features/groups/group-options-menu'
 import { SubjectsSection } from '@/features/subjects/subjects-section'
 
@@ -50,8 +51,8 @@ export function WithGroup({
   return children(group.data)
 }
 
-// The group's home: its subjects and attributes, and from steps 6–8 its
-// entries and dashboard.
+// The group's home: its subjects and attributes, then charts (steps 7–8,
+// a placeholder for now), then the latest entries, which are secondary.
 export function GroupPage() {
   return (
     <WithGroup>
@@ -69,9 +70,24 @@ export function GroupPage() {
           <div className="flex flex-col gap-4">
             <SubjectsSection group={group} />
             <AttributesSection group={group} />
-            <Placeholder className="mt-6">
-              Entries will appear here (plan step 6).
-            </Placeholder>
+            <section
+              aria-labelledby="charts-heading"
+              className="mt-6 flex flex-col gap-4"
+            >
+              <h2
+                id="charts-heading"
+                className="font-heading text-lg font-semibold"
+              >
+                Charts
+              </h2>
+              <Placeholder>
+                A chart for each metric, with every participant's progress, will
+                appear here (plan steps 7–8).
+              </Placeholder>
+            </section>
+            <div className="mt-6">
+              <EntriesSection group={group} />
+            </div>
           </div>
         </>
       )}
