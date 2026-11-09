@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router'
 
+import { BackLink } from '@/app/layout/back-link'
 import { PageHeader } from '@/app/layout/page-header'
 import { Button } from '@/components/ui/button'
 import { GroupForm } from '@/features/groups/group-form'
@@ -18,9 +19,12 @@ function EditGroup({ group }: { group: GroupRow }) {
   const update = useUpdateGroup(group.id)
   const groupPath = `/groups/${group.id}`
 
+  const back = <BackLink to={groupPath}>{group.name}</BackLink>
+
   if (!canEditGroup(group)) {
     return (
       <>
+        {back}
         <PageHeader
           title="Edit group"
           description="Only the group's owner and editors can change it."
@@ -34,6 +38,7 @@ function EditGroup({ group }: { group: GroupRow }) {
 
   return (
     <>
+      {back}
       <PageHeader title="Edit group" description={group.name} />
       <GroupForm
         defaultValues={toGroupForm(group)}

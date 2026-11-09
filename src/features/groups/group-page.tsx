@@ -1,6 +1,7 @@
 import { Pencil } from 'lucide-react'
 import { Link, useParams } from 'react-router'
 
+import { BackLink } from '@/app/layout/back-link'
 import { PageHeader } from '@/app/layout/page-header'
 import { Placeholder } from '@/app/placeholder'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -54,6 +55,7 @@ export function GroupPage() {
     <WithGroup>
       {(group) => (
         <>
+          <BackLink to="/groups">Groups</BackLink>
           <PageHeader
             title={group.name}
             description={group.description ?? undefined}

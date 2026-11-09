@@ -24,6 +24,10 @@ test('the group list shows the default group first, then the shared ones', async
   await expect(page.getByText('Owner')).toBeVisible()
   await expect(page.getByText('3 members')).toBeVisible()
   await expect(page.getByText(/Oct 5\D+Dec 27, 2026/)).toBeVisible()
+
+  // Back to the list without the menu, which is folded away on phones.
+  await page.getByRole('main').getByRole('link', { name: 'Groups' }).click()
+  await expect(page).toHaveURL(/\/groups$/)
 })
 
 test.describe('creating and editing', () => {

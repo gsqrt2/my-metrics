@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router'
 
+import { BackLink } from '@/app/layout/back-link'
 import { PageHeader } from '@/app/layout/page-header'
 import { GroupForm } from '@/features/groups/group-form'
 import { emptyGroupForm } from '@/features/groups/schemas'
@@ -12,6 +13,7 @@ export function NewGroupPage() {
 
   return (
     <>
+      <BackLink to="/groups">Groups</BackLink>
       <PageHeader
         title="New group"
         description="Only you can see it until you invite others."
