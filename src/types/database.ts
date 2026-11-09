@@ -38,7 +38,6 @@ export type Database = {
         Row: {
           archived_at: string | null
           created_at: string
-          direction: Database['public']['Enums']['attribute_direction']
           group_id: string
           id: string
           max_value: number | null
@@ -52,7 +51,6 @@ export type Database = {
         Insert: {
           archived_at?: string | null
           created_at?: string
-          direction?: Database['public']['Enums']['attribute_direction']
           group_id: string
           id?: string
           max_value?: number | null
@@ -65,7 +63,6 @@ export type Database = {
         Update: {
           archived_at?: string | null
           created_at?: string
-          direction?: Database['public']['Enums']['attribute_direction']
           group_id?: string
           id?: string
           max_value?: number | null
@@ -328,6 +325,36 @@ export type Database = {
         Args: { target_subject_id: string }
         Returns: boolean
       }
+      get_dashboard: {
+        Args: { target_group_id: string }
+        Returns: {
+          attribute_id: string
+          change_since_first: number
+          change_since_previous: number
+          entry_count: number
+          first_at: string
+          first_value: number
+          latest_at: string
+          latest_value: number
+          pct_since_first: number
+          pct_since_previous: number
+          previous_at: string
+          previous_value: number
+          subject_id: string
+        }[]
+      }
+      get_series: {
+        Args: { from_at?: string; target_group_id: string; to_at?: string }
+        Returns: {
+          attribute_id: string
+          comment: string
+          entry_id: string
+          measured_at: string
+          pct_change: number
+          subject_id: string
+          value: number
+        }[]
+      }
       is_member: { Args: { target_group_id: string }; Returns: boolean }
       member_role: {
         Args: { target_group_id: string }
@@ -344,7 +371,6 @@ export type Database = {
       }
     }
     Enums: {
-      attribute_direction: 'higher_better' | 'lower_better' | 'neutral'
       group_role: 'owner' | 'editor' | 'viewer'
       subject_color:
         | 'blue'
@@ -482,7 +508,6 @@ export const Constants = {
   },
   public: {
     Enums: {
-      attribute_direction: ['higher_better', 'lower_better', 'neutral'],
       group_role: ['owner', 'editor', 'viewer'],
       subject_color: [
         'blue',

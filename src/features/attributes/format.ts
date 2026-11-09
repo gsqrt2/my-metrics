@@ -1,14 +1,5 @@
-import type {
-  AttributeDirection,
-  AttributeFields,
-} from '@/features/attributes/schemas'
+import type { AttributeFields } from '@/features/attributes/schemas'
 import { formatDecimal } from '@/lib/numbers'
-
-export const directionLabels: Record<AttributeDirection, string> = {
-  higher_better: 'Higher is better',
-  lower_better: 'Lower is better',
-  neutral: 'Neither',
-}
 
 // Offered in the unit field; any other text is fine too (FR-40).
 export const UNIT_SUGGESTIONS = [
@@ -37,7 +28,7 @@ export function attributeLabel(
     : attribute.name
 }
 
-// One line of details, e.g. "1 decimal · Lower is better · 40–250".
+// One line of details, e.g. "1 decimal · 40–250".
 export function attributeDetails(attribute: AttributeFields, locale?: string) {
   const parts = [
     attribute.precision === 0
@@ -46,9 +37,6 @@ export function attributeDetails(attribute: AttributeFields, locale?: string) {
         ? '1 decimal'
         : `${attribute.precision} decimals`,
   ]
-  if (attribute.direction !== 'neutral') {
-    parts.push(directionLabels[attribute.direction])
-  }
   const min = attribute.min_value
   const max = attribute.max_value
   const show = (value: number) =>

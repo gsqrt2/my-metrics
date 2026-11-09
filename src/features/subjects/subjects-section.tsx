@@ -1,14 +1,32 @@
 import { useAuth } from '@/features/auth/use-auth'
-import type { GroupRow } from '@/features/groups/types'
+import { FilterChip, ShowAllButton } from '@/features/dashboard/filter-chip'
+import {
+  chipTitle,
+  isSelected,
+  toggleSelection,
+  type Selection,
+} from '@/features/dashboard/selection'
 import { SubjectAvatar } from '@/features/subjects/subject-avatar'
-import { useSubjects } from '@/features/subjects/use-subjects'
+import type { Subject } from '@/features/subjects/use-subjects'
 
-// Compact row of the group's active subjects on the group page. Owners and
-// editors manage them on the subjects page (Options → Participants; "participant" is the UI's word for a subject).
-export function SubjectsSection({ group }: { group: GroupRow }) {
-  const subjects = useSubjects(group.id)
+// The group's active subjects on the group page. In the "by metric" chart
+// view they filter the charts (all at first; tap one to focus, tap more to
+// add, "Show all" to go back). Owners and editors manage subjects through
+// Options → Participants.
+export function SubjectsSection({
+  subjects,
+  isError,
+  filters,
+  selected,
+  onSelectedChange,
+}: {
+  subjects: Subject[] | undefined
+  isError: boolean
+  filters: boolean
+  selected: Selection
+  onSelectedChange: (selected: Selection) => void
+}) {
   const { session } = useAuth()
-  const active = subjects.data?.filter((s) => !s.archived_at) ?? []
 
   return (
     <section
@@ -21,33 +39,48 @@ export function SubjectsSection({ group }: { group: GroupRow }) {
       >
         Participants
       </h2>
-      {subjects.isError && (
+      {isError && (
         <p className="text-sm text-destructive">
           The participants couldn't be loaded.
         </p>
       )}
-      {subjects.data && active.length === 0 && (
+      {subjects && subjects.length === 0 && (
         <p className="text-sm text-muted-foreground">None yet.</p>
       )}
-      {active.length > 0 && (
+      {subjects && subjects.length > 0 && (
         <ul aria-label="Participants" className="flex flex-wrap gap-2">
-          {active.map((subject) => (
-            <li
-              key={subject.id}
-              className="inline-flex max-w-full items-center gap-2 rounded-full border bg-card py-1 pr-3 pl-1 text-sm"
-            >
-              <SubjectAvatar
-                name={subject.name}
-                color={subject.color}
-                className="size-6 text-[0.625rem]"
-              />
-              <span className="truncate">{subject.name}</span>
-              {subject.linked_user_id === session?.user.id && (
-                <span className="text-muted-foreground">(you)</span>
-              )}
-            </li>
-          ))}
+          {subjects.map((subject) => {
+            const on = !filters || isSelected(selected, subject.id)
+            return (
+              <li key={subject.id} className="max-w-full">
+                <FilterChip
+                  interactive={filters}
+                  pressed={on}
+                  withAvatar
+                  title={chipTitle(subject.name, selected === null, on)}
+                  onToggle={() =>
+                    onSelectedChange(
+                      toggleSelection(selected, subject.id, subjects.length),
+                    )
+                  }
+                >
+                  <SubjectAvatar
+                    name={subject.name}
+                    color={subject.color}
+                    className="size-6 text-[0.625rem]"
+                  />
+                  <span className="truncate">{subject.name}</span>
+                  {subject.linked_user_id === session?.user.id && (
+                    <span className="text-muted-foreground">(you)</span>
+                  )}
+                </FilterChip>
+              </li>
+            )
+          })}
         </ul>
+      )}
+      {filters && selected !== null && (
+        <ShowAllButton onClick={() => onSelectedChange(null)} />
       )}
     </section>
   )

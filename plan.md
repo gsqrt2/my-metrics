@@ -23,8 +23,8 @@ Status: ✅ done · 🚧 in progress · ⏸️ paused with open items · ⬜ not
 | 3 | Groups | ✅ | 2026-11-09 | `57c8b00` |
 | 4 | Subjects (participants) | ✅ | 2026-11-09 | `987e1dc` |
 | 5 | Attributes (metrics) | ✅ | 2026-11-09 | `147a174` |
-| 6 | Logging | ✅ | 2026-11-09 | |
-| 7 | Group dashboard | ⬜ | | |
+| 6 | Logging | ✅ | 2026-11-09 | `cc02785` |
+| 7 | Group dashboard with charts | 🚧 | | |
 | 8 | Charts and tables | ⬜ | | |
 | 9 | Invitations and joining | ⬜ | | |
 | 10 | Managing members and leaving | ⬜ | | |
@@ -35,7 +35,7 @@ Status: ✅ done · 🚧 in progress · ⏸️ paused with open items · ⬜ not
 | 15 | Account deletion | ⬜ | | |
 | 16 | Go live | ⬜ | | |
 
-**Next:** step 7 (Group dashboard with charts).
+**Next:** finish step 7 (Group dashboard with charts).
 
 ### Open items
 
@@ -45,7 +45,9 @@ Anything left unfinished, deferred or worth knowing before the next step. Each i
 - **Cloud auth settings** (steps 1–2). Everything set in `supabase/config.toml` (sign-ups off, minimum password length 8, site/redirect URLs, `double_confirm_changes = false`, email templates, change notifications) has to be repeated in the cloud project. Resolved in step 16.
 - **End-to-end cleanup goes around the app** (step 3). `deleteOwnedGroups` in `e2e/support/local-supabase.ts` deletes test groups straight from the local database (`pg`), because the app can't delete groups yet. `clearDefaultGroup` (step 6) likewise removes what tests add to an account's default group. Switch the tests to deleting through the app in step 14.
 - **`subjects.visibility_frozen` not added yet** (step 4). tech.md's data model has it for former members' subjects (FR-23); it's added with leaving and removing members in step 10.
-- **CI**: green on `main` through step 5 (`147a174`); step 6 checked after merging. Chromium is cached per Playwright version and installed without `--with-deps`; if a runner image update ever breaks Chromium with missing libraries, add `pnpm exec playwright install-deps chromium` back. The slowest e2e step is now starting Supabase (~80 s).
+- **Charts skip hidden values** (step 7). Rows whose actual value the viewer may not see (FR-43) come from `get_series` with only a % change, and the charts leave them out. Step 11 adds a "% change" chart mode and uses it whenever a chart has hidden values, as FR-62 already requires for comparisons.
+- **App bundle size** (step 7). The main JavaScript bundle is about 285 KB gzipped (Supabase client, UI primitives, forms); the charts load separately (about 110 KB) on group pages only. Consider splitting by route before going live (step 16).
+- **CI**: green on `main` through step 6 (`cc02785`). Chromium is cached per Playwright version and installed without `--with-deps`; if a runner image update ever breaks Chromium with missing libraries, add `pnpm exec playwright install-deps chromium` back. The slowest e2e step is now starting Supabase (~80 s).
 
 ---
 
@@ -135,7 +137,7 @@ Goal: an empty but complete project that runs locally, with the app layout and t
 ## Step 5: Attributes (FR-40 – FR-42)
 
 - `attributes` table, RLS (owner/editor manage; only the owner deletes attributes that have entries).
-- Create, edit, reorder and archive attributes: name, unit, decimals, direction, min/max.
+- Create, edit, reorder and archive attributes: name, unit, decimals, direction, min/max. *(The direction field was removed again in step 7.)*
 - Suggested attributes in the default group's empty state (FR-13).
 - Warning when changing unit or decimals of an attribute with entries.
 - Count limit: attributes per group.
@@ -156,7 +158,8 @@ Goal: an empty but complete project that runs locally, with the app layout and t
 ## Step 7: Group dashboard with charts (FR-60, FR-66)
 
 - `get_series` SQL function (entries in a date range, with "first entry" as the baseline; step 8 adds "since group start") and `get_dashboard` (first, previous and latest entry per subject and attribute).
-- The group page leads with **a chart per attribute, all subjects overlaid** (decided 2026-11-09), replacing the "Charts" placeholder from step 6. Participant chips above the charts filter them all at once. Charts stack on phones, two columns on desktop. No chart mixes attributes (different units). Each chart shows the latest value and the change since the previous and the first entry per subject, coloured by direction.
+- The group page leads with charts in two views (decided 2026-11-09), replacing the "Charts" placeholder from step 6: **by metric** (a chart per attribute, all subjects, real values; participant chips filter) and **by participant** (a chart per subject, all attributes as % change since their first entry, values on hover; metric chips filter). The view is remembered per group on each device; no switch with one participant. Charts stack on phones, two columns on desktop.
+- Each chart lists per line the latest value and the change since the previous and the first entry, without judging it (the attribute "direction" field is removed: tracking only).
 - Recent entries stay below the charts, secondary (5 shown, more on request; done in step 6). Duration progress if the group has one.
 - Empty states for groups without subjects, attributes or entries.
 

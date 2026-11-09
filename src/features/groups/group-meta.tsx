@@ -7,6 +7,10 @@ import {
   roleLabels,
 } from '@/features/groups/format'
 import type { GroupRow } from '@/features/groups/types'
+import {
+  durationProgress,
+  formatDurationProgress,
+} from '@/features/dashboard/progress'
 
 // The facts shown under a group's name: personal, role, members, duration.
 export function GroupMeta({ group }: { group: GroupRow }) {
@@ -25,6 +29,10 @@ export function GroupMeta({ group }: { group: GroupRow }) {
           <CalendarRange className="size-4" aria-hidden />
           <span className="sr-only">Runs </span>
           {formatDuration(group.starts_on, group.ends_on)}
+          <span aria-hidden>·</span>
+          {formatDurationProgress(
+            durationProgress(group.starts_on, group.ends_on),
+          )}
         </span>
       )}
     </div>

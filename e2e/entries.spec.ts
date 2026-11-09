@@ -7,6 +7,13 @@ import {
 } from './support/local-supabase'
 import { logIn, openLogbookOption } from './support/login'
 
+// Yesterday at a given time, as a datetime-local value in local time.
+function yesterdayAt(time: string) {
+  const day = new Date(Date.now() - 24 * 3600 * 1000)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${day.getFullYear()}-${pad(day.getMonth() + 1)}-${pad(day.getDate())}T${time}`
+}
+
 test('a logbook shows charts first, then its latest entries', async ({
   page,
 }) => {
@@ -105,7 +112,9 @@ test.describe('logging', () => {
     await page.getByRole('button', { name: 'Add participant' }).click()
     await page.getByRole('main').getByRole('link', { name: 'Eli Log' }).click()
     await addSuggestedMetrics(page, ['Weight (kg)', 'Waist (cm)'])
-    await expect(page.getByText('Nothing logged yet.')).toBeVisible()
+    await expect(
+      page.getByRole('region', { name: 'Recent entries' }),
+    ).toContainText('Nothing logged yet.')
 
     // From the logbook: it's preselected, with its participant.
     await logEntry.click()
@@ -124,6 +133,8 @@ test.describe('logging', () => {
     await sheet.getByLabel('Weight (kg)').fill('72,4')
     await sheet.getByLabel('Waist (cm)').fill('81')
     await sheet.getByLabel('Comment (optional)').fill('After a run')
+    // A fixed time, so the duplicate check below doesn't depend on the clock.
+    await sheet.getByLabel('When').fill(yesterdayAt('08:00'))
     await sheet.getByRole('button', { name: 'Save 2 values' }).click()
 
     await expect(sheet).toHaveCount(0)
@@ -135,21 +146,13 @@ test.describe('logging', () => {
     // The same moment twice is refused; an earlier time is fine.
     await logEntry.click()
     await sheet.getByLabel('Weight (kg)').fill('72')
-    const when = sheet.getByLabel('When')
-    const loggedAt = await when.inputValue()
+    await sheet.getByLabel('When').fill(yesterdayAt('08:00'))
     await sheet.getByRole('button', { name: 'Save' }).click()
-    if (await sheet.isVisible()) {
-      // Still the same minute as the first save: refused as a duplicate.
-      await expect(
-        sheet.getByText('There is already an entry for this participant'),
-      ).toBeVisible()
-    }
-    if (await sheet.isVisible()) {
-      const [date, time] = loggedAt.split('T')
-      const hour = String((Number(time.slice(0, 2)) + 23) % 24).padStart(2, '0')
-      await when.fill(`${date}T${hour}${time.slice(2)}`)
-      await sheet.getByRole('button', { name: 'Save' }).click()
-    }
+    await expect(
+      sheet.getByText('There is already an entry for this participant'),
+    ).toBeVisible()
+    await sheet.getByLabel('When').fill(yesterdayAt('07:00'))
+    await sheet.getByRole('button', { name: 'Save' }).click()
     await expect(sheet).toHaveCount(0)
     await expect(entries.getByRole('listitem')).toHaveCount(3)
 

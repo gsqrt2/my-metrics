@@ -21,6 +21,7 @@ export function SubjectAvatar({
   return (
     <span
       aria-hidden
+      data-avatar
       className={cn(
         'inline-flex size-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold',
         className,

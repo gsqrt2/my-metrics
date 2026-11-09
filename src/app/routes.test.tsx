@@ -45,6 +45,10 @@ vi.mock('@/features/attributes/use-attributes', async (importOriginal) => ({
   }),
 }))
 
+vi.mock('@/features/dashboard/use-dashboard', () => ({
+  useSeries: () => ({ data: [] }),
+  useDashboard: () => ({ data: [] }),
+}))
 vi.mock('@/features/entries/use-entries', async (importOriginal) => ({
   ...(await importOriginal()),
   useRecentEntries: () => ({ data: [] }),
@@ -95,6 +99,7 @@ function renderAt(path: string) {
 describe('when logged in', () => {
   beforeEach(() => {
     auth.state = loggedIn
+    localStorage.clear() // e.g. the remembered chart view
     data.groups = [personal, diet]
     data.attributes = [
       {
@@ -103,7 +108,6 @@ describe('when logged in', () => {
         name: 'Weight',
         unit: 'kg',
         precision: 1,
-        direction: 'lower_better',
         min_value: null,
         max_value: null,
         sort_order: 0,
@@ -118,6 +122,16 @@ describe('when logged in', () => {
         birthdate: null,
         color: 'blue',
         linked_user_id: 'u1',
+        name_customized: false,
+        archived_at: null,
+      },
+      {
+        id: 's-lee',
+        group_id: 'g-diet',
+        name: 'Lee',
+        birthdate: null,
+        color: 'aqua',
+        linked_user_id: 'u3',
         name_customized: false,
         archived_at: null,
       },
@@ -205,6 +219,60 @@ describe('when logged in', () => {
     expect(
       within(menu).getByRole('menuitem', { name: 'Edit logbook' }),
     ).toHaveAttribute('href', '/logbooks/g-personal/edit')
+  })
+
+  it('switches between charts by metric and by participant', async () => {
+    renderAt('/logbooks/g-diet')
+    expect(
+      await screen.findByRole('article', { name: 'Weight (kg)' }),
+    ).toBeInTheDocument()
+    const byParticipant = screen.getByRole('button', { name: 'By participant' })
+    expect(byParticipant).toHaveAttribute('aria-pressed', 'false')
+
+    await userEvent.click(byParticipant)
+    expect(byParticipant).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('article', { name: 'Kim' })).toBeInTheDocument()
+    expect(screen.getByRole('article', { name: 'Lee' })).toBeInTheDocument()
+    // Now the metric chips filter, and the participant chips are plain.
+    expect(
+      within(screen.getByRole('list', { name: 'Metrics' })).getByRole(
+        'button',
+        {
+          name: /Weight/,
+        },
+      ),
+    ).toHaveAttribute('aria-pressed', 'true')
+    expect(
+      within(screen.getByRole('list', { name: 'Participants' })).queryByRole(
+        'button',
+      ),
+    ).toBeNull()
+  })
+
+  it('lets the participants filter the charts by metric', async () => {
+    renderAt('/logbooks/g-diet')
+    const kim = await screen.findByRole('button', { name: /Kim/ })
+    expect(kim).toHaveAttribute('aria-pressed', 'true')
+
+    await userEvent.click(kim)
+    expect(kim).toHaveAttribute('aria-pressed', 'true')
+    const lee = screen.getByRole('button', { name: /Lee/ })
+    expect(lee).toHaveAttribute('aria-pressed', 'false')
+    await userEvent.click(kim)
+    expect(
+      screen.getByText(
+        'Choose at least one participant above to see their charts.',
+      ),
+    ).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Show all' }))
+    expect(kim).toHaveAttribute('aria-pressed', 'true')
+    expect(lee).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('has no view switch with a single participant', async () => {
+    renderAt('/logbooks/g-personal')
+    await screen.findByRole('heading', { name: 'Charts' })
+    expect(screen.queryByRole('button', { name: 'By participant' })).toBeNull()
   })
 
   it("shows a logbook's metrics, and invites editors to add the first", async () => {
