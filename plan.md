@@ -25,7 +25,7 @@ Status: ✅ done · 🚧 in progress · ⏸️ paused with open items · ⬜ not
 | 5 | Attributes (metrics) | ✅ | 2026-11-09 | `147a174` |
 | 6 | Logging | ✅ | 2026-11-09 | `cc02785` |
 | 7 | Group dashboard with charts | ✅ | 2026-11-09 | `16add64` |
-| 8 | Charts and tables | 🚧 | | |
+| 8 | Charts and tables | ✅ | 2026-11-09 | |
 | 9 | Invitations and joining | ⬜ | | |
 | 10 | Managing members and leaving | ⬜ | | |
 | 11 | Value visibility | ⬜ | | |
@@ -35,7 +35,7 @@ Status: ✅ done · 🚧 in progress · ⏸️ paused with open items · ⬜ not
 | 15 | Account deletion | ⬜ | | |
 | 16 | Go live | ⬜ | | |
 
-**Next:** finish step 8 (Charts and tables).
+**Next:** step 9 (Invitations and joining).
 
 ### Open items
 
