@@ -3,7 +3,7 @@ import { expect, test, type Page } from '@playwright/test'
 import { deleteOwnedGroups, users } from './support/local-supabase'
 import { logIn } from './support/login'
 
-test('a group shows its subjects; archived ones only on request', async ({
+test('a group shows its subjects; managing them shows archived ones on request', async ({
   page,
 }) => {
   await page.goto('/groups/b0000000-0000-0000-0000-000000000001') // Kids
@@ -12,6 +12,10 @@ test('a group shows its subjects; archived ones only on request', async ({
   await expect(subjects.getByRole('listitem')).toHaveText([/^MIMia/, /^NONoah/])
   await expect(page.getByText('Biscuit (dog)')).toHaveCount(0)
 
+  await page.getByRole('link', { name: 'Manage subjects' }).click()
+  await expect(page.getByRole('heading', { name: 'Subjects' })).toBeVisible()
+  await expect(subjects).toContainText('7 years')
+  await expect(page.getByText('Biscuit (dog)')).toHaveCount(0)
   await page.getByRole('button', { name: 'Show archived subjects (1)' }).click()
   await expect(
     page.getByRole('list', { name: 'Archived subjects' }),
@@ -38,9 +42,11 @@ test.describe('managing subjects', () => {
     await expect(page.getByRole('status')).toHaveText('Saved.')
   }
 
-  async function openPersonalGroup(page: Page) {
+  // The Personal group's subjects page.
+  async function openPersonalSubjects(page: Page) {
     await page.goto('/groups')
     await page.getByRole('link', { name: /^Personal/ }).click()
+    await page.getByRole('link', { name: 'Manage subjects' }).click()
     const subjects = page.getByRole('list', { name: 'Subjects' })
     await expect(subjects).toBeVisible()
     return subjects
@@ -53,6 +59,8 @@ test.describe('managing subjects', () => {
     await page.getByRole('link', { name: 'New group' }).click()
     await page.getByLabel('Name').fill('Ari Kids')
     await page.getByRole('button', { name: 'Create group' }).click()
+    await expect(page.getByText('None yet.')).toBeVisible()
+    await page.getByRole('link', { name: 'Manage subjects' }).click()
     await expect(
       page.getByText('No subjects yet. Add who or what you measure here'),
     ).toBeVisible()
@@ -100,6 +108,10 @@ test.describe('managing subjects', () => {
       .click()
     await page.getByRole('button', { name: 'Restore subject' }).click()
     await expect(subjects.getByRole('listitem')).toHaveCount(2)
+
+    // Back on the group page, both show in the compact row.
+    await page.getByRole('main').getByRole('link', { name: 'Ari Kids' }).click()
+    await expect(subjects.getByRole('listitem')).toHaveText([/Ivy/, /Theodore/])
   })
 
   test("a linked subject follows the user's display name until renamed", async ({
@@ -108,7 +120,7 @@ test.describe('managing subjects', () => {
     await logIn(page, users.ari.email)
     try {
       await setDisplayName(page, 'Ari Renamed')
-      let subjects = await openPersonalGroup(page)
+      let subjects = await openPersonalSubjects(page)
       await expect(subjects.getByRole('listitem')).toHaveText([
         /Ari Renamed\s*You/,
       ])
@@ -122,13 +134,13 @@ test.describe('managing subjects', () => {
       await expect(subjects).toContainText('Me')
 
       await setDisplayName(page, 'Ari Again')
-      subjects = await openPersonalGroup(page)
+      subjects = await openPersonalSubjects(page)
       await expect(subjects).toContainText('Me')
       await expect(subjects).not.toContainText('Ari Again')
     } finally {
       // Back to the seed state: the subject follows the display name again.
       await setDisplayName(page, users.ari.displayName)
-      const subjects = await openPersonalGroup(page)
+      const subjects = await openPersonalSubjects(page)
       await subjects.getByRole('link', { name: /^Edit / }).click()
       await page.getByLabel('Name').fill(users.ari.displayName)
       await page.getByRole('button', { name: 'Save changes' }).click()

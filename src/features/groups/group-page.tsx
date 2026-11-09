@@ -1,4 +1,4 @@
-import { Pencil } from 'lucide-react'
+import { Pencil, Users } from 'lucide-react'
 import { Link, useParams } from 'react-router'
 
 import { BackLink } from '@/app/layout/back-link'
@@ -62,12 +62,20 @@ export function GroupPage() {
             description={group.description ?? undefined}
             actions={
               canEditGroup(group) && (
-                <Button asChild variant="outline">
-                  <Link to={`/groups/${group.id}/edit`}>
-                    <Pencil aria-hidden />
-                    Edit group
-                  </Link>
-                </Button>
+                <div className="flex flex-wrap gap-2">
+                  <Button asChild variant="outline">
+                    <Link to={`/groups/${group.id}/subjects`}>
+                      <Users aria-hidden />
+                      Manage subjects
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline">
+                    <Link to={`/groups/${group.id}/edit`}>
+                      <Pencil aria-hidden />
+                      Edit group
+                    </Link>
+                  </Button>
+                </div>
               )
             }
           />

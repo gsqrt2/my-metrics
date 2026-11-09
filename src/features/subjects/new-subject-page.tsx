@@ -19,7 +19,8 @@ function NewSubject({ group }: { group: GroupRow }) {
   const subjects = useSubjects(group.id)
   const create = useCreateSubject(group.id)
   const groupPath = `/groups/${group.id}`
-  const back = <BackLink to={groupPath}>{group.name}</BackLink>
+  const subjectsPath = `${groupPath}/subjects`
+  const back = <BackLink to={subjectsPath}>Subjects</BackLink>
 
   if (!canEditGroup(group)) {
     return (
@@ -53,11 +54,11 @@ function NewSubject({ group }: { group: GroupRow }) {
         }}
         submitLabel="Add subject"
         pendingLabel="Adding…"
-        cancelTo={groupPath}
+        cancelTo={subjectsPath}
         isPending={create.isPending}
         error={create.isError ? 'Saving failed. Please try again.' : undefined}
         onSubmit={(fields) =>
-          create.mutate(fields, { onSuccess: () => navigate(groupPath) })
+          create.mutate(fields, { onSuccess: () => navigate(subjectsPath) })
         }
       />
     </>

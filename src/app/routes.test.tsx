@@ -100,7 +100,7 @@ describe('when logged in', () => {
       },
       {
         id: 's-old',
-        group_id: 'g-diet',
+        group_id: 'g-personal',
         name: 'Old Friend',
         birthdate: null,
         color: 'aqua',
@@ -174,10 +174,19 @@ describe('when logged in', () => {
     )
   })
 
-  it("shows a group's subjects, marking the user's own", async () => {
+  it("shows a group's active subjects compactly, marking the user's own", async () => {
     renderAt('/groups/g-personal')
     const list = await screen.findByRole('list', { name: 'Subjects' })
-    expect(list).toHaveTextContent('Alex Example')
+    expect(list).toHaveTextContent('Alex Example(you)')
+    expect(list).not.toHaveTextContent('Old Friend')
+    expect(
+      screen.getByRole('link', { name: 'Manage subjects' }),
+    ).toHaveAttribute('href', '/groups/g-personal/subjects')
+  })
+
+  it('lets owners and editors manage subjects on their own page', async () => {
+    renderAt('/groups/g-personal/subjects')
+    const list = await screen.findByRole('list', { name: 'Subjects' })
     expect(within(list).getByText('You')).toBeInTheDocument()
     expect(
       within(list).getByRole('link', { name: 'Edit Alex Example' }),
@@ -186,21 +195,33 @@ describe('when logged in', () => {
       'href',
       '/groups/g-personal/subjects/new',
     )
-  })
 
-  it('hides archived subjects until asked, and subject editing from viewers', async () => {
-    renderAt('/groups/g-diet')
-    const list = await screen.findByRole('list', { name: 'Subjects' })
-    expect(list).toHaveTextContent('Kim')
-    expect(within(list).getByText('Member')).toBeInTheDocument()
     expect(screen.queryByText('Old Friend')).not.toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: /^Edit Kim/ })).toBeNull()
-    expect(screen.queryByRole('link', { name: 'Add subject' })).toBeNull()
-
     screen.getByRole('button', { name: 'Show archived subjects (1)' }).click()
     expect(
       await screen.findByRole('list', { name: 'Archived subjects' }),
     ).toHaveTextContent('Old Friend')
+  })
+
+  it('shows viewers the subjects but not their management', async () => {
+    renderAt('/groups/g-diet')
+    const list = await screen.findByRole('list', { name: 'Subjects' })
+    expect(list).toHaveTextContent('Kim')
+    expect(
+      screen.queryByRole('link', { name: 'Manage subjects' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('keeps viewers out of subject management', async () => {
+    renderAt('/groups/g-diet/subjects')
+    expect(
+      await screen.findByText(
+        "Only the group's owner and editors can manage subjects.",
+      ),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('link', { name: 'Add subject' }),
+    ).not.toBeInTheDocument()
   })
 
   it('shows viewers the group without editing', async () => {

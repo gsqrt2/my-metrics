@@ -15,6 +15,7 @@ import { ConfirmEmailPage } from '@/features/profile/confirm-email-page'
 import { ProfilePage } from '@/features/profile/profile-page'
 import { EditSubjectPage } from '@/features/subjects/edit-subject-page'
 import { NewSubjectPage } from '@/features/subjects/new-subject-page'
+import { SubjectsPage } from '@/features/subjects/subjects-page'
 
 export const routes: RouteObject[] = [
   {
@@ -41,6 +42,7 @@ export const routes: RouteObject[] = [
       { path: 'groups/new', element: <NewGroupPage /> },
       { path: 'groups/:groupId', element: <GroupPage /> },
       { path: 'groups/:groupId/edit', element: <EditGroupPage /> },
+      { path: 'groups/:groupId/subjects', element: <SubjectsPage /> },
       { path: 'groups/:groupId/subjects/new', element: <NewSubjectPage /> },
       {
         path: 'groups/:groupId/subjects/:subjectId/edit',

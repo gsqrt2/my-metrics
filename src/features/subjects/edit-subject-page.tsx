@@ -26,7 +26,8 @@ function FindSubject({ group }: { group: GroupRow }) {
   const { subjectId } = useParams()
   const subjects = useSubjects(group.id)
   const groupPath = `/groups/${group.id}`
-  const back = <BackLink to={groupPath}>{group.name}</BackLink>
+  const subjectsPath = `${groupPath}/subjects`
+  const back = <BackLink to={subjectsPath}>Subjects</BackLink>
 
   if (subjects.isPending) return null
   const subject = subjects.data?.find((s) => s.id === subjectId)
@@ -66,6 +67,7 @@ function EditSubject({
   const update = useUpdateSubject(subject)
   const archive = useUpdateSubject(subject)
   const groupPath = `/groups/${group.id}`
+  const subjectsPath = `${groupPath}/subjects`
   const isArchived = subject.archived_at !== null
 
   let nameHint: string | undefined
@@ -89,13 +91,13 @@ function EditSubject({
           nameHint={nameHint}
           submitLabel="Save changes"
           pendingLabel="Saving…"
-          cancelTo={groupPath}
+          cancelTo={subjectsPath}
           isPending={update.isPending}
           error={
             update.isError ? 'Saving failed. Please try again.' : undefined
           }
           onSubmit={(fields) =>
-            update.mutate(fields, { onSuccess: () => navigate(groupPath) })
+            update.mutate(fields, { onSuccess: () => navigate(subjectsPath) })
           }
         />
 
@@ -127,7 +129,7 @@ function EditSubject({
             onClick={() =>
               archive.mutate(
                 { archived_at: isArchived ? null : new Date().toISOString() },
-                { onSuccess: () => navigate(groupPath) },
+                { onSuccess: () => navigate(subjectsPath) },
               )
             }
           >
