@@ -2,6 +2,7 @@ import { Link, useParams } from 'react-router'
 
 import { BackLink } from '@/app/layout/back-link'
 import { PageHeader } from '@/app/layout/page-header'
+import { Placeholder } from '@/app/placeholder'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { GroupMeta } from '@/features/groups/group-meta'
@@ -50,8 +51,8 @@ export function WithGroup({
   return children(group.data)
 }
 
-// The group's home: its subjects, attributes and latest entries; the
-// dashboard comes in step 7.
+// The group's home: its subjects and attributes, then charts (steps 7–8,
+// a placeholder for now), then the latest entries, which are secondary.
 export function GroupPage() {
   return (
     <WithGroup>
@@ -69,6 +70,21 @@ export function GroupPage() {
           <div className="flex flex-col gap-4">
             <SubjectsSection group={group} />
             <AttributesSection group={group} />
+            <section
+              aria-labelledby="charts-heading"
+              className="mt-6 flex flex-col gap-4"
+            >
+              <h2
+                id="charts-heading"
+                className="font-heading text-lg font-semibold"
+              >
+                Charts
+              </h2>
+              <Placeholder>
+                A chart for each metric, with every participant's progress, will
+                appear here (plan steps 7–8).
+              </Placeholder>
+            </section>
             <div className="mt-6">
               <EntriesSection group={group} />
             </div>

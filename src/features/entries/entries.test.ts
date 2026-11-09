@@ -251,31 +251,31 @@ describe('startingPoint (agreed "Log entry" flow)', () => {
     ).toEqual({ groupId: 'diet', subjectId: 'me' })
   })
 
-  it('otherwise in the last logbook used, or the only one', () => {
+  it('otherwise in the last logbook used', () => {
     expect(
-      startingPoint([kids, diet], { ...base, lastGroupId: 'kids' }),
-    ).toEqual({ groupId: 'kids', subjectId: 'mia' })
-    expect(startingPoint([kids], base)).toEqual({
+      startingPoint([kids, diet], { ...base, lastGroupId: 'diet' }),
+    ).toEqual({ groupId: 'diet', subjectId: 'me' })
+  })
+
+  it('always starts with a logbook: the first one when nothing else applies', () => {
+    expect(startingPoint([kids, diet], base)).toEqual({
       groupId: 'kids',
       subjectId: 'mia',
     })
+    expect(startingPoint([], base)).toEqual({ groupId: '', subjectId: '' })
   })
 
-  it('leaves the logbook open when it is ambiguous', () => {
-    expect(startingPoint([kids, diet], base)).toEqual({
-      groupId: '',
-      subjectId: '',
-    })
-  })
-
-  it("doesn't fall back elsewhere when the preset logbook can't be logged in", () => {
+  it("falls back when the preset logbook can't be logged in", () => {
     expect(
-      startingPoint([kids], {
+      startingPoint([kids, diet], {
         ...base,
         presetGroupId: 'gone',
-        lastGroupId: 'kids',
+        lastGroupId: 'diet',
       }),
-    ).toEqual({ groupId: '', subjectId: '' })
+    ).toEqual({ groupId: 'diet', subjectId: 'me' })
+    expect(
+      startingPoint([kids, diet], { ...base, presetGroupId: 'gone' }),
+    ).toEqual({ groupId: 'kids', subjectId: 'mia' })
   })
 
   it("picks the user's own participant, else the last used, else the first", () => {

@@ -7,16 +7,51 @@ import {
 } from './support/local-supabase'
 import { logIn, openLogbookOption } from './support/login'
 
-test('a logbook lists its latest entries, newest first', async ({ page }) => {
+test('a logbook shows charts first, then its latest entries', async ({
+  page,
+}) => {
   await page.goto('/logbooks/b0000000-0000-0000-0000-000000000001') // Kids
 
+  const headings = page.getByRole('main').getByRole('heading', { level: 2 })
+  await expect(headings).toContainText(['Charts', 'Recent entries'])
+
   const entries = page.getByRole('list', { name: 'Recent entries' })
-  await expect(entries.getByRole('listitem')).toHaveCount(50)
+  await expect(entries.getByRole('listitem')).toHaveCount(5)
   // The seed's latest measurements are this month's, for both children.
   await expect(entries.getByRole('listitem').first()).toContainText(
     /(Height|Weight)\s*\d+\.\d (cm|kg)\s*(Mia|Noah)/,
   )
+  await page.getByRole('button', { name: 'Show more (45+)' }).click()
+  await expect(entries.getByRole('listitem')).toHaveCount(50)
   await expect(page.getByText('Showing the latest 50 entries.')).toBeVisible()
+})
+
+test('the log entry form is readable in dark mode', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'dark' })
+  await page.goto('/logbooks/b0000000-0000-0000-0000-000000000002') // Diet Challenge
+  await page.getByRole('button', { name: 'Log entry' }).first().click()
+  const logbook = page
+    .getByRole('dialog', { name: 'Log entry' })
+    .getByLabel('Logbook')
+  await expect(logbook.locator('option:checked')).toHaveText('Diet Challenge')
+
+  // Runs in the browser; the e2e code itself is compiled without DOM globals.
+  const colours = await logbook.evaluate((select) => {
+    const page = select.ownerDocument
+    const style = (element: typeof select) =>
+      page.defaultView!.getComputedStyle(element)
+    const option = style(select.querySelector('option') as typeof select)
+    return {
+      scheme: style(page.documentElement as typeof select).colorScheme,
+      text: option.color,
+      background: option.backgroundColor,
+    }
+  })
+  // Native controls follow the theme, and options carry their own colours
+  // instead of the page's light text on the browser's white list.
+  expect(colours.scheme).toBe('dark')
+  expect(colours.background).not.toBe('rgba(0, 0, 0, 0)')
+  expect(colours.text).not.toBe(colours.background)
 })
 
 // Eli logs in a logbook the test creates (and deletes) and in Eli's Personal

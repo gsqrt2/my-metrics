@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
 import { FormField } from '@/components/form-field'
+import { NativeSelect } from '@/components/native-select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -27,9 +28,6 @@ import {
 } from '@/features/entries/validation'
 import { parseDecimal } from '@/lib/numbers'
 
-const selectClass =
-  'h-9 w-full rounded-lg border border-input bg-transparent px-2.5 text-base md:text-sm dark:bg-input/30'
-
 type Errors = Partial<Record<string, string>>
 
 // FR-51 quick entry, the same form wherever it's opened from (plan step 6):
@@ -37,11 +35,13 @@ type Errors = Partial<Record<string, string>>
 export function LogEntryForm({
   groups,
   presetGroupId,
+  presetGroupName,
   onSaved,
   onCancel,
 }: {
   groups: LoggableGroup[]
   presetGroupId?: string
+  presetGroupName?: string
   onSaved: (groupId: string) => void
   onCancel: () => void
 }) {
@@ -140,19 +140,16 @@ export function LogEntryForm({
   return (
     <form onSubmit={submit} noValidate className="flex flex-col gap-5">
       {presetUnavailable && (
-        <Alert>
-          <AlertDescription>
-            You can't log in that logbook yet: it needs at least one metric and
-            a participant you may log for. Choose another one below.
-          </AlertDescription>
-        </Alert>
+        <p className="rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
+          {presetGroupName ?? 'That logbook'} isn't ready for logging yet: it
+          needs at least one metric and a participant you may log for.
+        </p>
       )}
 
       <div className="flex flex-col gap-2">
         <Label htmlFor="entry-group">Logbook</Label>
-        <select
+        <NativeSelect
           id="entry-group"
-          className={selectClass}
           value={groupId}
           aria-invalid={errors.group ? true : undefined}
           onChange={(event) => {
@@ -167,7 +164,7 @@ export function LogEntryForm({
               {g.name}
             </option>
           ))}
-        </select>
+        </NativeSelect>
         {errors.group && (
           <p className="text-sm text-destructive">{errors.group}</p>
         )}
@@ -206,9 +203,8 @@ export function LogEntryForm({
         <>
           <div className="flex flex-col gap-2">
             <Label htmlFor="entry-subject">Participant</Label>
-            <select
+            <NativeSelect
               id="entry-subject"
-              className={selectClass}
               value={subjectId}
               aria-invalid={errors.subject ? true : undefined}
               onChange={(event) => setSubjectId(event.target.value)}
@@ -218,7 +214,7 @@ export function LogEntryForm({
                   {s.linked_user_id === userId ? `${s.name} (you)` : s.name}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
             {errors.subject && (
               <p className="text-sm text-destructive">{errors.subject}</p>
             )}

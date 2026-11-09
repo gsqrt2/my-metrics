@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { Link } from 'react-router'
 
 import { FormField } from '@/components/form-field'
+import { NativeSelect } from '@/components/native-select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -99,9 +100,8 @@ export function AttributeForm({
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="attribute-precision">Decimals</Label>
-          <select
+          <NativeSelect
             id="attribute-precision"
-            className="h-9 w-full rounded-lg border border-input bg-transparent px-2.5 text-base md:text-sm dark:bg-input/30"
             {...form.register('precision')}
           >
             {PRECISIONS.map((precision) => (
@@ -111,7 +111,7 @@ export function AttributeForm({
                   : `${precision} (e.g. ${(0).toFixed(precision).replace(/0$/, '5')})`}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </div>
       </div>
 

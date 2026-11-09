@@ -165,7 +165,7 @@
 - FR-54: A subject can have several entries for the same attribute on the same day, as long as they are at different times (e.g. weight in the morning and in the evening). Two entries for the same subject and attribute at the identical date and time are not allowed. Charts show every entry.
 
 ### 4.7 Views & visualization
-- FR-60: **Group dashboard**: the latest value for each subject and attribute, plus the change since the previous entry and since the first entry. Values hidden under FR-43 are shown as % change.
+- FR-60: **Group dashboard**: the group page leads with **a chart per attribute**, showing every subject's values over time, together with the latest value for each subject and attribute and the change since the previous entry and since the first entry. Recent entries follow below, as secondary information. Values hidden under FR-43 are shown as % change.
 - FR-61: **Subject view**: a line chart per attribute over time, plus a table of entries with comments. Selecting a point shows its comment. Values hidden under FR-43 are shown as % change.
   - Selecting an attribute's chart (on the dashboard or in the subject view) opens it **full screen**. The full-screen chart has the time span options of FR-64, the x-axis choice of FR-63, the latest value and the change within the selected span, and a table of the entries in that span.
 - FR-62: **Comparison view**: one attribute with all subjects overlaid. The axis mode can be switched between:
@@ -302,5 +302,6 @@ None at the moment.
 | 2026-11-09 | Units are free text per attribute (up to 20 characters), with common units suggested in the form. No structured units or conversion in v1. | FR-40, §8 |
 | 2026-11-09 | Attributes are called "metrics" in the app (text and URLs). The spec, database and code keep "attribute". | Glossary |
 | 2026-11-09 | Attribute names are unique within a group, ignoring case (archived ones included). Suggested attributes are offered in any group without attributes, not only the default group. | FR-13, FR-40 |
+| 2026-11-09 | The group page leads with charts (one per attribute, all subjects); recent entries come after them and are secondary. | FR-60 |
 | 2026-11-09 | A group's management pages (participants, metrics, editing the group, later members) sit behind one "Options" menu on the group page. | FR-11 |
 | 2026-11-09 | Groups are called "logbooks" in the app (text and URLs, e.g. `/logbooks/…`), as a more intuitive name for a shared or personal measurement record. The spec, database and code keep "group". | Glossary |

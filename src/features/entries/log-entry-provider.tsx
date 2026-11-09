@@ -13,6 +13,7 @@ import {
 import { LogEntryContext } from '@/features/entries/log-entry-context'
 import { LogEntryForm } from '@/features/entries/log-entry-form'
 import { useLoggableGroups } from '@/features/entries/use-loggable-groups'
+import { useGroups } from '@/features/groups/use-groups'
 
 // Hosts the "Log entry" sheet for the whole app: full screen on phones, a
 // side sheet on larger screens. Any page opens it through useLogEntry().
@@ -26,6 +27,8 @@ export function LogEntryProvider({ children }: { children: React.ReactNode }) {
     key: number
   }>({ open: false, key: 0 })
   const groups = useLoggableGroups(state.open)
+  // For naming the logbook the form was opened from, if it can't be used.
+  const allGroups = useGroups()
 
   const openLogEntry = useCallback(
     (groupId?: string) => {
@@ -76,6 +79,10 @@ export function LogEntryProvider({ children }: { children: React.ReactNode }) {
                 key={state.key}
                 groups={groups.data}
                 presetGroupId={state.presetGroupId}
+                presetGroupName={
+                  allGroups.data?.find((g) => g.id === state.presetGroupId)
+                    ?.name
+                }
                 onCancel={close}
                 onSaved={(groupId) => {
                   close()

@@ -153,17 +153,18 @@ Goal: an empty but complete project that runs locally, with the app layout and t
 
 ---
 
-## Step 7: Group dashboard (FR-60, FR-66)
+## Step 7: Group dashboard with charts (FR-60, FR-66)
 
-- `get_dashboard` SQL function (first, previous and latest entry per subject and attribute).
-- Dashboard: latest values, change since previous and since first entry, coloured by direction; recent entries; duration progress if the group has one.
+- `get_series` SQL function (entries in a date range, with "first entry" as the baseline; step 8 adds "since group start") and `get_dashboard` (first, previous and latest entry per subject and attribute).
+- The group page leads with **a chart per attribute, all subjects overlaid** (decided 2026-11-09), replacing the "Charts" placeholder from step 6. Each chart shows the latest value and the change since the previous and the first entry per subject, coloured by direction.
+- Recent entries stay below the charts, secondary (5 shown, more on request; done in step 6). Duration progress if the group has one.
 - Empty states for groups without subjects, attributes or entries.
 
 ---
 
 ## Step 8: Charts and tables (FR-61 – FR-65)
 
-- `get_series` SQL function with both baselines ("first entry" and "since group start").
+- `get_series` gets the "since group start" baseline.
 - Subject view: line chart per attribute, entry table with comments, chart points showing comments.
 - Full-screen chart with Week / Month / Year / All and Duration (default when the group has one); date/age switch for subjects with a birthdate.
 - Comparison view: one attribute, all subjects; absolute / change / % change.

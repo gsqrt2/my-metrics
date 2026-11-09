@@ -123,8 +123,8 @@ export function useLoggableGroups(enabled: boolean) {
 }
 
 // Where the form starts (agreed flow, plan step 6):
-// - logbook: the one it was opened from, else the last one used, else the only
-//   one; none if it's ambiguous
+// - logbook: the one it was opened from if the user can log there, else the
+//   last one used, else the first in the list (the default group comes first)
 // - participant: the user's own in that logbook, else the last one used there,
 //   else the first
 export function startingPoint(
@@ -138,10 +138,7 @@ export function startingPoint(
 ) {
   const find = (id?: string) => groups.find((g) => g.id === id)
   const group =
-    (options.presetGroupId
-      ? find(options.presetGroupId)
-      : (find(options.lastGroupId) ??
-        (groups.length === 1 ? groups[0] : undefined))) ?? undefined
+    find(options.presetGroupId) ?? find(options.lastGroupId) ?? groups[0]
   return {
     groupId: group?.id ?? '',
     subjectId: group

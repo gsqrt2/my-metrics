@@ -1,4 +1,5 @@
 import { Pencil, Plus } from 'lucide-react'
+import { useState } from 'react'
 import { Link } from 'react-router'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -15,10 +16,15 @@ import {
 import type { GroupRow } from '@/features/groups/types'
 import { SubjectAvatar } from '@/features/subjects/subject-avatar'
 
-// The group's latest entries on the group page, newest first. The dashboard
-// (step 7) and the full table (step 8) come later.
+// Shown at first; the rest of the latest entries on request.
+const INITIAL_COUNT = 5
+
+// The group's latest entries on the group page, newest first, below the
+// charts: secondary to them. The full table comes in step 8.
 export function EntriesSection({ group }: { group: GroupRow }) {
   const entries = useRecentEntries(group.id)
+  const [showAll, setShowAll] = useState(false)
+  const shown = showAll ? entries.data : entries.data?.slice(0, INITIAL_COUNT)
   const { openLogEntry } = useLogEntry()
   const { session } = useAuth()
   const userId = session?.user.id
@@ -26,7 +32,7 @@ export function EntriesSection({ group }: { group: GroupRow }) {
   return (
     <section aria-labelledby="entries-heading" className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 id="entries-heading" className="font-heading text-lg font-semibold">
+        <h2 id="entries-heading" className="font-heading font-semibold">
           Recent entries
         </h2>
         <Button
@@ -57,7 +63,7 @@ export function EntriesSection({ group }: { group: GroupRow }) {
           aria-label="Recent entries"
           className="divide-y rounded-xl border bg-card"
         >
-          {entries.data.map((entry) => {
+          {shown!.map((entry) => {
             const editable =
               canLogFor(group, entry.subject, userId) &&
               !entry.attribute.archived_at
@@ -100,7 +106,22 @@ export function EntriesSection({ group }: { group: GroupRow }) {
           })}
         </ul>
       )}
-      {entries.data && entries.data.length === RECENT_ENTRIES_LIMIT && (
+      {entries.data && entries.data.length > INITIAL_COUNT && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="self-start"
+          aria-expanded={showAll}
+          onClick={() => setShowAll((show) => !show)}
+        >
+          {showAll
+            ? 'Show fewer'
+            : `Show more (${entries.data.length - INITIAL_COUNT}${
+                entries.data.length === RECENT_ENTRIES_LIMIT ? '+' : ''
+              })`}
+        </Button>
+      )}
+      {showAll && entries.data?.length === RECENT_ENTRIES_LIMIT && (
         <p className="text-sm text-muted-foreground">
           Showing the latest {RECENT_ENTRIES_LIMIT} entries.
         </p>
