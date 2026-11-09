@@ -11,7 +11,6 @@ export type Attribute = Pick<
   | 'name'
   | 'unit'
   | 'precision'
-  | 'direction'
   | 'min_value'
   | 'max_value'
   | 'sort_order'
@@ -30,7 +29,7 @@ export function useAttributes(groupId: string) {
       const { data, error } = await supabase
         .from('attributes')
         .select(
-          'id, group_id, name, unit, precision, direction, min_value, max_value, sort_order, archived_at',
+          'id, group_id, name, unit, precision, min_value, max_value, sort_order, archived_at',
         )
         .eq('group_id', groupId)
         .order('sort_order')

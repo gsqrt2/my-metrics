@@ -72,12 +72,12 @@ insert into public.subjects (id, group_id, name, birthdate, linked_user_id, arch
 
 -- Demo attributes, shown as "metrics" (step 5). Personal groups start with
 -- none, so they show the suggested attributes. The trigger sets the order.
-insert into public.attributes (id, group_id, name, unit, precision, direction, min_value, max_value) values
-  ('d1000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000001', 'Height', 'cm', 1, 'neutral', 40, 220),
-  ('d1000000-0000-0000-0000-000000000002', 'b0000000-0000-0000-0000-000000000001', 'Weight', 'kg', 1, 'neutral', 2, 150),
-  ('d1000000-0000-0000-0000-000000000003', 'b0000000-0000-0000-0000-000000000002', 'Weight', 'kg', 1, 'lower_better', 40, 250),
-  ('d1000000-0000-0000-0000-000000000004', 'b0000000-0000-0000-0000-000000000002', 'Waist', 'cm', 0, 'lower_better', null, null),
-  ('d1000000-0000-0000-0000-000000000005', 'b0000000-0000-0000-0000-000000000002', 'Body fat', '%', 1, 'lower_better', 0, 70);
+insert into public.attributes (id, group_id, name, unit, precision, min_value, max_value) values
+  ('d1000000-0000-0000-0000-000000000001', 'b0000000-0000-0000-0000-000000000001', 'Height', 'cm', 1, 40, 220),
+  ('d1000000-0000-0000-0000-000000000002', 'b0000000-0000-0000-0000-000000000001', 'Weight', 'kg', 1, 2, 150),
+  ('d1000000-0000-0000-0000-000000000003', 'b0000000-0000-0000-0000-000000000002', 'Weight', 'kg', 1, 40, 250),
+  ('d1000000-0000-0000-0000-000000000004', 'b0000000-0000-0000-0000-000000000002', 'Waist', 'cm', 0, null, null),
+  ('d1000000-0000-0000-0000-000000000005', 'b0000000-0000-0000-0000-000000000002', 'Body fat', '%', 1, 0, 70);
 
 -- Demo entries (step 6). The trigger records the signed-in user as who logged
 -- them, so the claims below say who that is. Times are 08:00 in Berlin.

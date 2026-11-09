@@ -137,7 +137,6 @@
   - **unit** (free text, e.g. "cm", "kg"; optional; up to 20 characters). The form suggests common units, but any text is allowed. There's no unit conversion in v1 (§7).
   - **value type**: `number` in v1
   - **precision** (number of decimals; default 1)
-  - **direction**: `higher is better` / `lower is better` / `neutral` (used for colouring progress)
   - optional **min/max** for input validation. Limits only apply to new or edited entries; existing entries outside them are kept as they are.
 - FR-41: Attributes can be renamed and reordered. Renaming keeps existing entries. Changing the **unit** or **precision** of an attribute that has entries is allowed after a warning that existing entries keep their numbers (so changing kg to lb changes what they mean).
 - FR-42: Owners and editors can archive attributes. Archived attributes keep their entries but are hidden by default and are **read-only** until restored. Only the owner can delete an attribute that has entries, after confirmation.
@@ -165,7 +164,12 @@
 - FR-54: A subject can have several entries for the same attribute on the same day, as long as they are at different times (e.g. weight in the morning and in the evening). Two entries for the same subject and attribute at the identical date and time are not allowed. Charts show every entry.
 
 ### 4.7 Views & visualization
-- FR-60: **Group dashboard**: the group page leads with **a chart per attribute**, showing every subject's values over time (subjects can be filtered, e.g. to focus on one child), together with the latest value for each subject and attribute and the change since the previous entry and since the first entry. Recent entries follow below, as secondary information. Values hidden under FR-43 are shown as % change.
+- FR-60: **Group dashboard**: the group page leads with charts, in one of two views the user can switch between (remembered per group on each device):
+  - **By attribute** (the default): a chart per attribute with every subject's values over time, in the attribute's unit. Subjects can be filtered, e.g. to focus on one child.
+  - **By subject**: a chart per subject with every attribute as its **% change since its first entry**, so attributes with different units share one scale; the actual values with their units show on hover and below the chart. Attributes can be filtered. Attributes whose first value is 0 can't be shown as % change and are listed instead.
+  - With a single subject there's no switch: both views would be the same.
+  - Each chart lists, per line, the latest value and the change since the previous and the first entry, shown objectively (arrow and sign), without judging it as good or bad.
+  - Recent entries follow below the charts, as secondary information. Values hidden under FR-43 are shown as % change.
 - FR-61: **Subject view**: a line chart per attribute over time, plus a table of entries with comments. Selecting a point shows its comment. Values hidden under FR-43 are shown as % change.
   - Selecting an attribute's chart (on the dashboard or in the subject view) opens it **full screen**. The full-screen chart has the time span options of FR-64, the x-axis choice of FR-63, the latest value and the change within the selected span, and a table of the entries in that span.
 - FR-62: **Comparison view**: one attribute with all subjects overlaid. The axis mode can be switched between:
@@ -303,6 +307,8 @@ None at the moment.
 | 2026-11-09 | Attributes are called "metrics" in the app (text and URLs). The spec, database and code keep "attribute". | Glossary |
 | 2026-11-09 | Attribute names are unique within a group, ignoring case (archived ones included). Suggested attributes are offered in any group without attributes, not only the default group. | FR-13, FR-40 |
 | 2026-11-09 | The group page leads with charts (one per attribute, all subjects); recent entries come after them and are secondary. | FR-60 |
-| 2026-11-09 | Charts group by attribute, never by subject: every line in a chart shares one unit and scale. A filter narrows the charts to some subjects. There's no chart combining one subject's different attributes, since their units differ. | FR-60, FR-61 |
+| 2026-11-09 | Charts group by attribute, never by subject: every line in a chart shares one unit and scale. A filter narrows the charts to some subjects. There's no chart combining one subject's different attributes, since their units differ. *(Revised the same day, see below.)* | FR-60, FR-61 |
+| 2026-11-09 | Revised: the group page has two chart views, by attribute (real values, subjects filterable) and by subject (all attributes as % change since their first entry, attributes filterable). Using % change lets different units share one chart honestly. | FR-60 |
+| 2026-11-09 | The app tracks without judging: attributes have no "higher/lower is better" direction, and changes aren't coloured as good or bad. | FR-40, FR-60 |
 | 2026-11-09 | A group's management pages (participants, metrics, editing the group, later members) sit behind one "Options" menu on the group page. | FR-11 |
 | 2026-11-09 | Groups are called "logbooks" in the app (text and URLs, e.g. `/logbooks/…`), as a more intuitive name for a shared or personal measurement record. The spec, database and code keep "group". | Glossary |

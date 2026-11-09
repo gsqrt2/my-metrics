@@ -81,7 +81,6 @@ describe('metric form', () => {
       name: ' Weight ',
       unit: '  ',
       precision: '2',
-      direction: 'lower_better',
       minValue: '40',
       maxValue: '250,5',
     })
@@ -89,7 +88,6 @@ describe('metric form', () => {
       name: 'Weight',
       unit: null,
       precision: 2,
-      direction: 'lower_better',
       min_value: 40,
       max_value: 250.5,
     })
@@ -101,7 +99,6 @@ describe('metric form', () => {
         name: 'Waist',
         unit: 'cm',
         precision: 0,
-        direction: 'neutral',
         min_value: null,
         max_value: 150,
       }),
@@ -109,7 +106,6 @@ describe('metric form', () => {
       name: 'Waist',
       unit: 'cm',
       precision: '0',
-      direction: 'neutral',
       minValue: '',
       maxValue: '150',
     })
@@ -121,7 +117,6 @@ describe('metric summaries', () => {
     name: 'Weight',
     unit: 'kg',
     precision: 1,
-    direction: 'lower_better' as const,
     min_value: 40,
     max_value: 250.5,
   }
@@ -131,21 +126,14 @@ describe('metric summaries', () => {
     expect(attributeLabel({ name: 'Mood', unit: null })).toBe('Mood')
   })
 
-  it('lists decimals, direction and limits', () => {
-    expect(attributeDetails(weight, 'en-US')).toBe(
-      '1 decimal · Lower is better · 40–250.5',
-    )
-    expect(attributeDetails(weight, 'de-DE')).toBe(
-      '1 decimal · Lower is better · 40–250,5',
-    )
+  it('lists decimals and limits', () => {
+    expect(attributeDetails(weight, 'en-US')).toBe('1 decimal · 40–250.5')
+    expect(attributeDetails(weight, 'de-DE')).toBe('1 decimal · 40–250,5')
     expect(
-      attributeDetails(
-        { ...weight, precision: 0, direction: 'neutral', max_value: null },
-        'en-US',
-      ),
+      attributeDetails({ ...weight, precision: 0, max_value: null }, 'en-US'),
     ).toBe('Whole numbers · at least 40')
     expect(
       attributeDetails({ ...weight, precision: 3, min_value: null }, 'en-US'),
-    ).toBe('3 decimals · Lower is better · at most 250.5')
+    ).toBe('3 decimals · at most 250.5')
   })
 })

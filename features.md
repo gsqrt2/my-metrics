@@ -199,7 +199,6 @@ A product-level overview of the features described in [spec.md](spec.md) (v0.2).
 1. An owner or editor creates an attribute with:
    - a name, and optionally a unit
    - the number of decimals
-   - a direction: higher is better, lower is better, or neutral
    - optional min/max limits
 2. They rename, reorder or archive attributes.
 3. Changing the unit or decimals of an attribute that has entries shows a warning first.
@@ -281,7 +280,8 @@ A product-level overview of the features described in [spec.md](spec.md) (v0.2).
 3. They look at recent entries, or move on to a subject, a chart, the comparison or the full entry table.
 
 **UI overview**
-- For each subject: the latest value per attribute, the change since the previous entry and since the first entry, coloured by whether it's improving.
+- Charts in two views: by metric (every participant, real values) or by participant (every metric as % change since its first entry).
+- For each subject: the latest value per attribute, and the change since the previous entry and since the first entry, shown without judging it.
 - Hidden values (FR-43) shown as % change.
 - A list of recent entries.
 - The group's progress if it has a duration.

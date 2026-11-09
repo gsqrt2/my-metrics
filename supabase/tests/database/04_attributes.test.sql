@@ -1,6 +1,6 @@
 -- Step 5: attributes, their order, field rules, limit and who may manage them.
 begin;
-select plan(27);
+select plan(26);
 
 -- Alex owns "Diet", Sam edits it, Kim views it, Lee isn't in it.
 insert into auth.users (id, email) values
@@ -22,9 +22,9 @@ set local role authenticated;
 select set_config('request.jwt.claims', '{"sub": "11111111-1111-1111-1111-111111111111", "role": "authenticated"}', true);
 
 select lives_ok(
-  $$ insert into public.attributes (id, group_id, name, unit, direction, min_value, max_value)
+  $$ insert into public.attributes (id, group_id, name, unit, min_value, max_value)
      values ('a1000000-0000-0000-0000-000000000001', 'd0000000-0000-0000-0000-000000000001',
-             'Weight', 'kg', 'lower_better', 30, 250) $$,
+             'Weight', 'kg', 30, 250) $$,
   'owners can add an attribute'
 );
 insert into public.attributes (id, group_id, name, unit, precision)
@@ -33,10 +33,10 @@ insert into public.attributes (id, group_id, name)
 values ('a1000000-0000-0000-0000-000000000003', 'd0000000-0000-0000-0000-000000000001', 'Mood');
 
 select results_eq(
-  $$ select name, sort_order, precision::int, direction::text, unit
+  $$ select name, sort_order, precision::int, unit
      from public.attributes where group_id = 'd0000000-0000-0000-0000-000000000001' order by sort_order $$,
-  $$ values ('Weight', 0, 1, 'lower_better', 'kg'), ('Waist', 1, 0, 'neutral', 'cm'), ('Mood', 2, 1, 'neutral', null) $$,
-  'new attributes go to the end; precision 1, neutral and no unit by default'
+  $$ values ('Weight', 0, 1, 'kg'), ('Waist', 1, 0, 'cm'), ('Mood', 2, 1, null) $$,
+  'new attributes go to the end; precision 1 and no unit by default'
 );
 select throws_ok(
   $$ insert into public.attributes (group_id, name) values ('d0000000-0000-0000-0000-000000000001', ' weight ') $$,
@@ -71,10 +71,6 @@ select throws_ok(
 select throws_ok(
   $$ update public.attributes set min_value = 300 where id = 'a1000000-0000-0000-0000-000000000001' $$,
   '23514', null, 'the minimum cannot be above the maximum'
-);
-select throws_ok(
-  $$ update public.attributes set direction = 'up' where id = 'a1000000-0000-0000-0000-000000000001' $$,
-  '22P02', null, 'only the three directions are allowed'
 );
 
 -- Editors manage attributes (§5)

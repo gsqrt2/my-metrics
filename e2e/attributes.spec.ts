@@ -15,7 +15,7 @@ test('a logbook shows its metrics, with details on the metrics page', async ({
   await openLogbookOption(page, 'Metrics')
   const metrics = page.getByRole('list', { name: 'Metrics' })
   await expect(metrics.getByRole('listitem').first()).toContainText(
-    '1 decimal · Lower is better · 40–250',
+    '1 decimal · 40–250',
   )
 })
 
@@ -66,13 +66,12 @@ test.describe('managing metrics', () => {
     await page.getByLabel('Name').fill('Steps')
     await page.getByLabel('Unit (optional)').fill('steps')
     await page.getByLabel('Decimals').selectOption('0')
-    await page.getByText('Higher is better').click()
     await page.getByLabel('Minimum').fill('0')
     await page.getByRole('button', { name: 'Add metric' }).click()
     await expect(metrics.getByRole('listitem')).toHaveText([
       /^Weight \(kg\)/,
       /^Waist \(cm\)/,
-      /^Steps \(steps\)Whole numbers · Higher is better · at least 0/,
+      /^Steps \(steps\)Whole numbers · at least 0/,
     ])
 
     // Reorder

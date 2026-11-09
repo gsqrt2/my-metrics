@@ -7,10 +7,9 @@ import { NativeSelect } from '@/components/native-select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { directionLabels, UNIT_SUGGESTIONS } from '@/features/attributes/format'
+import { UNIT_SUGGESTIONS } from '@/features/attributes/format'
 import {
   attributeSchema,
-  DIRECTIONS,
   MAX_ATTRIBUTE_NAME_LENGTH,
   MAX_UNIT_LENGTH,
   PRECISIONS,
@@ -19,12 +18,6 @@ import {
   type AttributeFormOutput,
   type AttributeFormValues,
 } from '@/features/attributes/schemas'
-
-const directionHints = {
-  higher_better: 'e.g. steps, or a child’s height',
-  lower_better: 'e.g. weight in a diet',
-  neutral: 'Changes are shown without colour',
-}
 
 // Add and edit form for an attribute, shown as a "metric" (FR-40).
 export function AttributeForm({
@@ -125,35 +118,6 @@ export function AttributeForm({
           </AlertDescription>
         </Alert>
       )}
-
-      <fieldset className="flex flex-col gap-3">
-        <legend className="mb-1 text-sm leading-none font-medium">
-          Which way is progress?
-        </legend>
-        <div className="flex flex-col gap-2">
-          {DIRECTIONS.map((direction) => (
-            <label
-              key={direction}
-              className="flex cursor-pointer items-start gap-3 rounded-lg border px-3 py-2.5 has-checked:border-foreground has-focus-visible:outline-3 has-focus-visible:outline-ring/50"
-            >
-              <input
-                type="radio"
-                value={direction}
-                className="mt-1 accent-foreground"
-                {...form.register('direction')}
-              />
-              <span className="flex flex-col">
-                <span className="text-sm font-medium">
-                  {directionLabels[direction]}
-                </span>
-                <span className="text-sm text-muted-foreground">
-                  {directionHints[direction]}
-                </span>
-              </span>
-            </label>
-          ))}
-        </div>
-      </fieldset>
 
       <fieldset className="flex flex-col gap-3">
         <legend className="mb-1 text-sm leading-none font-medium">

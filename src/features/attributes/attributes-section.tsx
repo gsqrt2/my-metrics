@@ -1,15 +1,35 @@
 import { Link } from 'react-router'
 
 import { attributeLabel } from '@/features/attributes/format'
-import { useAttributes } from '@/features/attributes/use-attributes'
+import type { Attribute } from '@/features/attributes/use-attributes'
+import { FilterChip, ShowAllButton } from '@/features/dashboard/filter-chip'
+import {
+  chipTitle,
+  isSelected,
+  toggleSelection,
+  type Selection,
+} from '@/features/dashboard/selection'
 import { canEditGroup, type GroupRow } from '@/features/groups/types'
 
-// Compact row of the group's active attributes ("metrics") on the group page.
-// Owners and editors manage them through Options → Metrics.
-export function AttributesSection({ group }: { group: GroupRow }) {
-  const attributes = useAttributes(group.id)
-  const active = attributes.data?.filter((a) => !a.archived_at) ?? []
-
+// The group's active attributes ("metrics") on the group page. In the "by
+// participant" chart view they filter the charts, like the participant chips
+// do in the "by metric" view. Owners and editors manage them through
+// Options → Metrics.
+export function AttributesSection({
+  group,
+  attributes,
+  isError,
+  filters,
+  selected,
+  onSelectedChange,
+}: {
+  group: GroupRow
+  attributes: Attribute[] | undefined
+  isError: boolean
+  filters: boolean
+  selected: Selection
+  onSelectedChange: (selected: Selection) => void
+}) {
   return (
     <section
       aria-labelledby="metrics-heading"
@@ -21,12 +41,12 @@ export function AttributesSection({ group }: { group: GroupRow }) {
       >
         Metrics
       </h2>
-      {attributes.isError && (
+      {isError && (
         <p className="text-sm text-destructive">
           The metrics couldn't be loaded.
         </p>
       )}
-      {attributes.data && active.length === 0 && (
+      {attributes && attributes.length === 0 && (
         <p className="text-sm text-muted-foreground">
           {canEditGroup(group) ? (
             <>
@@ -43,17 +63,35 @@ export function AttributesSection({ group }: { group: GroupRow }) {
           )}
         </p>
       )}
-      {active.length > 0 && (
+      {attributes && attributes.length > 0 && (
         <ul aria-label="Metrics" className="flex flex-wrap gap-2">
-          {active.map((attribute) => (
-            <li
-              key={attribute.id}
-              className="inline-flex max-w-full items-center rounded-full border bg-card px-3 py-1 text-sm"
-            >
-              <span className="truncate">{attributeLabel(attribute)}</span>
-            </li>
-          ))}
+          {attributes.map((attribute) => {
+            const on = !filters || isSelected(selected, attribute.id)
+            return (
+              <li key={attribute.id} className="max-w-full">
+                <FilterChip
+                  interactive={filters}
+                  pressed={on}
+                  title={chipTitle(attribute.name, selected === null, on)}
+                  onToggle={() =>
+                    onSelectedChange(
+                      toggleSelection(
+                        selected,
+                        attribute.id,
+                        attributes.length,
+                      ),
+                    )
+                  }
+                >
+                  <span className="truncate">{attributeLabel(attribute)}</span>
+                </FilterChip>
+              </li>
+            )
+          })}
         </ul>
+      )}
+      {filters && selected !== null && (
+        <ShowAllButton onClick={() => onSelectedChange(null)} />
       )}
     </section>
   )
