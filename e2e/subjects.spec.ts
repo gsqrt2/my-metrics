@@ -6,7 +6,7 @@ import { logIn } from './support/login'
 test('a group shows its subjects; managing them shows archived ones on request', async ({
   page,
 }) => {
-  await page.goto('/groups/b0000000-0000-0000-0000-000000000001') // Kids
+  await page.goto('/logbooks/b0000000-0000-0000-0000-000000000001') // Kids
 
   const subjects = page.getByRole('list', { name: 'Participants' })
   await expect(subjects.getByRole('listitem')).toHaveText([/^MIMia/, /^NONoah/])
@@ -50,7 +50,7 @@ test.describe('managing subjects', () => {
 
   // The Personal group's subjects page.
   async function openPersonalSubjects(page: Page) {
-    await page.goto('/groups')
+    await page.goto('/logbooks')
     await page.getByRole('link', { name: /^Personal/ }).click()
     await page.getByRole('link', { name: 'Manage participants' }).click()
     const subjects = page.getByRole('list', { name: 'Participants' })
@@ -62,9 +62,9 @@ test.describe('managing subjects', () => {
     page,
   }) => {
     await logIn(page, users.ari.email)
-    await page.getByRole('link', { name: 'New group' }).click()
+    await page.getByRole('link', { name: 'New logbook' }).click()
     await page.getByLabel('Name').fill('Ari Kids')
-    await page.getByRole('button', { name: 'Create group' }).click()
+    await page.getByRole('button', { name: 'Create logbook' }).click()
     await expect(page.getByText('None yet.')).toBeVisible()
     await page.getByRole('link', { name: 'Manage participants' }).click()
     await expect(

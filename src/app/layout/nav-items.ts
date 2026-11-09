@@ -7,6 +7,6 @@ export type NavItem = {
 }
 
 export const navItems: NavItem[] = [
-  { label: 'Groups', to: '/groups', icon: LayoutGrid },
+  { label: 'Logbooks', to: '/logbooks', icon: LayoutGrid },
   { label: 'Profile', to: '/profile', icon: UserRound },
 ]

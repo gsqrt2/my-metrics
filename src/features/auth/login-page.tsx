@@ -22,7 +22,8 @@ export function LoginPage() {
   const { status, session } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const from = (location.state as LoginLocationState | null)?.from ?? '/groups'
+  const from =
+    (location.state as LoginLocationState | null)?.from ?? '/logbooks'
   const [error, setError] = useState<string | null>(null)
 
   const form = useForm<LoginValues>({

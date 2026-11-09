@@ -13,21 +13,21 @@ export function NewGroupPage() {
 
   return (
     <>
-      <BackLink to="/groups">Groups</BackLink>
+      <BackLink to="/logbooks">Logbooks</BackLink>
       <PageHeader
-        title="New group"
+        title="New logbook"
         description="Only you can see it until you invite others."
       />
       <GroupForm
         defaultValues={emptyGroupForm}
-        submitLabel="Create group"
+        submitLabel="Create logbook"
         pendingLabel="Creating…"
-        cancelTo="/groups"
+        cancelTo="/logbooks"
         isPending={create.isPending}
         error={create.error ? groupErrorMessage(create.error) : undefined}
         onSubmit={(fields) =>
           create.mutate(fields, {
-            onSuccess: (id) => navigate(`/groups/${id}`),
+            onSuccess: (id) => navigate(`/logbooks/${id}`),
           })
         }
       />

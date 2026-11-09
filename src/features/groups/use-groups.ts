@@ -100,7 +100,7 @@ export function useGroup(groupId: string) {
 
 // FR-80 limit, raised by the check_groups_per_user trigger.
 export const GROUP_LIMIT_MESSAGE =
-  "You're already in 50 groups, the most allowed. Leave a group to create a new one."
+  "You're already in 50 logbooks, the most allowed. Leave a logbook to create a new one."
 
 export function groupErrorMessage(error: Error) {
   return error.message === 'group_limit_reached'

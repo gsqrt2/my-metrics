@@ -17,7 +17,7 @@ export function EditGroupPage() {
 function EditGroup({ group }: { group: GroupRow }) {
   const navigate = useNavigate()
   const update = useUpdateGroup(group.id)
-  const groupPath = `/groups/${group.id}`
+  const groupPath = `/logbooks/${group.id}`
 
   const back = <BackLink to={groupPath}>{group.name}</BackLink>
 
@@ -26,8 +26,8 @@ function EditGroup({ group }: { group: GroupRow }) {
       <>
         {back}
         <PageHeader
-          title="Edit group"
-          description="Only the group's owner and editors can change it."
+          title="Edit logbook"
+          description="Only the logbook's owner and editors can change it."
         />
         <Button asChild variant="outline">
           <Link to={groupPath}>Back to {group.name}</Link>
@@ -39,7 +39,7 @@ function EditGroup({ group }: { group: GroupRow }) {
   return (
     <>
       {back}
-      <PageHeader title="Edit group" description={group.name} />
+      <PageHeader title="Edit logbook" description={group.name} />
       <GroupForm
         defaultValues={toGroupForm(group)}
         submitLabel="Save changes"

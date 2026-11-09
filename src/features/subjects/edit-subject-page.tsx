@@ -25,7 +25,7 @@ export function EditSubjectPage() {
 function FindSubject({ group }: { group: GroupRow }) {
   const { subjectId } = useParams()
   const subjects = useSubjects(group.id)
-  const groupPath = `/groups/${group.id}`
+  const groupPath = `/logbooks/${group.id}`
   const subjectsPath = `${groupPath}/participants`
   const back = <BackLink to={subjectsPath}>Participants</BackLink>
 
@@ -40,8 +40,8 @@ function FindSubject({ group }: { group: GroupRow }) {
           title={subject ? 'Edit participant' : 'Participant not found'}
           description={
             subject
-              ? "Only the group's owner and editors can change participants."
-              : "It doesn't exist in this group."
+              ? "Only the logbook's owner and editors can change participants."
+              : "It doesn't exist in this logbook."
           }
         />
         <Button asChild variant="outline">
@@ -66,7 +66,7 @@ function EditSubject({
   const { session } = useAuth()
   const update = useUpdateSubject(subject)
   const archive = useUpdateSubject(subject)
-  const groupPath = `/groups/${group.id}`
+  const groupPath = `/logbooks/${group.id}`
   const subjectsPath = `${groupPath}/participants`
   const isArchived = subject.archived_at !== null
 
@@ -77,7 +77,7 @@ function EditSubject({
         ? 'your display name'
         : "the member's display name"
     nameHint = subject.name_customized
-      ? `Renamed in this group, so it no longer follows ${whose}. Use the same name again to follow it.`
+      ? `Renamed in this logbook, so it no longer follows ${whose}. Use the same name again to follow it.`
       : `Follows ${whose} until you rename it here.`
   }
 
@@ -112,8 +112,8 @@ function EditSubject({
           </h2>
           <p className="text-sm text-muted-foreground">
             {isArchived
-              ? 'This participant is hidden from the group and no new entries can be logged for it. Restore it to log again.'
-              : 'Hides this participant from the group and stops new entries for it. Its entries are kept, and you can restore it at any time.'}
+              ? 'This participant is hidden from the logbook and no new entries can be logged for it. Restore it to log again.'
+              : 'Hides this participant from the logbook and stops new entries for it. Its entries are kept, and you can restore it at any time.'}
           </p>
           {archive.isError && (
             <Alert variant="destructive">

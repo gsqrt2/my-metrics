@@ -36,7 +36,7 @@
 | Term | Definition |
 |---|---|
 | **User** | A person with a login account. |
-| **Group** | A tracking space and the **context** that gives its attributes their meaning, e.g. "Growth", "Performance" or "Diet Challenge 2026". It owns its subjects, attributes and entries; all data belongs to exactly one group. A group is private until a member invites someone. |
+| **Group** | A tracking space and the **context** that gives its attributes their meaning, e.g. "Growth", "Performance" or "Diet Challenge 2026". It owns its subjects, attributes and entries; all data belongs to exactly one group. A group is private until a member invites someone. The app calls groups **logbooks**; "group" stays the term in this spec and in the code. |
 | **Default group** | A private group every user gets automatically when their account is created, so they can start tracking right away. |
 | **Member** | A user who has access to a group, with a **role**. |
 | **Role** | `owner`, `editor` or `viewer`; see §5. Every group has exactly one owner. |
@@ -295,3 +295,4 @@
 | 2026-11-09 | Every subject has a colour from a fixed palette of eight, suggested automatically (the one least used in the group) and changeable. Its avatar shows its initials in that colour; there are no uploaded pictures in v1. | FR-30 |
 | 2026-11-09 | Renaming a linked subject back to the user's display name makes it follow the display name again. | FR-33 |
 | 2026-11-09 | Subjects are called "participants" in the app (text and URLs), since "subject" would confuse users. The spec, database and code keep "subject". | Glossary |
+| 2026-11-09 | Groups are called "logbooks" in the app (text and URLs, e.g. `/logbooks/…`), as a more intuitive name for a shared or personal measurement record. The spec, database and code keep "group". | Glossary |

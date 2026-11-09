@@ -18,7 +18,7 @@ function NewSubject({ group }: { group: GroupRow }) {
   const navigate = useNavigate()
   const subjects = useSubjects(group.id)
   const create = useCreateSubject(group.id)
-  const groupPath = `/groups/${group.id}`
+  const groupPath = `/logbooks/${group.id}`
   const subjectsPath = `${groupPath}/participants`
   const back = <BackLink to={subjectsPath}>Participants</BackLink>
 
@@ -28,7 +28,7 @@ function NewSubject({ group }: { group: GroupRow }) {
         {back}
         <PageHeader
           title="Add participant"
-          description="Only the group's owner and editors can add participants."
+          description="Only the logbook's owner and editors can add participants."
         />
         <Button asChild variant="outline">
           <Link to={groupPath}>Back to {group.name}</Link>

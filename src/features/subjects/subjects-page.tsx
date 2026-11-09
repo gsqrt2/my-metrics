@@ -24,7 +24,7 @@ export function SubjectsPage() {
 function ManageSubjects({ group }: { group: GroupRow }) {
   const subjects = useSubjects(group.id)
   const [showArchived, setShowArchived] = useState(false)
-  const groupPath = `/groups/${group.id}`
+  const groupPath = `/logbooks/${group.id}`
   const back = <BackLink to={groupPath}>{group.name}</BackLink>
 
   if (!canEditGroup(group)) {
@@ -33,7 +33,7 @@ function ManageSubjects({ group }: { group: GroupRow }) {
         {back}
         <PageHeader
           title="Participants"
-          description="Only the group's owner and editors can manage participants."
+          description="Only the logbook's owner and editors can manage participants."
         />
         <Button asChild variant="outline">
           <Link to={groupPath}>Back to {group.name}</Link>
@@ -152,7 +152,7 @@ function SubjectList({
           </div>
           <Button asChild variant="ghost" size="icon">
             <Link
-              to={`/groups/${groupId}/participants/${subject.id}/edit`}
+              to={`/logbooks/${groupId}/participants/${subject.id}/edit`}
               aria-label={`Edit ${subject.name}`}
             >
               <Pencil aria-hidden />

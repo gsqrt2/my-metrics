@@ -11,5 +11,5 @@ export async function logIn(
   await page.getByLabel('Email').fill(email)
   await page.getByLabel('Password').fill(password)
   await page.getByRole('button', { name: 'Log in' }).click()
-  await expect(page.getByRole('heading', { name: 'Groups' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Logbooks' })).toBeVisible()
 }

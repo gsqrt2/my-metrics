@@ -22,13 +22,13 @@ export function WithGroup({
   const group = useGroup(groupId!)
 
   if (group.isPending) {
-    return <p className="text-sm text-muted-foreground">Loading the group…</p>
+    return <p className="text-sm text-muted-foreground">Loading the logbook…</p>
   }
   if (group.isError) {
     return (
       <Alert variant="destructive">
         <AlertDescription>
-          The group couldn't be loaded. Please reload the page.
+          The logbook couldn't be loaded. Please reload the page.
         </AlertDescription>
       </Alert>
     )
@@ -37,11 +37,11 @@ export function WithGroup({
     return (
       <>
         <PageHeader
-          title="Group not found"
+          title="Logbook not found"
           description="It doesn't exist, or you're not a member of it."
         />
         <Button asChild variant="outline">
-          <Link to="/groups">Back to your groups</Link>
+          <Link to="/logbooks">Back to your logbooks</Link>
         </Button>
       </>
     )
@@ -56,7 +56,7 @@ export function GroupPage() {
     <WithGroup>
       {(group) => (
         <>
-          <BackLink to="/groups">Groups</BackLink>
+          <BackLink to="/logbooks">Logbooks</BackLink>
           <PageHeader
             title={group.name}
             description={group.description ?? undefined}
@@ -64,15 +64,15 @@ export function GroupPage() {
               canEditGroup(group) && (
                 <div className="flex flex-wrap gap-2">
                   <Button asChild variant="outline">
-                    <Link to={`/groups/${group.id}/participants`}>
+                    <Link to={`/logbooks/${group.id}/participants`}>
                       <Users aria-hidden />
                       Manage participants
                     </Link>
                   </Button>
                   <Button asChild variant="outline">
-                    <Link to={`/groups/${group.id}/edit`}>
+                    <Link to={`/logbooks/${group.id}/edit`}>
                       <Pencil aria-hidden />
-                      Edit group
+                      Edit logbook
                     </Link>
                   </Button>
                 </div>

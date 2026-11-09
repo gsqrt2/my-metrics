@@ -45,7 +45,7 @@ test('logging in returns to the requested page, logging out ends the session', a
   await page.getByRole('menuitem', { name: 'Log out' }).click()
 
   await expect(page).toHaveURL(/\/login$/)
-  await page.goto('/groups')
+  await page.goto('/logbooks')
   await expect(page).toHaveURL(/\/login$/)
 })
 
@@ -86,8 +86,8 @@ test('a forgotten password can be reset through the emailed link', async ({
       page.getByRole('heading', { name: 'Password changed' }),
     ).toBeVisible()
 
-    await page.getByRole('link', { name: 'Continue to your groups' }).click()
-    await expect(page.getByRole('heading', { name: 'Groups' })).toBeVisible()
+    await page.getByRole('link', { name: 'Continue to your logbooks' }).click()
+    await expect(page.getByRole('heading', { name: 'Logbooks' })).toBeVisible()
 
     // The link works only once.
     await page.evaluate(() => localStorage.clear())

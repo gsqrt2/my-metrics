@@ -9,6 +9,6 @@ setup('log in as Alex', async ({ page }) => {
   await page.getByLabel('Email').fill(users.alex.email)
   await page.getByLabel('Password').fill(SEED_PASSWORD)
   await page.getByRole('button', { name: 'Log in' }).click()
-  await expect(page.getByRole('heading', { name: 'Groups' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Logbooks' })).toBeVisible()
   await page.context().storageState({ path: 'e2e/.auth/alex.json' })
 })

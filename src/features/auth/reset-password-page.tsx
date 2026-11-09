@@ -122,7 +122,7 @@ export function ResetPasswordPage() {
         </CardHeader>
         <CardContent>
           <Button asChild size="lg" className="w-full">
-            <Link to="/groups">Continue to your groups</Link>
+            <Link to="/logbooks">Continue to your logbooks</Link>
           </Button>
         </CardContent>
       </Card>

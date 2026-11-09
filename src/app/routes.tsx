@@ -36,16 +36,19 @@ export const routes: RouteObject[] = [
       </RequireAuth>
     ),
     children: [
-      // The group list is the first page after login (FR-12).
-      { index: true, element: <Navigate to="/groups" replace /> },
-      { path: 'groups', element: <GroupsPage /> },
-      { path: 'groups/new', element: <NewGroupPage /> },
-      { path: 'groups/:groupId', element: <GroupPage /> },
-      { path: 'groups/:groupId/edit', element: <EditGroupPage /> },
-      { path: 'groups/:groupId/participants', element: <SubjectsPage /> },
-      { path: 'groups/:groupId/participants/new', element: <NewSubjectPage /> },
+      // The logbook (group) list is the first page after login (FR-12).
+      { index: true, element: <Navigate to="/logbooks" replace /> },
+      { path: 'logbooks', element: <GroupsPage /> },
+      { path: 'logbooks/new', element: <NewGroupPage /> },
+      { path: 'logbooks/:groupId', element: <GroupPage /> },
+      { path: 'logbooks/:groupId/edit', element: <EditGroupPage /> },
+      { path: 'logbooks/:groupId/participants', element: <SubjectsPage /> },
       {
-        path: 'groups/:groupId/participants/:subjectId/edit',
+        path: 'logbooks/:groupId/participants/new',
+        element: <NewSubjectPage />,
+      },
+      {
+        path: 'logbooks/:groupId/participants/:subjectId/edit',
         element: <EditSubjectPage />,
       },
       { path: 'profile', element: <ProfilePage /> },

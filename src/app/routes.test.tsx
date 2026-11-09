@@ -114,20 +114,20 @@ describe('when logged in', () => {
   it('redirects the start page to the group list', async () => {
     const router = renderAt('/')
     expect(
-      await screen.findByRole('heading', { name: 'Groups' }),
+      await screen.findByRole('heading', { name: 'Logbooks' }),
     ).toBeInTheDocument()
-    expect(router.state.location.pathname).toBe('/groups')
+    expect(router.state.location.pathname).toBe('/logbooks')
   })
 
   it('shows the logo, main menu, primary action and the user', async () => {
-    renderAt('/groups')
-    await screen.findByRole('heading', { name: 'Groups' })
+    renderAt('/logbooks')
+    await screen.findByRole('heading', { name: 'Logbooks' })
 
     expect(screen.getAllByLabelText('my-metrics home').length).toBeGreaterThan(
       0,
     )
     const nav = screen.getByRole('navigation', { name: 'Main' })
-    expect(nav).toHaveTextContent('Groups')
+    expect(nav).toHaveTextContent('Logbooks')
     expect(nav).toHaveTextContent('Profile')
     // One in the desktop sidebar, one floating on phones; CSS decides which shows.
     expect(screen.getAllByRole('button', { name: 'Log entry' })).toHaveLength(2)
@@ -145,55 +145,54 @@ describe('when logged in', () => {
   })
 
   it('lists the groups with their links', async () => {
-    renderAt('/groups')
-    const list = await screen.findByRole('list', { name: 'Your groups' })
+    renderAt('/logbooks')
+    const list = await screen.findByRole('list', { name: 'Your logbooks' })
     expect(list.querySelectorAll('li')).toHaveLength(2)
     expect(
       screen.getByRole('link', { name: /Diet Challenge/ }),
-    ).toHaveAttribute('href', '/groups/g-diet')
-    expect(screen.getByRole('link', { name: 'New group' })).toHaveAttribute(
+    ).toHaveAttribute('href', '/logbooks/g-diet')
+    expect(screen.getByRole('link', { name: 'New logbook' })).toHaveAttribute(
       'href',
-      '/groups/new',
+      '/logbooks/new',
     )
   })
 
   it('offers editing to owners and editors only', async () => {
-    renderAt('/groups/g-personal')
+    renderAt('/logbooks/g-personal')
     expect(
-      await screen.findByRole('link', { name: 'Edit group' }),
-    ).toHaveAttribute('href', '/groups/g-personal/edit')
+      await screen.findByRole('link', { name: 'Edit logbook' }),
+    ).toHaveAttribute('href', '/logbooks/g-personal/edit')
   })
 
   it('links from a group back to the group list', async () => {
-    renderAt('/groups/g-diet')
+    renderAt('/logbooks/g-diet')
     await screen.findByRole('heading', { name: 'Diet Challenge' })
     const main = screen.getByRole('main')
-    expect(within(main).getByRole('link', { name: 'Groups' })).toHaveAttribute(
-      'href',
-      '/groups',
-    )
+    expect(
+      within(main).getByRole('link', { name: 'Logbooks' }),
+    ).toHaveAttribute('href', '/logbooks')
   })
 
   it("shows a group's active subjects compactly, marking the user's own", async () => {
-    renderAt('/groups/g-personal')
+    renderAt('/logbooks/g-personal')
     const list = await screen.findByRole('list', { name: 'Participants' })
     expect(list).toHaveTextContent('Alex Example(you)')
     expect(list).not.toHaveTextContent('Old Friend')
     expect(
       screen.getByRole('link', { name: 'Manage participants' }),
-    ).toHaveAttribute('href', '/groups/g-personal/participants')
+    ).toHaveAttribute('href', '/logbooks/g-personal/participants')
   })
 
   it('lets owners and editors manage subjects on their own page', async () => {
-    renderAt('/groups/g-personal/participants')
+    renderAt('/logbooks/g-personal/participants')
     const list = await screen.findByRole('list', { name: 'Participants' })
     expect(within(list).getByText('You')).toBeInTheDocument()
     expect(
       within(list).getByRole('link', { name: 'Edit Alex Example' }),
-    ).toHaveAttribute('href', '/groups/g-personal/participants/s-me/edit')
+    ).toHaveAttribute('href', '/logbooks/g-personal/participants/s-me/edit')
     expect(
       screen.getByRole('link', { name: 'Add participant' }),
-    ).toHaveAttribute('href', '/groups/g-personal/participants/new')
+    ).toHaveAttribute('href', '/logbooks/g-personal/participants/new')
 
     expect(screen.queryByText('Old Friend')).not.toBeInTheDocument()
     screen
@@ -205,7 +204,7 @@ describe('when logged in', () => {
   })
 
   it('shows viewers the subjects but not their management', async () => {
-    renderAt('/groups/g-diet')
+    renderAt('/logbooks/g-diet')
     const list = await screen.findByRole('list', { name: 'Participants' })
     expect(list).toHaveTextContent('Kim')
     expect(
@@ -214,10 +213,10 @@ describe('when logged in', () => {
   })
 
   it('keeps viewers out of subject management', async () => {
-    renderAt('/groups/g-diet/participants')
+    renderAt('/logbooks/g-diet/participants')
     expect(
       await screen.findByText(
-        "Only the group's owner and editors can manage participants.",
+        "Only the logbook's owner and editors can manage participants.",
       ),
     ).toBeInTheDocument()
     expect(
@@ -226,24 +225,26 @@ describe('when logged in', () => {
   })
 
   it('shows viewers the group without editing', async () => {
-    renderAt('/groups/g-diet')
+    renderAt('/logbooks/g-diet')
     await screen.findByRole('heading', { name: 'Diet Challenge' })
     expect(screen.getByText('Viewer')).toBeInTheDocument()
     expect(
-      screen.queryByRole('link', { name: 'Edit group' }),
+      screen.queryByRole('link', { name: 'Edit logbook' }),
     ).not.toBeInTheDocument()
   })
 
   it('does not show viewers the edit form', async () => {
-    renderAt('/groups/g-diet/edit')
-    await screen.findByText("Only the group's owner and editors can change it.")
+    renderAt('/logbooks/g-diet/edit')
+    await screen.findByText(
+      "Only the logbook's owner and editors can change it.",
+    )
     expect(screen.queryByLabelText('Name')).not.toBeInTheDocument()
   })
 
   it('shows a not-found page for groups the user is not in', async () => {
-    renderAt('/groups/someone-elses')
+    renderAt('/logbooks/someone-elses')
     expect(
-      await screen.findByRole('heading', { name: 'Group not found' }),
+      await screen.findByRole('heading', { name: 'Logbook not found' }),
     ).toBeInTheDocument()
   })
 
@@ -256,8 +257,8 @@ describe('when logged in', () => {
 
   it('sends the login page on to the group list', async () => {
     const router = renderAt('/login')
-    await screen.findByRole('heading', { name: 'Groups' })
-    expect(router.state.location.pathname).toBe('/groups')
+    await screen.findByRole('heading', { name: 'Logbooks' })
+    expect(router.state.location.pathname).toBe('/logbooks')
   })
 })
 
@@ -288,7 +289,7 @@ describe('when logged out', () => {
 describe('while the session is loading', () => {
   it('renders nothing instead of flashing the login page', () => {
     auth.state = { status: 'loading', session: null }
-    renderAt('/groups')
+    renderAt('/logbooks')
     expect(screen.queryByRole('heading')).not.toBeInTheDocument()
   })
 })

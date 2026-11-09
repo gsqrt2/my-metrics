@@ -11,7 +11,7 @@ export function NotFoundPage() {
         description="This page doesn't exist or was moved."
       />
       <Button asChild variant="outline">
-        <Link to="/groups">Back to your groups</Link>
+        <Link to="/logbooks">Back to your logbooks</Link>
       </Button>
     </>
   )
