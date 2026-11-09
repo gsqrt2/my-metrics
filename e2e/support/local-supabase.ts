@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 
 import { createClient } from '@supabase/supabase-js'
+import pg from 'pg'
 
 // Seeded demo accounts (supabase/seed.sql). Local only.
 export const SEED_PASSWORD = 'password'
@@ -15,9 +16,12 @@ export const users = {
   // device size gets its own account.
   pat: { email: 'pat@example.com', displayName: 'Pat Example' }, // desktop
   max: { email: 'max@example.com', displayName: 'Max Example' }, // phone
+  jo: { email: 'jo@example.com', displayName: 'Jo Example' }, // creates groups
 }
 
 export const MAILPIT_URL = 'http://127.0.0.1:54324'
+// The local database, for cleaning up what the app itself can't delete yet.
+const DB_URL = 'postgresql://postgres:postgres@127.0.0.1:54322/postgres'
 
 // Same values the app reads (see README: .env.local).
 function readEnvLocal() {
@@ -75,4 +79,23 @@ export async function latestEmailText(email: string, timeoutMs = 10_000) {
     await new Promise((resolve) => setTimeout(resolve, 250))
   }
   throw new Error(`No email to ${email} arrived within ${timeoutMs} ms`)
+}
+
+// Deletes the groups an account owns, except its default group, so tests that
+// create groups can be re-run without reaching the limit of 50 (FR-80).
+// Replace with deleting through the app once it can (plan step 14).
+export async function deleteOwnedGroups(email: string) {
+  const client = new pg.Client({ connectionString: DB_URL })
+  await client.connect()
+  try {
+    await client.query(
+      `delete from public.groups g
+       using public.memberships m, auth.users u
+       where m.group_id = g.id and m.user_id = u.id and m.role = 'owner'
+         and u.email = $1 and g.default_for_user_id is null`,
+      [email],
+    )
+  } finally {
+    await client.end()
+  }
 }

@@ -22,7 +22,8 @@ from (values
   ('a0000000-0000-0000-0000-000000000004'::uuid, 'lee@example.com', 'Lee Example'),
   ('a0000000-0000-0000-0000-000000000005'::uuid, 'robin@example.com', 'Robin Example'),
   ('a0000000-0000-0000-0000-000000000006'::uuid, 'pat@example.com', 'Pat Example'),
-  ('a0000000-0000-0000-0000-000000000007'::uuid, 'max@example.com', 'Max Example')
+  ('a0000000-0000-0000-0000-000000000007'::uuid, 'max@example.com', 'Max Example'),
+  ('a0000000-0000-0000-0000-000000000008'::uuid, 'jo@example.com', 'Jo Example')
 ) as u (id, email, display_name);
 
 insert into auth.identities (
@@ -34,3 +35,22 @@ select
   now(), now(), now()
 from auth.users u
 where u.email like '%@example.com';
+
+-- Demo groups (step 3). Every account already has its "Personal" group from
+-- the on_auth_user_created trigger. Alex owns two shared groups; the trigger on
+-- groups makes the signed-in user (here: the claims below) the owner.
+select set_config('request.jwt.claims', '{"sub": "a0000000-0000-0000-0000-000000000001"}', false);
+
+insert into public.groups (id, name, description, starts_on, ends_on) values
+  ('b0000000-0000-0000-0000-000000000001', 'Kids',
+   'Height and weight of the children, measured on the first Sunday of the month.', null, null),
+  ('b0000000-0000-0000-0000-000000000002', 'Diet Challenge',
+   'Twelve weeks, weigh-in every Monday morning.', '2026-10-05', '2026-12-27');
+
+select set_config('request.jwt.claims', '', false);
+
+insert into public.memberships (group_id, user_id, role) values
+  ('b0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000002', 'editor'), -- Sam
+  ('b0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000005', 'viewer'), -- Robin
+  ('b0000000-0000-0000-0000-000000000002', 'a0000000-0000-0000-0000-000000000003', 'editor'), -- Kim
+  ('b0000000-0000-0000-0000-000000000002', 'a0000000-0000-0000-0000-000000000004', 'editor'); -- Lee

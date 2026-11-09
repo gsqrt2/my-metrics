@@ -34,6 +34,88 @@ export type Database = {
   }
   public: {
     Tables: {
+      groups: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          default_for_user_id: string | null
+          description: string | null
+          ends_on: string | null
+          id: string
+          members_edit_own_subject_only: boolean
+          name: string
+          starts_on: string | null
+        }
+        ComputedFields: never
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          default_for_user_id?: string | null
+          description?: string | null
+          ends_on?: string | null
+          id?: string
+          members_edit_own_subject_only?: boolean
+          name: string
+          starts_on?: string | null
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          default_for_user_id?: string | null
+          description?: string | null
+          ends_on?: string | null
+          id?: string
+          members_edit_own_subject_only?: boolean
+          name?: string
+          starts_on?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'groups_default_for_user_id_fkey'
+            columns: ['default_for_user_id']
+            isOneToOne: true
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      memberships: {
+        Row: {
+          created_at: string
+          group_id: string
+          role: Database['public']['Enums']['group_role']
+          user_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          group_id: string
+          role: Database['public']['Enums']['group_role']
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          group_id?: string
+          role?: Database['public']['Enums']['group_role']
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'memberships_group_id_fkey'
+            columns: ['group_id']
+            isOneToOne: false
+            referencedRelation: 'groups'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'memberships_user_id_fkey'
+            columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -58,10 +140,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_member: { Args: { target_group_id: string }; Returns: boolean }
+      member_role: {
+        Args: { target_group_id: string }
+        Returns: Database['public']['Enums']['group_role']
+      }
     }
     Enums: {
-      [_ in never]: never
+      group_role: 'owner' | 'editor' | 'viewer'
     }
     CompositeTypes: {
       [_ in never]: never
@@ -188,6 +274,8 @@ export const Constants = {
     Enums: {},
   },
   public: {
-    Enums: {},
+    Enums: {
+      group_role: ['owner', 'editor', 'viewer'],
+    },
   },
 } as const
