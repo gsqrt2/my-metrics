@@ -13,7 +13,7 @@ import { EntriesSection } from '@/features/entries/entries-section'
 import { GroupOptionsMenu } from '@/features/groups/group-options-menu'
 import { useAttributes } from '@/features/attributes/use-attributes'
 import { useChartMode } from '@/features/dashboard/chart-mode'
-import { isSelected, type Selection } from '@/features/dashboard/selection'
+import type { Selection } from '@/features/dashboard/selection'
 import { SubjectsSection } from '@/features/subjects/subjects-section'
 import { useSubjects } from '@/features/subjects/use-subjects'
 
@@ -85,14 +85,6 @@ function GroupHome({ group }: { group: GroupRow }) {
   // Each view filters one row of chips; null means all.
   const [subjectFilter, setSubjectFilter] = useState<Selection>(null)
   const [attributeFilter, setAttributeFilter] = useState<Selection>(null)
-  const chartSubjects =
-    activeSubjects?.filter(
-      (s) => mode === 'participant' || isSelected(subjectFilter, s.id),
-    ) ?? []
-  const chartAttributes =
-    activeAttributes?.filter(
-      (a) => mode === 'metric' || isSelected(attributeFilter, a.id),
-    ) ?? []
 
   return (
     <>
@@ -132,9 +124,12 @@ function GroupHome({ group }: { group: GroupRow }) {
               mode={mode}
               onModeChange={setMode}
               canSwitch={canSwitch}
-              subjects={chartSubjects}
-              attributes={chartAttributes}
-              hasAttributes={(activeAttributes?.length ?? 0) > 0}
+              subjects={activeSubjects ?? []}
+              attributes={activeAttributes ?? []}
+              subjectFilter={subjectFilter}
+              onSubjectFilterChange={setSubjectFilter}
+              attributeFilter={attributeFilter}
+              onAttributeFilterChange={setAttributeFilter}
             />
           </Suspense>
         </div>

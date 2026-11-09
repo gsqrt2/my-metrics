@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 
 import { supabase } from '@/lib/supabase'
 import type { Database } from '@/types/database'
@@ -9,11 +9,18 @@ type GeneratedRow = Functions['get_dashboard']['Returns'][number]
 
 // The generated types can't tell which columns a function may leave empty.
 // These can be: values hidden from the viewer (FR-43), % changes against a
-// first value of 0, and "previous" values when there's only one entry.
+// baseline of 0, ids and comments of grouped points, and "previous" values
+// when there's only one entry.
 export type SeriesPoint = Omit<
   GeneratedPoint,
-  'value' | 'pct_change' | 'comment'
-> & { value: number | null; pct_change: number | null; comment: string | null }
+  'value' | 'change' | 'pct_change' | 'entry_id' | 'comment'
+> & {
+  value: number | null
+  change: number | null
+  pct_change: number | null
+  entry_id: string | null
+  comment: string | null
+}
 
 export type DashboardRow = {
   [K in keyof GeneratedRow]: K extends
@@ -22,20 +29,44 @@ export type DashboardRow = {
     : GeneratedRow[K] | null
 }
 
+export type Baseline = 'first' | 'group_start'
+
+export type SeriesOptions = {
+  from?: Date
+  to?: Date
+  maxPoints?: number
+  baseline?: Baseline
+}
+
 // Entries change these too, so they live under the entries keys.
 export const dashboardKeys = {
-  series: (groupId: string) => ['entries', 'series', groupId] as const,
+  series: (groupId: string, options: SeriesOptions) =>
+    [
+      'entries',
+      'series',
+      groupId,
+      options.from?.toISOString() ?? null,
+      options.to?.toISOString() ?? null,
+      options.maxPoints ?? null,
+      options.baseline ?? 'first',
+    ] as const,
   summary: (groupId: string) => ['entries', 'dashboard', groupId] as const,
 }
 
-// Every entry of a group, oldest first, for its charts (FR-60). Step 8 adds
-// time spans; until then charts show all entries.
-export function useSeries(groupId: string) {
+// A group's entries for its charts (FR-60 – FR-64), grouped by the database
+// when there are more than maxPoints per line. Keeps showing the previous
+// result while another period loads, so charts don't flash empty.
+export function useSeries(groupId: string, options: SeriesOptions = {}) {
   return useQuery({
-    queryKey: dashboardKeys.series(groupId),
+    queryKey: dashboardKeys.series(groupId, options),
+    placeholderData: keepPreviousData,
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_series', {
         target_group_id: groupId,
+        from_at: options.from?.toISOString(),
+        to_at: options.to?.toISOString(),
+        max_points: options.maxPoints,
+        baseline: options.baseline ?? 'first',
       })
       if (error) throw error
       return data as SeriesPoint[]

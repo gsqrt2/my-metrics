@@ -121,6 +121,14 @@ export function EntriesSection({ group }: { group: GroupRow }) {
               })`}
         </Button>
       )}
+      {entries.data && entries.data.length > 0 && (
+        <Link
+          to={`/logbooks/${group.id}/entries`}
+          className="self-start text-sm font-medium underline underline-offset-4"
+        >
+          All entries, with filters and sorting
+        </Link>
+      )}
       {showAll && entries.data?.length === RECENT_ENTRIES_LIMIT && (
         <p className="text-sm text-muted-foreground">
           Showing the latest {RECENT_ENTRIES_LIMIT} entries.

@@ -3,7 +3,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createMemoryRouter } from 'react-router'
 import { RouterProvider } from 'react-router/dom'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ThemeProvider } from '@/app/theme'
 import { routes } from '@/app/routes'
@@ -97,6 +97,12 @@ function renderAt(path: string) {
 }
 
 describe('when logged in', () => {
+  // The charts are loaded on demand (React.lazy); loading them once up front
+  // keeps the tests from waiting on the first import.
+  beforeAll(async () => {
+    await import('@/features/dashboard/charts-section')
+  })
+
   beforeEach(() => {
     auth.state = loggedIn
     localStorage.clear() // e.g. the remembered chart view

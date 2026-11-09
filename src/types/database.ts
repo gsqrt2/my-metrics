@@ -344,10 +344,18 @@ export type Database = {
         }[]
       }
       get_series: {
-        Args: { from_at?: string; target_group_id: string; to_at?: string }
+        Args: {
+          baseline?: string
+          from_at?: string
+          max_points?: number
+          target_group_id: string
+          to_at?: string
+        }
         Returns: {
           attribute_id: string
+          change: number
           comment: string
+          entry_count: number
           entry_id: string
           measured_at: string
           pct_change: number

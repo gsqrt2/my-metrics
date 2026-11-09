@@ -171,7 +171,9 @@
   - Each chart lists, per line, the latest value and the change since the previous and the first entry, shown objectively (arrow and sign), without judging it as good or bad.
   - Recent entries follow below the charts, as secondary information. Values hidden under FR-43 are shown as % change.
 - FR-61: **Subject view**: a line chart per attribute over time, plus a table of entries with comments. Selecting a point shows its comment. Values hidden under FR-43 are shown as % change.
-  - Selecting an attribute's chart (on the dashboard or in the subject view) opens it **full screen**. The full-screen chart has the time span options of FR-64, the x-axis choice of FR-63, the latest value and the change within the selected span, and a table of the entries in that span.
+  - Selecting a chart on the group page opens it **full screen**, as an overlay on the group page. It's the same chart with the same filter, plus the time span of FR-64, the x-axis choice of FR-63, the y-axis choice of FR-62 (charts by attribute), the baseline choice of FR-64 (groups with a duration), and the full screen width (on phones also in landscape). It shows more points than the small chart, the more the shorter the span (see "Large volumes" below). There's no table under the full-screen chart; the entry table is FR-65.
+  - **Large volumes:** a small chart shows at most about 100 points per line, a full-screen chart about one per 3 pixels of width (100–500). When a line has more entries in the span, the entries are averaged per day, week or month, the finest that fits; the tooltip says how many entries a point averages. Latest values and changes always use real entries.
+  - Points with a comment are marked, and the comment shows on hover or tap.
 - FR-62: **Comparison view**: one attribute with all subjects overlaid. The axis mode can be switched between:
   - absolute value
   - change since start (absolute)
@@ -309,6 +311,8 @@ None at the moment.
 | 2026-11-09 | The group page leads with charts (one per attribute, all subjects); recent entries come after them and are secondary. | FR-60 |
 | 2026-11-09 | Charts group by attribute, never by subject: every line in a chart shares one unit and scale. A filter narrows the charts to some subjects. There's no chart combining one subject's different attributes, since their units differ. *(Revised the same day, see below.)* | FR-60, FR-61 |
 | 2026-11-09 | Revised: the group page has two chart views, by attribute (real values, subjects filterable) and by subject (all attributes as % change since their first entry, attributes filterable). Using % change lets different units share one chart honestly. | FR-60 |
+| 2026-11-09 | Full-screen charts are an overlay: the group page's chart with its filter, plus time span, x-axis (date/age), y-axis (value/change/%), baseline, more points and the full width. No entry table under it. | FR-61 – FR-64 |
+| 2026-11-09 | Charts average entries per day, week or month when a line has more entries than the chart can show (about 100 points per line on the group page, 100–500 full screen, by width). | FR-61 |
 | 2026-11-09 | The app tracks without judging: attributes have no "higher/lower is better" direction, and changes aren't coloured as good or bad. | FR-40, FR-60 |
 | 2026-11-09 | A group's management pages (participants, metrics, editing the group, later members) sit behind one "Options" menu on the group page. | FR-11 |
 | 2026-11-09 | Groups are called "logbooks" in the app (text and URLs, e.g. `/logbooks/…`), as a more intuitive name for a shared or personal measurement record. The spec, database and code keep "group". | Glossary |
