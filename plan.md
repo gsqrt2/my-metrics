@@ -23,7 +23,7 @@ Status: ✅ done · 🚧 in progress · ⏸️ paused with open items · ⬜ not
 | 3 | Groups | ✅ | 2026-11-09 | `57c8b00` |
 | 4 | Subjects (participants) | ✅ | 2026-11-09 | `987e1dc` |
 | 5 | Attributes (metrics) | ✅ | 2026-11-09 | `147a174` |
-| 6 | Logging | 🚧 | | |
+| 6 | Logging | ✅ | 2026-11-09 | |
 | 7 | Group dashboard | ⬜ | | |
 | 8 | Charts and tables | ⬜ | | |
 | 9 | Invitations and joining | ⬜ | | |
@@ -35,7 +35,7 @@ Status: ✅ done · 🚧 in progress · ⏸️ paused with open items · ⬜ not
 | 15 | Account deletion | ⬜ | | |
 | 16 | Go live | ⬜ | | |
 
-**Next:** finish step 6 (Logging).
+**Next:** step 7 (Group dashboard with charts).
 
 ### Open items
 
@@ -45,7 +45,7 @@ Anything left unfinished, deferred or worth knowing before the next step. Each i
 - **Cloud auth settings** (steps 1–2). Everything set in `supabase/config.toml` (sign-ups off, minimum password length 8, site/redirect URLs, `double_confirm_changes = false`, email templates, change notifications) has to be repeated in the cloud project. Resolved in step 16.
 - **End-to-end cleanup goes around the app** (step 3). `deleteOwnedGroups` in `e2e/support/local-supabase.ts` deletes test groups straight from the local database (`pg`), because the app can't delete groups yet. `clearDefaultGroup` (step 6) likewise removes what tests add to an account's default group. Switch the tests to deleting through the app in step 14.
 - **`subjects.visibility_frozen` not added yet** (step 4). tech.md's data model has it for former members' subjects (FR-23); it's added with leaving and removing members in step 10.
-- **CI**: green on `main` through step 5 (`147a174`). Chromium is cached per Playwright version and installed without `--with-deps`; if a runner image update ever breaks Chromium with missing libraries, add `pnpm exec playwright install-deps chromium` back. The slowest e2e step is now starting Supabase (~80 s).
+- **CI**: green on `main` through step 5 (`147a174`); step 6 checked after merging. Chromium is cached per Playwright version and installed without `--with-deps`; if a runner image update ever breaks Chromium with missing libraries, add `pnpm exec playwright install-deps chromium` back. The slowest e2e step is now starting Supabase (~80 s).
 
 ---
 
