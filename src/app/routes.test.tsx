@@ -7,13 +7,43 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ThemeProvider } from '@/app/theme'
 import { routes } from '@/app/routes'
 import type { AuthState } from '@/features/auth/auth-context'
+import type { GroupRow } from '@/features/groups/types'
 
 const auth = vi.hoisted(() => ({ state: null as AuthState | null }))
+const data = vi.hoisted(() => ({ groups: [] as GroupRow[] }))
 
 vi.mock('@/features/auth/use-auth', () => ({ useAuth: () => auth.state }))
 vi.mock('@/features/profile/use-profile', () => ({
   useProfile: () => ({ data: { id: 'u1', display_name: 'Alex Example' } }),
 }))
+vi.mock('@/features/groups/use-groups', async (importOriginal) => ({
+  ...(await importOriginal()),
+  useGroups: () => ({ data: data.groups }),
+  useGroup: (id: string) => ({
+    data: data.groups.find((group) => group.id === id) ?? null,
+  }),
+}))
+
+const personal: GroupRow = {
+  id: 'g-personal',
+  name: 'Personal',
+  description: null,
+  starts_on: null,
+  ends_on: null,
+  isDefault: true,
+  role: 'owner',
+  memberCount: 1,
+}
+const diet: GroupRow = {
+  id: 'g-diet',
+  name: 'Diet Challenge',
+  description: 'Twelve weeks.',
+  starts_on: '2026-10-05',
+  ends_on: '2026-12-27',
+  isDefault: false,
+  role: 'viewer',
+  memberCount: 3,
+}
 
 const loggedIn = {
   status: 'ready',
@@ -35,6 +65,7 @@ function renderAt(path: string) {
 describe('when logged in', () => {
   beforeEach(() => {
     auth.state = loggedIn
+    data.groups = [personal, diet]
   })
 
   it('redirects the start page to the group list', async () => {
@@ -68,6 +99,48 @@ describe('when logged in', () => {
     const nav = screen.getByRole('navigation', { name: 'Main' })
     const active = nav.querySelector('[aria-current="page"]')
     expect(active).toHaveTextContent('Profile')
+  })
+
+  it('lists the groups with their links', async () => {
+    renderAt('/groups')
+    const list = await screen.findByRole('list', { name: 'Your groups' })
+    expect(list.querySelectorAll('li')).toHaveLength(2)
+    expect(
+      screen.getByRole('link', { name: /Diet Challenge/ }),
+    ).toHaveAttribute('href', '/groups/g-diet')
+    expect(screen.getByRole('link', { name: 'New group' })).toHaveAttribute(
+      'href',
+      '/groups/new',
+    )
+  })
+
+  it('offers editing to owners and editors only', async () => {
+    renderAt('/groups/g-personal')
+    expect(
+      await screen.findByRole('link', { name: 'Edit group' }),
+    ).toHaveAttribute('href', '/groups/g-personal/edit')
+  })
+
+  it('shows viewers the group without editing', async () => {
+    renderAt('/groups/g-diet')
+    await screen.findByRole('heading', { name: 'Diet Challenge' })
+    expect(screen.getByText('Viewer')).toBeInTheDocument()
+    expect(
+      screen.queryByRole('link', { name: 'Edit group' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('does not show viewers the edit form', async () => {
+    renderAt('/groups/g-diet/edit')
+    await screen.findByText("Only the group's owner and editors can change it.")
+    expect(screen.queryByLabelText('Name')).not.toBeInTheDocument()
+  })
+
+  it('shows a not-found page for groups the user is not in', async () => {
+    renderAt('/groups/someone-elses')
+    expect(
+      await screen.findByRole('heading', { name: 'Group not found' }),
+    ).toBeInTheDocument()
   })
 
   it('shows a not-found page for unknown routes', async () => {

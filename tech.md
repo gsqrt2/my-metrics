@@ -75,7 +75,7 @@ GitHub Actions: CI, deploys, keep-alive ping, nightly backup
   - The email uses our own template (`supabase/templates/recovery.html`). Its link goes straight to the app, `/reset-password?token_hash=…&type=recovery`, and the page calls `supabase.auth.verifyOtp`. Unlike the default link, this works when the email is opened on another device than the one that requested it, and link scanners in mail clients can't use up the token, because verifying needs JavaScript.
   - The same template and subject must be set in the cloud project (step 16).
   - The request form always shows the same confirmation, so it doesn't reveal which addresses have accounts.
-- **Seed accounts (local only):** `alex`, `sam`, `kim`, `lee`, `robin`, `pat` and `max`, all `@example.com` and all with the password `password`, created in `supabase/seed.sql`. The end-to-end tests that change an account each use their own (see `e2e/support/local-supabase.ts`).
+- **Seed accounts (local only):** `alex`, `sam`, `kim`, `lee`, `robin`, `pat`, `max` and `jo`, all `@example.com` and all with the password `password`, created in `supabase/seed.sql`. The end-to-end tests that change an account each use their own (see `e2e/support/local-supabase.ts`).
 - **Profile changes** (spec FR-2): display name in `profiles`; password and email through `supabase.auth.updateUser`.
   - **Email change:** `double_confirm_changes = false`, so only the new address confirms. Its email uses our template (`supabase/templates/email_change.html`) with a `token_hash` link to `/confirm-email`, which calls `verifyOtp({ type: 'email_change' })`, like the password reset. Until then, the pending address is in `user.new_email` and the profile page shows it. The `email_changed` notification then goes to the old address.
   - **Password change:** the `password_changed` notification is on. Supabase's `updateUser` doesn't check the current password, so the profile page checks it first with a throwaway login (`verify-password.ts`), whose session it ends right away. This protects against someone using an unlocked device, but it isn't a server-side check: a stolen session token could still change the password directly. Supabase's `secure_password_change` (re-authentication by emailed code) would close that gap, at the cost of an extra email step.
@@ -157,7 +157,7 @@ Notes:
   - check min/max on insert and on changes to `value` only (FR-40)
   - set `created_by`, `updated_by` and `updated_at` from `auth.uid()`, so the client can't fake them
 - **FR-33:** a trigger on `profiles` updates the names of linked subjects where `name_customized = false`. Renaming a subject in a group sets `name_customized = true`.
-- **Limits (FR-80):** text lengths are CHECK constraints (`char_length`). Count limits (groups per user, members per group, attributes per group) are enforced by triggers.
+- **Limits (FR-80):** text lengths are CHECK constraints (`char_length`). Count limits (groups per user, members per group, attributes per group) are enforced by triggers. Groups per user counts memberships, the default group included; the trigger locks the user's profile row so two parallel joins can't both pass. It raises `group_limit_reached`, which the app turns into a message.
 - Age (FR-63) is calculated in the client from `birthdate` and `measured_at`.
 
 ---
@@ -182,6 +182,12 @@ Helper functions (`security definer`, `stable`) avoid recursive policies on `mem
 | Table | Read | Insert / update / delete |
 |---|---|---|
 | groups | member | Insert: any signed-in user. Update: owner or editor; a trigger only lets the owner change `archived_at` and `members_edit_own_subject_only`. Delete: owner |
+
+**Column grants** decide which columns the app can write at all, on top of RLS. `anon` gets nothing on these tables, and `authenticated` gets select plus only the columns listed:
+- `groups`: insert `id, name, description, starts_on, ends_on`; update `name, description, starts_on, ends_on`. `default_for_user_id` is only ever set by `handle_new_user`. `archived_at` (step 14) and `members_edit_own_subject_only` (step 12) get their owner-only grants or functions in those steps.
+- `memberships`: select only.
+
+**Creating a group:** the app generates the group's `id` (`crypto.randomUUID()`) and inserts without reading the row back. Reading it back (`insert … returning`, or `.insert().select()` in supabase-js) is refused by RLS: the new row is only readable once the owner membership exists, and the trigger that adds it runs after the insert.
 | memberships | member of same group | only through SQL functions (see below) |
 | invites | owner, and the invite's creator | Insert: owner or editor (role must be `editor` or `viewer`). Revoke: owner, or the invite's creator |
 | subjects | member | owner, editor |
@@ -204,8 +210,8 @@ Helper functions (`security definer`, `stable`) avoid recursive policies on `mem
 - `transfer_ownership(group_id, new_owner_id)`: makes sure a group always has exactly one owner. Refused for default groups.
 
 **Triggers:**
-- New group: the creator becomes the `owner` membership.
-- Default group protection: deleting a group with `default_for_user_id` set is blocked, except when the account is being deleted.
+- New group: the creator becomes the `owner` membership. For a default group, created when there's no signed-in user, the owner is `default_for_user_id`.
+- Default group protection: deleting a group with `default_for_user_id` set is blocked while that profile exists. When the account is deleted, the group goes through the `on delete cascade` from `profiles`.
 
 All data belongs to exactly one group. There are no references between groups, which keeps every RLS check limited to a single group.
 

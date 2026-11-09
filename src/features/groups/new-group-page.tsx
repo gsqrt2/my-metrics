@@ -1,0 +1,34 @@
+import { useNavigate } from 'react-router'
+
+import { PageHeader } from '@/app/layout/page-header'
+import { GroupForm } from '@/features/groups/group-form'
+import { emptyGroupForm } from '@/features/groups/schemas'
+import { groupErrorMessage, useCreateGroup } from '@/features/groups/use-groups'
+
+// FR-10, FR-14: a new group is private; its creator becomes the owner.
+export function NewGroupPage() {
+  const navigate = useNavigate()
+  const create = useCreateGroup()
+
+  return (
+    <>
+      <PageHeader
+        title="New group"
+        description="Only you can see it until you invite others."
+      />
+      <GroupForm
+        defaultValues={emptyGroupForm}
+        submitLabel="Create group"
+        pendingLabel="Creating…"
+        cancelTo="/groups"
+        isPending={create.isPending}
+        error={create.error ? groupErrorMessage(create.error) : undefined}
+        onSubmit={(fields) =>
+          create.mutate(fields, {
+            onSuccess: (id) => navigate(`/groups/${id}`),
+          })
+        }
+      />
+    </>
+  )
+}

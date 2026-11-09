@@ -23,7 +23,7 @@ pnpm db:reset                 # apply migrations and seed.sql
 pnpm dev                      # app at http://localhost:5173
 ```
 
-Log in with one of the demo accounts from `supabase/seed.sql`: e.g. `alex@example.com` (the others are listed there), password `password` (local only). The end-to-end tests change some of these accounts and put them back; run `pnpm db:reset` if one ever ends up in a changed state.
+Log in with one of the demo accounts from `supabase/seed.sql`: e.g. `alex@example.com`, who owns the demo groups "Kids" and "Diet Challenge" (the other accounts are listed there), password `password` (local only). The end-to-end tests change some of these accounts and put them back; run `pnpm db:reset` if one ever ends up in a changed state.
 
 Local Supabase also runs:
 

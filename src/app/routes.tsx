@@ -7,7 +7,10 @@ import { ForgotPasswordPage } from '@/features/auth/forgot-password-page'
 import { LoginPage } from '@/features/auth/login-page'
 import { RequireAuth } from '@/features/auth/require-auth'
 import { ResetPasswordPage } from '@/features/auth/reset-password-page'
+import { EditGroupPage } from '@/features/groups/edit-group-page'
+import { GroupPage } from '@/features/groups/group-page'
 import { GroupsPage } from '@/features/groups/groups-page'
+import { NewGroupPage } from '@/features/groups/new-group-page'
 import { ConfirmEmailPage } from '@/features/profile/confirm-email-page'
 import { ProfilePage } from '@/features/profile/profile-page'
 
@@ -33,6 +36,9 @@ export const routes: RouteObject[] = [
       // The group list is the first page after login (FR-12).
       { index: true, element: <Navigate to="/groups" replace /> },
       { path: 'groups', element: <GroupsPage /> },
+      { path: 'groups/new', element: <NewGroupPage /> },
+      { path: 'groups/:groupId', element: <GroupPage /> },
+      { path: 'groups/:groupId/edit', element: <EditGroupPage /> },
       { path: 'profile', element: <ProfilePage /> },
       { path: '*', element: <NotFoundPage /> },
     ],
