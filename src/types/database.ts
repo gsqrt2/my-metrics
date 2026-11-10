@@ -382,6 +382,7 @@ export type Database = {
           linked_user_id: string | null
           name: string
           name_customized: boolean
+          visibility_frozen: boolean
         }
         ComputedFields: never
         Insert: {
@@ -394,6 +395,7 @@ export type Database = {
           linked_user_id?: string | null
           name: string
           name_customized?: boolean
+          visibility_frozen?: boolean
         }
         Update: {
           archived_at?: string | null
@@ -405,6 +407,7 @@ export type Database = {
           linked_user_id?: string | null
           name?: string
           name_customized?: boolean
+          visibility_frozen?: boolean
         }
         Relationships: [
           {
@@ -451,6 +454,14 @@ export type Database = {
       can_write_subject: {
         Args: { target_subject_id: string }
         Returns: boolean
+      }
+      change_member_role: {
+        Args: {
+          new_role: Database['public']['Enums']['group_role']
+          target_group_id: string
+          target_user_id: string
+        }
+        Returns: undefined
       }
       decide_link_request: {
         Args: { approve: boolean; request_id: string }
@@ -518,15 +529,35 @@ export type Database = {
         Returns: string
       }
       is_member: { Args: { target_group_id: string }; Returns: boolean }
+      leave_group: {
+        Args: { keep_entries: boolean; target_group_id: string }
+        Returns: undefined
+      }
       member_role: {
         Args: { target_group_id: string }
         Returns: Database['public']['Enums']['group_role']
+      }
+      release_member_subject: {
+        Args: {
+          keep_entries: boolean
+          target_group_id: string
+          target_user_id: string
+        }
+        Returns: undefined
+      }
+      remove_member: {
+        Args: { target_group_id: string; target_user_id: string }
+        Returns: undefined
       }
       reorder_attributes: {
         Args: { attribute_ids: string[]; target_group_id: string }
         Returns: undefined
       }
       shares_group_with: { Args: { target_user_id: string }; Returns: boolean }
+      transfer_ownership: {
+        Args: { new_owner_id: string; target_group_id: string }
+        Returns: undefined
+      }
       visibility_of: {
         Args: { target_attribute_id: string; target_subject_id: string }
         Returns: string

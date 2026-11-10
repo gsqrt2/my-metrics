@@ -22,6 +22,8 @@ export const users = {
   eli: { email: 'eli@example.com', displayName: 'Eli Example' }, // entries
   tom: { email: 'tom@example.com', displayName: 'Tom Example' }, // invites (owner)
   uma: { email: 'uma@example.com', displayName: 'Uma Example' }, // invites (joins)
+  val: { email: 'val@example.com', displayName: 'Val Example' }, // members (owner)
+  wes: { email: 'wes@example.com', displayName: 'Wes Example' }, // members (member)
 }
 
 export const MAILPIT_URL = 'http://127.0.0.1:54324'
@@ -131,6 +133,37 @@ export async function deleteAccounts(emailLike: string) {
     await client.query('delete from auth.users where email like $1', [
       emailLike,
     ])
+  } finally {
+    await client.end()
+  }
+}
+
+// Adds an account to a group as a member with a linked subject (as joining
+// with "Track myself here" does), straight in the database, for tests about
+// members that don't need to go through an invite.
+export async function addMember(
+  groupUrl: string,
+  email: string,
+  role: 'editor' | 'viewer' | null,
+) {
+  const groupId = groupUrl.match(/[0-9a-f-]{36}$/)![0]
+  const client = new pg.Client({ connectionString: DB_URL })
+  await client.connect()
+  try {
+    // role null: already a member (e.g. the owner), only add the subject.
+    if (role) {
+      await client.query(
+        `insert into public.memberships (group_id, user_id, role)
+         select $1, id, $3 from auth.users where email = $2`,
+        [groupId, email, role],
+      )
+    }
+    await client.query(
+      `insert into public.subjects (group_id, name, linked_user_id)
+       select $1, p.display_name, p.id
+       from public.profiles p join auth.users u on u.id = p.id where u.email = $2`,
+      [groupId, email],
+    )
   } finally {
     await client.end()
   }
