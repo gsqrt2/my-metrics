@@ -196,6 +196,62 @@ export type Database = {
           },
         ]
       }
+      invites: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          created_by: string | null
+          email: string | null
+          expires_at: string
+          group_id: string
+          id: string
+          revoked_at: string | null
+          role: Database['public']['Enums']['group_role']
+          token: string
+          invite_status: string | null
+        }
+        ComputedFields: 'invite_status'
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          expires_at: string
+          group_id: string
+          id?: string
+          revoked_at?: string | null
+          role: Database['public']['Enums']['group_role']
+          token?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          expires_at?: string
+          group_id?: string
+          id?: string
+          revoked_at?: string | null
+          role?: Database['public']['Enums']['group_role']
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'invites_created_by_fkey'
+            columns: ['created_by']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'invites_group_id_fkey'
+            columns: ['group_id']
+            isOneToOne: false
+            referencedRelation: 'groups'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       memberships: {
         Row: {
           created_at: string
@@ -251,6 +307,69 @@ export type Database = {
           id?: string
         }
         Relationships: []
+      }
+      subject_link_requests: {
+        Row: {
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          group_id: string
+          id: string
+          status: Database['public']['Enums']['link_request_status']
+          subject_id: string
+          user_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          group_id: string
+          id?: string
+          status?: Database['public']['Enums']['link_request_status']
+          subject_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          group_id?: string
+          id?: string
+          status?: Database['public']['Enums']['link_request_status']
+          subject_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'subject_link_requests_decided_by_fkey'
+            columns: ['decided_by']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'subject_link_requests_group_id_fkey'
+            columns: ['group_id']
+            isOneToOne: false
+            referencedRelation: 'groups'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'subject_link_requests_subject_id_fkey'
+            columns: ['subject_id']
+            isOneToOne: false
+            referencedRelation: 'subjects'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'subject_link_requests_user_id_fkey'
+            columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
       }
       subjects: {
         Row: {
@@ -309,6 +428,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_invite: {
+        Args: {
+          choice: string
+          invite_token: string
+          request_subject_id?: string
+        }
+        Returns: string
+      }
       attribute_has_entries: {
         Args: { target_attribute_id: string }
         Returns: boolean
@@ -324,6 +451,10 @@ export type Database = {
       can_write_subject: {
         Args: { target_subject_id: string }
         Returns: boolean
+      }
+      decide_link_request: {
+        Args: { approve: boolean; request_id: string }
+        Returns: undefined
       }
       get_dashboard: {
         Args: { target_group_id: string }
@@ -341,6 +472,20 @@ export type Database = {
           previous_at: string
           previous_value: number
           subject_id: string
+        }[]
+      }
+      get_invite_preview: {
+        Args: { invite_token: string }
+        Returns: {
+          already_member: boolean
+          expires_at: string
+          group_id: string
+          group_name: string
+          invite_email: string
+          inviter_name: string
+          role: Database['public']['Enums']['group_role']
+          status: string
+          subjects: Json
         }[]
       }
       get_series: {
@@ -363,6 +508,15 @@ export type Database = {
           value: number
         }[]
       }
+      invite_status: {
+        Args: {
+          invite: Omit<
+            Database['public']['Tables']['invites']['Row'],
+            Database['public']['Tables']['invites']['ComputedFields']
+          >
+        }
+        Returns: string
+      }
       is_member: { Args: { target_group_id: string }; Returns: boolean }
       member_role: {
         Args: { target_group_id: string }
@@ -380,6 +534,7 @@ export type Database = {
     }
     Enums: {
       group_role: 'owner' | 'editor' | 'viewer'
+      link_request_status: 'pending' | 'approved' | 'rejected'
       subject_color:
         | 'blue'
         | 'orange'
@@ -517,6 +672,7 @@ export const Constants = {
   public: {
     Enums: {
       group_role: ['owner', 'editor', 'viewer'],
+      link_request_status: ['pending', 'approved', 'rejected'],
       subject_color: [
         'blue',
         'orange',

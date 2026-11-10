@@ -14,6 +14,7 @@ import { GroupOptionsMenu } from '@/features/groups/group-options-menu'
 import { useAttributes } from '@/features/attributes/use-attributes'
 import { useChartMode } from '@/features/dashboard/chart-mode'
 import type { Selection } from '@/features/dashboard/selection'
+import { PendingRequestsNotice } from '@/features/invites/pending-requests-notice'
 import { SubjectsSection } from '@/features/subjects/subjects-section'
 import { useSubjects } from '@/features/subjects/use-subjects'
 
@@ -97,6 +98,7 @@ function GroupHome({ group }: { group: GroupRow }) {
       <div className="-mt-4 mb-8">
         <GroupMeta group={group} />
       </div>
+      {group.role === 'owner' && <PendingRequestsNotice group={group} />}
       <div className="flex flex-col gap-4">
         <SubjectsSection
           subjects={activeSubjects}

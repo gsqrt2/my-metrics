@@ -8,6 +8,10 @@ const storageState = 'e2e/.auth/alex.json'
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
+  // Locally, 4 browsers at once: with the dev server, Supabase and the Edge
+  // Function runtime on the same machine, more made tests slower and flaky
+  // (step 9). CI keeps Playwright's default.
+  workers: process.env.CI ? undefined : 4,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   // In CI: annotations on the run, plus an HTML report that the workflow

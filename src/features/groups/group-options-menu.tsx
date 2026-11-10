@@ -1,4 +1,4 @@
-import { ChevronDown, Pencil, Ruler, Users } from 'lucide-react'
+import { ChevronDown, Pencil, Ruler, UserPlus, Users } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { Button } from '@/components/ui/button'
@@ -33,6 +33,12 @@ export function GroupOptionsMenu({ group }: { group: GroupRow }) {
           <Link to={`${base}/metrics`}>
             <Ruler aria-hidden />
             Metrics
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link to={`${base}/invites`}>
+            <UserPlus aria-hidden />
+            Invite people
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
