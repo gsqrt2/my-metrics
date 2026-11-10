@@ -7,8 +7,10 @@ export function Segmented<T extends string>({
   options,
   value,
   onChange,
+  className,
 }: {
   label: string
+  className?: string
   options: { value: T; label: string }[]
   value: T
   onChange: (value: T) => void
@@ -17,7 +19,10 @@ export function Segmented<T extends string>({
     <div
       role="group"
       aria-label={label}
-      className="inline-flex max-w-full flex-wrap rounded-lg border p-0.5"
+      className={cn(
+        'inline-flex max-w-full flex-wrap self-start rounded-lg border p-0.5',
+        className,
+      )}
     >
       {options.map((option) => (
         <button

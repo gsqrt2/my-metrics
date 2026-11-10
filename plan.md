@@ -25,8 +25,8 @@ Status: ✅ done · 🚧 in progress · ⏸️ paused with open items · ⬜ not
 | 5 | Attributes (metrics) | ✅ | 2026-11-09 | `147a174` |
 | 6 | Logging | ✅ | 2026-11-09 | `cc02785` |
 | 7 | Group dashboard with charts | ✅ | 2026-11-09 | `16add64` |
-| 8 | Charts and tables | ✅ | 2026-11-09 | |
-| 9 | Invitations and joining | ⬜ | | |
+| 8 | Charts and tables | ✅ | 2026-11-09 | `e5485d3` |
+| 9 | Invitations and joining | 🚧 | | |
 | 10 | Managing members and leaving | ⬜ | | |
 | 11 | Value visibility | ⬜ | | |
 | 12 | "Own subject only" setting, CSV export | ⬜ | | |
@@ -35,7 +35,7 @@ Status: ✅ done · 🚧 in progress · ⏸️ paused with open items · ⬜ not
 | 15 | Account deletion | ⬜ | | |
 | 16 | Go live | ⬜ | | |
 
-**Next:** step 9 (Invitations and joining).
+**Next:** finish step 9 (Invitations and joining).
 
 ### Open items
 
@@ -48,7 +48,8 @@ Anything left unfinished, deferred or worth knowing before the next step. Each i
 - **Charts skip hidden values** (step 7). Rows whose actual value the viewer may not see (FR-43) come from `get_series` with only a % change, and the charts leave them out. Step 11 adds a "% change" chart mode and uses it whenever a chart has hidden values, as FR-62 already requires for comparisons.
 - **Members aren't visible** (found in step 7). A logbook shows "3 members" but no names: there's no member list until step 10. The count also reads as if more people were being measured. Options discussed: word it as access ("Shared with 3 people", "Only you"), add a hint under Participants ("Who's measured here. They don't need an account."), and link the count to the member list in step 10. To decide; at the latest in step 10.
 - **App bundle size** (step 7). The main JavaScript bundle is about 285 KB gzipped (Supabase client, UI primitives, forms); the charts load separately (about 110 KB) on group pages only. Consider splitting by route before going live (step 16).
-- **CI**: green on `main` through step 7 (`16add64`). Chromium is cached per Playwright version and installed without `--with-deps`; if a runner image update ever breaks Chromium with missing libraries, add `pnpm exec playwright install-deps chromium` back. The slowest e2e step is now starting Supabase (~80 s).
+- **Local end-to-end runs use 4 browsers at a time** (step 9, `playwright.config.ts`). With 8 (the default on a 16-core machine) tests got slow and timed out at random once the Edge Function runtime joined the stack. CI keeps the default and its 2 retries.
+- **CI**: green on `main` through step 8 (`e5485d3`). Chromium is cached per Playwright version and installed without `--with-deps`; if a runner image update ever breaks Chromium with missing libraries, add `pnpm exec playwright install-deps chromium` back. The slowest e2e step is now starting Supabase (~80 s).
 
 ---
 

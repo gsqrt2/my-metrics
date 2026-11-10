@@ -108,7 +108,7 @@
 
 ### 4.3 Sharing & membership
 - FR-20: Owners and editors can invite people as `editor` or `viewer`:
-  - through a **shareable invite link** (expiring and revocable), which can be sent through any channel
+  - through a **shareable invite link** (expiring and revocable), which can be sent through any channel. A link is for one role (viewer by default), valid for 1, 7 or 30 days (7 by default), and can be used by several people until it expires or is withdrawn.
   - **by email**: the app sends a link that can be used once, only with that email address
   - Whoever created an invite can revoke it, and the owner can revoke any invite.
   - Accepting an invite creates an account for the invitee if they don't have one (FR-1).
@@ -313,6 +313,7 @@ None at the moment.
 | 2026-11-09 | Full-screen charts are an overlay: the group page's chart with its filter, plus time span, x-axis (date/age), y-axis (value/change/%), baseline, more points and the full width. No entry table under it. | FR-61 – FR-64 |
 | 2026-11-09 | Charts average entries per day, week or month when a line has more entries than the chart can show (about 100 points per line on the group page, 100–500 full screen, by width). | FR-61 |
 | 2026-11-09 | No "Duration" time span: entries rarely fall outside a group's dates, so it showed the same as "All". The dates still give the "since the group's start" baseline and the progress ("Day 36 of 84"). | FR-15, FR-64 |
+| 2026-11-10 | Invite links: viewer by default, valid 1, 7 or 30 days (7 by default), usable by several people until they expire or are withdrawn. The join page offers "Track myself here" (default), "I'm already tracked here" (choose the participant; the owner confirms) and "Just watch". The owner sees waiting link requests on the group page. | FR-20 – FR-22 |
 | 2026-11-09 | The app tracks without judging: attributes have no "higher/lower is better" direction, and changes aren't coloured as good or bad. | FR-40, FR-60 |
 | 2026-11-09 | A group's management pages (participants, metrics, editing the group, later members) sit behind one "Options" menu on the group page. | FR-11 |
 | 2026-11-09 | Groups are called "logbooks" in the app (text and URLs, e.g. `/logbooks/…`), as a more intuitive name for a shared or personal measurement record. The spec, database and code keep "group". | Glossary |

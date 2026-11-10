@@ -18,6 +18,8 @@ import { EditAttributePage } from '@/features/attributes/edit-attribute-page'
 import { NewAttributePage } from '@/features/attributes/new-attribute-page'
 import { EditEntryPage } from '@/features/entries/edit-entry-page'
 import { EntriesPage } from '@/features/entries/entries-page'
+import { InvitesPage } from '@/features/invites/invites-page'
+import { JoinPage } from '@/features/invites/join-page'
 import { EditSubjectPage } from '@/features/subjects/edit-subject-page'
 import { NewSubjectPage } from '@/features/subjects/new-subject-page'
 import { SubjectsPage } from '@/features/subjects/subjects-page'
@@ -31,6 +33,8 @@ export const routes: RouteObject[] = [
       { path: 'forgot-password', element: <ForgotPasswordPage /> },
       { path: 'reset-password', element: <ResetPasswordPage /> },
       { path: 'confirm-email', element: <ConfirmEmailPage /> },
+      // Invite links work logged in or out (FR-20).
+      { path: 'join/:token', element: <JoinPage /> },
     ],
   },
   {
@@ -49,6 +53,7 @@ export const routes: RouteObject[] = [
       { path: 'logbooks/:groupId/edit', element: <EditGroupPage /> },
       { path: 'logbooks/:groupId/participants', element: <SubjectsPage /> },
       { path: 'logbooks/:groupId/metrics', element: <AttributesPage /> },
+      { path: 'logbooks/:groupId/invites', element: <InvitesPage /> },
       { path: 'logbooks/:groupId/entries', element: <EntriesPage /> },
       {
         path: 'logbooks/:groupId/entries/:entryId/edit',

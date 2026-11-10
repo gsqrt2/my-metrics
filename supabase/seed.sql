@@ -26,7 +26,9 @@ from (values
   ('a0000000-0000-0000-0000-000000000008'::uuid, 'jo@example.com', 'Jo Example'),
   ('a0000000-0000-0000-0000-000000000009'::uuid, 'ari@example.com', 'Ari Example'),
   ('a0000000-0000-0000-0000-000000000010'::uuid, 'noa@example.com', 'Noa Example'),
-  ('a0000000-0000-0000-0000-000000000011'::uuid, 'eli@example.com', 'Eli Example')
+  ('a0000000-0000-0000-0000-000000000011'::uuid, 'eli@example.com', 'Eli Example'),
+  ('a0000000-0000-0000-0000-000000000012'::uuid, 'tom@example.com', 'Tom Example'),
+  ('a0000000-0000-0000-0000-000000000013'::uuid, 'uma@example.com', 'Uma Example')
 ) as u (id, email, display_name);
 
 insert into auth.identities (

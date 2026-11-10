@@ -29,8 +29,9 @@ Local Supabase also runs:
 
 - **Studio**, a database UI: http://127.0.0.1:54323
 - **Mailpit**, which catches every email the app sends (e.g. password resets) instead of delivering it: http://127.0.0.1:54324
+- **Edge Functions** from `supabase/functions/` (e.g. `redeem-invite`, which creates accounts for people accepting an invite), at http://127.0.0.1:54321/functions/v1/. Code changes are picked up live.
 
-After changing `supabase/config.toml` or an email template, restart with `pnpm db:stop && pnpm db:start`. After adding a migration, run `pnpm db:reset`.
+After changing `supabase/config.toml` (including a function's settings) or an email template, restart with `pnpm db:stop && pnpm db:start`. After adding a migration, run `pnpm db:reset`.
 
 ## Scripts
 

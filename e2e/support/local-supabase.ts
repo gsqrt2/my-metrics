@@ -20,6 +20,8 @@ export const users = {
   ari: { email: 'ari@example.com', displayName: 'Ari Example' }, // subjects
   noa: { email: 'noa@example.com', displayName: 'Noa Example' }, // attributes
   eli: { email: 'eli@example.com', displayName: 'Eli Example' }, // entries
+  tom: { email: 'tom@example.com', displayName: 'Tom Example' }, // invites (owner)
+  uma: { email: 'uma@example.com', displayName: 'Uma Example' }, // invites (joins)
 }
 
 export const MAILPIT_URL = 'http://127.0.0.1:54324'
@@ -115,6 +117,20 @@ export async function clearDefaultGroup(email: string) {
        where a.group_id = g.id and g.default_for_user_id = u.id and u.email = $1`,
       [email],
     )
+  } finally {
+    await client.end()
+  }
+}
+
+// Deletes accounts that tests created by joining (FR-1), by email pattern
+// (SQL "like"), with their profiles, memberships and subjects.
+export async function deleteAccounts(emailLike: string) {
+  const client = new pg.Client({ connectionString: DB_URL })
+  await client.connect()
+  try {
+    await client.query('delete from auth.users where email like $1', [
+      emailLike,
+    ])
   } finally {
     await client.end()
   }
