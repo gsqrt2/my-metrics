@@ -48,7 +48,7 @@ Anything left unfinished, deferred or worth knowing before the next step. Each i
 - **Leaving doesn't offer the CSV export yet** (step 10). FR-23 offers an export before leaving; add it to the leave section once the export exists (step 12).
 - **App bundle size** (step 7). The main JavaScript bundle is about 285 KB gzipped (Supabase client, UI primitives, forms); the charts load separately (about 110 KB) on group pages only. Consider splitting by route before going live (step 16).
 - **Local end-to-end runs use 4 browsers at a time** (step 9, `playwright.config.ts`). With 8 (the default on a 16-core machine) tests got slow and timed out at random once the Edge Function runtime joined the stack. CI keeps the default and its 2 retries.
-- **CI**: green on `main` through step 10 (`3576ec8`). Chromium is cached per Playwright version and installed without `--with-deps`; if a runner image update ever breaks Chromium with missing libraries, add `pnpm exec playwright install-deps chromium` back. The slowest e2e step is now starting Supabase (~80 s).
+- **CI**: green on `main` through step 11 (`b057730`). Chromium is cached per Playwright version and installed without `--with-deps`; if a runner image update ever breaks Chromium with missing libraries, add `pnpm exec playwright install-deps chromium` back. The slowest e2e step is now starting Supabase (~80 s).
 
 ---
 
