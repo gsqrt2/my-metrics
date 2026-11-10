@@ -26,6 +26,7 @@ import {
   type JoinChoice,
 } from '@/features/invites/use-invites'
 import { useProfile } from '@/features/profile/use-profile'
+import { formatDate } from '@/lib/dates'
 import { supabase } from '@/lib/supabase'
 
 const unavailable: Record<string, string> = {
@@ -385,12 +386,7 @@ function JoinNew({ token, invite }: { token: string; invite: InvitePreview }) {
       </form>
       <p className="text-xs text-muted-foreground">
         {roleLabels[invite.role ?? 'viewer']} access. The invite expires{' '}
-        {invite.expires_at
-          ? new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(
-              new Date(invite.expires_at),
-            )
-          : 'soon'}
-        .
+        {invite.expires_at ? formatDate(new Date(invite.expires_at)) : 'soon'}.
       </p>
     </div>
   )

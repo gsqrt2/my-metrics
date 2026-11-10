@@ -11,6 +11,9 @@ export type LoggableSubject = {
   name: string
   color: SubjectColor
   linked_user_id: string | null
+  // Attributes only the linked user may log: they show them as "% only"
+  // (FR-43). Empty for the user's own subject and unlinked ones.
+  lockedAttributeIds: string[]
 }
 
 export type LoggableAttribute = Pick<
@@ -36,7 +39,11 @@ type Row = Pick<
   | 'archived_at'
 > & {
   me: { role: Enums<'group_role'> }[]
-  subjects: (LoggableSubject & { archived_at: string | null })[]
+  subjects: (Omit<LoggableSubject, 'lockedAttributeIds'> & {
+    archived_at: string | null
+    visibility_frozen?: boolean
+    value_visibility?: { attribute_id: string; visibility: string }[]
+  })[]
   attributes: (LoggableAttribute & {
     sort_order: number
     archived_at: string | null
@@ -59,11 +66,17 @@ export function toLoggableGroups(rows: Row[], userId: string): LoggableGroup[] {
               Number(a.linked_user_id === userId) ||
             a.name.localeCompare(b.name),
         )
-        .map(({ id, name, color, linked_user_id }) => ({
+        .map(({ id, name, color, linked_user_id, value_visibility }) => ({
           id,
           name,
           color,
           linked_user_id,
+          lockedAttributeIds:
+            linked_user_id && linked_user_id !== userId
+              ? (value_visibility ?? [])
+                  .filter((v) => v.visibility === 'relative')
+                  .map((v) => v.attribute_id)
+              : [],
         }))
       const attributes = row.attributes
         .filter((a) => !a.archived_at)
@@ -80,7 +93,10 @@ export function toLoggableGroups(rows: Row[], userId: string): LoggableGroup[] {
         id: row.id,
         name: row.name,
         isDefault: row.default_for_user_id !== null,
-        subjects,
+        // A subject whose every attribute is locked can't be logged for.
+        subjects: subjects.filter((s) =>
+          attributes.some((a) => !s.lockedAttributeIds.includes(a.id)),
+        ),
         attributes,
       }
     })
@@ -111,7 +127,8 @@ export function useLoggableGroups(enabled: boolean) {
         .select(
           `id, name, default_for_user_id, members_edit_own_subject_only, archived_at,
            me:memberships!inner(role),
-           subjects(id, name, color, linked_user_id, archived_at),
+           subjects(id, name, color, linked_user_id, archived_at, visibility_frozen,
+             value_visibility(attribute_id, visibility)),
            attributes(id, name, unit, precision, min_value, max_value, sort_order, archived_at)`,
         )
         .eq('me.user_id', userId!)

@@ -23,7 +23,7 @@ test('the group list shows the default group first, then the shared ones', async
   ).toBeVisible()
   await expect(page.getByText('Owner')).toBeVisible()
   await expect(page.getByText('3 members')).toBeVisible()
-  await expect(page.getByText(/Oct 5\D+Dec 27, 2026/)).toBeVisible()
+  await expect(page.getByText(/05\/10\/2026\D+27\/12\/2026/)).toBeVisible()
 
   // Back to the list without the menu, which is folded away on phones.
   await page.getByRole('main').getByRole('link', { name: 'Logbooks' }).click()
@@ -53,14 +53,17 @@ test.describe('creating and editing', () => {
       .getByLabel('Description (optional)')
       .fill('Daily steps until the holidays.')
     await page.getByLabel('Runs between two dates').check()
-    await page.getByLabel('Start date').fill('2027-06-01')
-    await page.getByLabel('End date').fill('2027-05-31')
+    await page.getByLabel('Start date', { exact: true }).fill('1/6/2027')
+    await page.getByLabel('End date', { exact: true }).fill('31/06/2027')
+    await page.getByRole('button', { name: 'Create logbook' }).click()
+    await expect(page.getByText('Enter a date as dd/mm/yyyy.')).toBeVisible()
+    await page.getByLabel('End date', { exact: true }).fill('31/05/2027')
     await page.getByRole('button', { name: 'Create logbook' }).click()
     await expect(
       page.getByText("The end date can't be before the start date."),
     ).toBeVisible()
 
-    await page.getByLabel('End date').fill('2027-08-31')
+    await page.getByLabel('End date', { exact: true }).fill('31/08/2027')
     await page.getByRole('button', { name: 'Create logbook' }).click()
 
     await expect(page).toHaveURL(/\/logbooks\/[0-9a-f-]{36}$/)
@@ -71,7 +74,7 @@ test.describe('creating and editing', () => {
       page.getByText('Daily steps until the holidays.'),
     ).toBeVisible()
     await expect(page.getByText('Owner')).toBeVisible()
-    await expect(page.getByText(/Jun 1\D+Aug 31, 2027/)).toBeVisible()
+    await expect(page.getByText(/01\/06\/2027\D+31\/08\/2027/)).toBeVisible()
 
     await openLogbookOption(page, 'Edit logbook')
     await expect(page.getByLabel('Name')).toHaveValue('Summer Steps')
@@ -82,7 +85,7 @@ test.describe('creating and editing', () => {
     await expect(
       page.getByRole('heading', { name: 'Summer Steps 2027' }),
     ).toBeVisible()
-    await expect(page.getByText(/Aug 31/)).toHaveCount(0)
+    await expect(page.getByText(/31\/08\/2027/)).toHaveCount(0)
 
     await page
       .getByRole('navigation', { name: 'Main' })

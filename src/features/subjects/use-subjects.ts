@@ -14,6 +14,7 @@ export type Subject = Pick<
   | 'linked_user_id'
   | 'name_customized'
   | 'archived_at'
+  | 'visibility_frozen'
 > & { color: SubjectColor }
 
 export const subjectKeys = {
@@ -29,7 +30,7 @@ export function useSubjects(groupId: string) {
       const { data, error } = await supabase
         .from('subjects')
         .select(
-          'id, group_id, name, birthdate, color, linked_user_id, name_customized, archived_at',
+          'id, group_id, name, birthdate, color, linked_user_id, name_customized, archived_at, visibility_frozen',
         )
         .eq('group_id', groupId)
       if (error) throw error

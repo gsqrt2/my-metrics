@@ -1,6 +1,7 @@
 import { parseISO, startOfDay, subDays, subMonths, subYears } from 'date-fns'
 
 import type { SeriesPoint } from '@/features/dashboard/use-dashboard'
+import { DATE_LOCALE } from '@/lib/dates'
 
 // Chart rows for Recharts: one row per x position, one column per line (a
 // subject in "by metric", an attribute in "by participant") with the plotted
@@ -109,11 +110,12 @@ export function attributesWithoutChange(
 }
 
 // Axis dates: day and month for spans within a year, month and year beyond
-// ("Nov 2025": a 2-digit year would read like a day).
-export function dateTickFormat(rows: { x: number }[], locale?: string) {
+// ("5 Oct", "Nov 2025": a 2-digit year would read like a day). Day before
+// month, as everywhere in the app.
+export function dateTickFormat(rows: { x: number }[]) {
   const span = rows.length > 1 ? rows[rows.length - 1].x - rows[0].x : 0
   const format = new Intl.DateTimeFormat(
-    locale,
+    DATE_LOCALE,
     span > 330 * 24 * 3600 * 1000
       ? { month: 'short', year: 'numeric' }
       : { day: 'numeric', month: 'short' },
@@ -160,3 +162,20 @@ export function fullScreenMaxPoints(width: number) {
 }
 
 export const SMALL_CHART_MAX_POINTS = 100
+
+// Whether any of these subjects keeps this attribute's values private from
+// the viewer (FR-43): such points have a % change but no value. Charts with
+// hidden values are shown as % change only (FR-62).
+export function hasHiddenValues(
+  points: Pick<SeriesPoint, 'subject_id' | 'attribute_id' | 'value'>[],
+  attributeId: string,
+  subjectIds: string[],
+) {
+  const shown = new Set(subjectIds)
+  return points.some(
+    (p) =>
+      p.attribute_id === attributeId &&
+      shown.has(p.subject_id) &&
+      p.value === null,
+  )
+}

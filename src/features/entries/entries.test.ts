@@ -56,8 +56,12 @@ describe('measuredAtError', () => {
   const now = new Date(2026, 10, 9, 8, 0)
 
   it('needs a valid date and time', () => {
-    expect(measuredAtError('', now)).toBe('Choose a date and time.')
-    expect(measuredAtError('2026-11-09', now)).toBe('Choose a date and time.')
+    expect(measuredAtError('', now)).toBe(
+      'Enter the date as dd/mm/yyyy and the time as hh:mm.',
+    )
+    expect(measuredAtError('2026-11-09', now)).toBe(
+      'Enter the date as dd/mm/yyyy and the time as hh:mm.',
+    )
   })
 
   it('refuses the future, allowing a few minutes of clock skew', () => {
@@ -225,8 +229,20 @@ describe('startingPoint (agreed "Log entry" flow)', () => {
     id: 'kids',
     name: 'Kids',
     subjects: [
-      { id: 'mia', name: 'Mia', color: 'blue', linked_user_id: null },
-      { id: 'noah', name: 'Noah', color: 'orange', linked_user_id: null },
+      {
+        id: 'mia',
+        name: 'Mia',
+        color: 'blue',
+        linked_user_id: null,
+        lockedAttributeIds: [],
+      },
+      {
+        id: 'noah',
+        name: 'Noah',
+        color: 'orange',
+        linked_user_id: null,
+        lockedAttributeIds: [],
+      },
     ],
     attributes: [],
   }
@@ -234,8 +250,20 @@ describe('startingPoint (agreed "Log entry" flow)', () => {
     id: 'diet',
     name: 'Diet',
     subjects: [
-      { id: 'kim', name: 'Kim', color: 'blue', linked_user_id: 'kim-user' },
-      { id: 'me', name: 'Me', color: 'orange', linked_user_id: 'me-user' },
+      {
+        id: 'kim',
+        name: 'Kim',
+        color: 'blue',
+        linked_user_id: 'kim-user',
+        lockedAttributeIds: [],
+      },
+      {
+        id: 'me',
+        name: 'Me',
+        color: 'orange',
+        linked_user_id: 'me-user',
+        lockedAttributeIds: [],
+      },
     ],
     attributes: [],
   }
@@ -319,5 +347,72 @@ describe('last used logbook and participant', () => {
       throw new Error('blocked')
     })
     expect(() => rememberLastUsed('u1', 'kids', 'mia')).not.toThrow()
+  })
+})
+
+describe('locked attributes (FR-43)', () => {
+  const row = {
+    id: 'g1',
+    name: 'Diet',
+    default_for_user_id: null,
+    members_edit_own_subject_only: false,
+    archived_at: null,
+    me: [{ role: 'owner' as const }],
+    subjects: [
+      {
+        id: 'kim',
+        name: 'Kim',
+        color: 'blue' as const,
+        linked_user_id: 'kim-user',
+        archived_at: null,
+        value_visibility: [{ attribute_id: 'w', visibility: 'relative' }],
+      },
+      {
+        id: 'me',
+        name: 'Me',
+        color: 'orange' as const,
+        linked_user_id: 'me-user',
+        archived_at: null,
+        value_visibility: [{ attribute_id: 'w', visibility: 'relative' }],
+      },
+    ],
+    attributes: [
+      {
+        id: 'w',
+        name: 'Weight',
+        unit: 'kg',
+        precision: 1,
+        min_value: null,
+        max_value: null,
+        sort_order: 0,
+        archived_at: null,
+      },
+      {
+        id: 'h',
+        name: 'Waist',
+        unit: 'cm',
+        precision: 0,
+        min_value: null,
+        max_value: null,
+        sort_order: 1,
+        archived_at: null,
+      },
+    ],
+  }
+
+  it("locks another member's private attributes, never one's own", () => {
+    const [group] = toLoggableGroups([row], 'me-user')
+    expect(
+      group.subjects.find((s) => s.id === 'kim')!.lockedAttributeIds,
+    ).toEqual(['w'])
+    expect(
+      group.subjects.find((s) => s.id === 'me')!.lockedAttributeIds,
+    ).toEqual([])
+  })
+
+  it('leaves out subjects with nothing left to log', () => {
+    const onlyWeight = { ...row, attributes: [row.attributes[0]] }
+    const [group] = toLoggableGroups([onlyWeight], 'me-user')
+    expect(group.subjects.map((s) => s.id)).toEqual(['me'])
   })
 })

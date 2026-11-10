@@ -49,9 +49,12 @@ vi.mock('@/features/dashboard/use-dashboard', () => ({
   useSeries: () => ({ data: [] }),
   useDashboard: () => ({ data: [] }),
 }))
-vi.mock('@/features/entries/use-entries', async (importOriginal) => ({
-  ...(await importOriginal()),
-  useRecentEntries: () => ({ data: [] }),
+vi.mock('@/features/entries/use-entry-rows', () => ({
+  useEntryRows: () => ({
+    data: { entries: [], total: 0 },
+    isPending: false,
+    isError: false,
+  }),
 }))
 
 const personal: GroupRow = {
@@ -129,6 +132,7 @@ describe('when logged in', () => {
         color: 'blue',
         linked_user_id: 'u1',
         name_customized: false,
+        visibility_frozen: false,
         archived_at: null,
       },
       {
@@ -139,6 +143,7 @@ describe('when logged in', () => {
         color: 'aqua',
         linked_user_id: 'u3',
         name_customized: false,
+        visibility_frozen: false,
         archived_at: null,
       },
       {
@@ -149,6 +154,7 @@ describe('when logged in', () => {
         color: 'orange',
         linked_user_id: 'u2',
         name_customized: false,
+        visibility_frozen: false,
         archived_at: null,
       },
       {
@@ -159,6 +165,7 @@ describe('when logged in', () => {
         color: 'aqua',
         linked_user_id: null,
         name_customized: false,
+        visibility_frozen: false,
         archived_at: '2026-10-01T00:00:00Z',
       },
     ]
@@ -348,9 +355,14 @@ describe('when logged in', () => {
     renderAt('/logbooks/g-diet')
     const list = await screen.findByRole('list', { name: 'Participants' })
     expect(list).toHaveTextContent('Kim')
+    // Viewers get the menu, but only with what they may use.
+    await userEvent.click(screen.getByRole('button', { name: 'Options' }))
+    const menu = await screen.findByRole('menu')
     expect(
-      screen.queryByRole('button', { name: 'Options' }),
-    ).not.toBeInTheDocument()
+      within(menu)
+        .getAllByRole('menuitem')
+        .map((item) => item.textContent),
+    ).toEqual(['Members', 'Privacy'])
   })
 
   it('keeps viewers out of subject management', async () => {
@@ -370,7 +382,7 @@ describe('when logged in', () => {
     await screen.findByRole('heading', { name: 'Diet Challenge' })
     expect(screen.getByText('Viewer')).toBeInTheDocument()
     expect(
-      screen.queryByRole('button', { name: 'Options' }),
+      screen.queryByRole('link', { name: /Edit logbook/ }),
     ).not.toBeInTheDocument()
   })
 

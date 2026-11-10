@@ -1,9 +1,4 @@
-import {
-  keepPreviousData,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import type { SubjectColor } from '@/features/subjects/colors'
 import { supabase } from '@/lib/supabase'
@@ -49,66 +44,6 @@ export const entryKeys = {
   all: ['entries'] as const,
   recent: (groupId: string) => ['entries', 'recent', groupId] as const,
   detail: (entryId: string) => ['entries', 'detail', entryId] as const,
-}
-
-// A group's latest entries, newest first. Step 8 adds the full table.
-export function useRecentEntries(groupId: string) {
-  return useQuery({
-    queryKey: entryKeys.recent(groupId),
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('entries')
-        .select(ENTRY_COLUMNS)
-        .eq('subject.group_id', groupId)
-        .order('measured_at', { ascending: false })
-        .limit(RECENT_ENTRIES_LIMIT)
-        .overrideTypes<Entry[], { merge: false }>()
-      if (error) throw error
-      return data
-    },
-  })
-}
-
-export type EntrySort = 'newest' | 'oldest' | 'highest' | 'lowest'
-export const ENTRIES_PAGE_SIZE = 50
-
-// FR-65: a page of a group's entries, filtered by subject and attribute and
-// sorted, with the total count for paging.
-export function useEntryTable(
-  groupId: string,
-  options: {
-    subjectId?: string
-    attributeId?: string
-    sort: EntrySort
-    page: number
-  },
-) {
-  return useQuery({
-    queryKey: [...entryKeys.all, 'table', groupId, options] as const,
-    placeholderData: keepPreviousData,
-    queryFn: async () => {
-      let query = supabase
-        .from('entries')
-        .select(ENTRY_COLUMNS, { count: 'exact' })
-        .eq('subject.group_id', groupId)
-      if (options.subjectId) query = query.eq('subject_id', options.subjectId)
-      if (options.attributeId) {
-        query = query.eq('attribute_id', options.attributeId)
-      }
-      const byValue = options.sort === 'highest' || options.sort === 'lowest'
-      query = byValue
-        ? query
-            .order('value', { ascending: options.sort === 'lowest' })
-            .order('measured_at', { ascending: false })
-        : query.order('measured_at', { ascending: options.sort === 'oldest' })
-      const from = options.page * ENTRIES_PAGE_SIZE
-      const { data, error, count } = await query
-        .range(from, from + ENTRIES_PAGE_SIZE - 1)
-        .overrideTypes<Entry[], { merge: false }>()
-      if (error) throw error
-      return { entries: data, total: count ?? 0 }
-    },
-  })
 }
 
 export function useEntry(entryId: string) {
@@ -185,17 +120,18 @@ export function useDeleteEntry(entryId: string) {
 }
 
 // How many entries an attribute has, for the warnings on editing and
-// deleting it (FR-41, FR-42). Counts the entries the user can see.
+// deleting it (FR-41, FR-42), hidden ones included.
 export function useAttributeEntryCount(attributeId: string) {
   return useQuery({
     queryKey: ['attribute-entry-count', attributeId],
     queryFn: async () => {
-      const { count, error } = await supabase
-        .from('entries')
-        .select('id', { count: 'exact', head: true })
-        .eq('attribute_id', attributeId)
+      // Through the database, so entries hidden from the viewer (FR-43)
+      // count too, as a number only.
+      const { data, error } = await supabase.rpc('attribute_entry_count', {
+        target_attribute_id: attributeId,
+      })
       if (error) throw error
-      return count ?? 0
+      return data ?? 0
     },
   })
 }

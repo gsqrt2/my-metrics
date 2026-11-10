@@ -1,5 +1,6 @@
 import { z } from 'zod'
 
+import { DATE_FORMAT_MESSAGE, isIsoDay } from '@/lib/dates'
 import type { Tables } from '@/types/database'
 
 // Match the check constraints on public.groups (FR-80).
@@ -30,22 +31,15 @@ export const groupSchema = z
   })
   .superRefine((values, ctx) => {
     if (!values.hasDuration) return
-    if (!values.startsOn) {
-      ctx.addIssue({
-        code: 'custom',
-        message: 'Choose a start date.',
-        path: ['startsOn'],
-      })
-    }
-    if (!values.endsOn) {
-      ctx.addIssue({
-        code: 'custom',
-        message: 'Choose an end date.',
-        path: ['endsOn'],
-      })
-    }
+    const dateIssue = (value: string, missing: string) =>
+      !value ? missing : isIsoDay(value) ? null : DATE_FORMAT_MESSAGE
+    const start = dateIssue(values.startsOn, 'Choose a start date.')
+    if (start)
+      ctx.addIssue({ code: 'custom', message: start, path: ['startsOn'] })
+    const end = dateIssue(values.endsOn, 'Choose an end date.')
+    if (end) ctx.addIssue({ code: 'custom', message: end, path: ['endsOn'] })
     // ISO dates (yyyy-mm-dd) sort as text.
-    if (values.startsOn && values.endsOn && values.endsOn < values.startsOn) {
+    if (!start && !end && values.endsOn < values.startsOn) {
       ctx.addIssue({
         code: 'custom',
         message: "The end date can't be before the start date.",

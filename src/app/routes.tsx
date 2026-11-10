@@ -21,6 +21,7 @@ import { EntriesPage } from '@/features/entries/entries-page'
 import { InvitesPage } from '@/features/invites/invites-page'
 import { JoinPage } from '@/features/invites/join-page'
 import { MembersPage } from '@/features/members/members-page'
+import { PrivacyPage } from '@/features/visibility/privacy-page'
 import { EditSubjectPage } from '@/features/subjects/edit-subject-page'
 import { NewSubjectPage } from '@/features/subjects/new-subject-page'
 import { SubjectsPage } from '@/features/subjects/subjects-page'
@@ -56,6 +57,7 @@ export const routes: RouteObject[] = [
       { path: 'logbooks/:groupId/metrics', element: <AttributesPage /> },
       { path: 'logbooks/:groupId/invites', element: <InvitesPage /> },
       { path: 'logbooks/:groupId/members', element: <MembersPage /> },
+      { path: 'logbooks/:groupId/privacy', element: <PrivacyPage /> },
       { path: 'logbooks/:groupId/entries', element: <EntriesPage /> },
       {
         path: 'logbooks/:groupId/entries/:entryId/edit',

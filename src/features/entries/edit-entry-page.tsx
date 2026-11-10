@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router'
 
 import { BackLink } from '@/app/layout/back-link'
 import { PageHeader } from '@/app/layout/page-header'
+import { DateTimeField } from '@/components/date-field'
 import { FormField } from '@/components/form-field'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -161,14 +162,13 @@ function EditEntry({
             error={errors.value}
             onChange={(event) => setValue(event.target.value)}
           />
-          <FormField
+          <DateTimeField
             id="entry-measured-at"
             label="When"
-            type="datetime-local"
             value={measuredAt}
             max={toLocalInputValue(new Date())}
             error={errors.measuredAt}
-            onChange={(event) => setMeasuredAt(event.target.value)}
+            onChange={setMeasuredAt}
           />
           <div className="flex flex-col gap-2">
             <Label htmlFor="entry-comment">Comment (optional)</Label>

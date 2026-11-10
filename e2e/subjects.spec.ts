@@ -77,12 +77,16 @@ test.describe('managing subjects', () => {
     await page.getByRole('link', { name: 'Add participant' }).click()
     await expect(page.getByRole('radio', { name: 'Blue' })).toBeChecked()
     await page.getByLabel('Name').fill('Theo')
-    await page.getByLabel('Birthdate (optional)').fill('2099-01-01')
+    await page
+      .getByLabel('Birthdate (optional)', { exact: true })
+      .fill('01/01/2099')
     await page.getByRole('button', { name: 'Add participant' }).click()
     await expect(
       page.getByText("A birthdate can't be in the future."),
     ).toBeVisible()
-    await page.getByLabel('Birthdate (optional)').fill('2021-03-14')
+    await page
+      .getByLabel('Birthdate (optional)', { exact: true })
+      .fill('14/03/2021')
     await page.getByRole('button', { name: 'Add participant' }).click()
 
     const subjects = page.getByRole('list', { name: 'Participants' })

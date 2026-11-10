@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Controller, useForm } from 'react-hook-form'
 import { Link } from 'react-router'
 
+import { DateField } from '@/components/date-field'
 import { FormField } from '@/components/form-field'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -110,19 +111,33 @@ export function GroupForm({
         </div>
         {hasDuration && (
           <div className="grid gap-4 sm:grid-cols-2">
-            <FormField
-              id="group-starts-on"
-              label="Start date"
-              type="date"
-              error={errors.startsOn?.message}
-              {...form.register('startsOn')}
+            <Controller
+              control={form.control}
+              name="startsOn"
+              render={({ field }) => (
+                <DateField
+                  id="group-starts-on"
+                  label="Start date"
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  error={errors.startsOn?.message}
+                />
+              )}
             />
-            <FormField
-              id="group-ends-on"
-              label="End date"
-              type="date"
-              error={errors.endsOn?.message}
-              {...form.register('endsOn')}
+            <Controller
+              control={form.control}
+              name="endsOn"
+              render={({ field }) => (
+                <DateField
+                  id="group-ends-on"
+                  label="End date"
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  error={errors.endsOn?.message}
+                />
+              )}
             />
           </div>
         )}

@@ -3,7 +3,9 @@ import { ArrowDown, ArrowUp, Maximize2, Minus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { attributeLabel } from '@/features/attributes/format'
 import type { Attribute } from '@/features/attributes/use-attributes'
+import { hasHiddenValues } from '@/features/dashboard/chart-data'
 import { MetricLines } from '@/features/dashboard/chart-lines'
+import { EntryValue } from '@/features/entries/entry-value'
 import type {
   DashboardRow,
   SeriesPoint,
@@ -37,6 +39,11 @@ export function MetricChart({
     ),
   )
   const number = (value: number) => formatDecimal(value, attribute.precision)
+  const hidden = hasHiddenValues(
+    points,
+    attribute.id,
+    subjects.map((s) => s.id),
+  )
 
   return (
     <ChartCard title={<>{label}</>} label={label} onOpen={onOpen}>
@@ -50,8 +57,15 @@ export function MetricChart({
             attribute={attribute}
             subjects={subjects}
             points={points}
+            y={hidden ? 'pct' : 'value'}
             className="h-48"
           />
+          {hidden && (
+            <p className="-mt-2 text-xs text-muted-foreground">
+              Shown as % change since the first entry, because some participants
+              keep their values here private.
+            </p>
+          )}
           <ul
             aria-label={`${attribute.name}: latest values`}
             className="flex flex-col gap-2"
@@ -77,23 +91,39 @@ export function MetricChart({
                     />
                     <span className="truncate">{subject.name}</span>
                   </span>
-                  <span className="font-medium tabular-nums">
-                    {row.latest_value === null
-                      ? 'hidden'
-                      : formatValue(row.latest_value, attribute)}
-                  </span>
-                  <Change
-                    label="since last"
-                    change={row.change_since_previous}
-                    unit={attribute.unit}
-                    number={number}
-                  />
-                  <Change
-                    label="since first"
-                    change={row.entry_count > 1 ? row.change_since_first : null}
-                    unit={attribute.unit}
-                    number={number}
-                  />
+                  {row.latest_value === null ? (
+                    // Private (FR-43): only the change since the first entry.
+                    <>
+                      <EntryValue
+                        value={null}
+                        pctChange={row.pct_since_first}
+                        attribute={attribute}
+                      />
+                      <span className="text-xs text-muted-foreground">
+                        since first
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="font-medium tabular-nums">
+                        {formatValue(row.latest_value, attribute)}
+                      </span>
+                      <Change
+                        label="since last"
+                        change={row.change_since_previous}
+                        unit={attribute.unit}
+                        number={number}
+                      />
+                      <Change
+                        label="since first"
+                        change={
+                          row.entry_count > 1 ? row.change_since_first : null
+                        }
+                        unit={attribute.unit}
+                        number={number}
+                      />
+                    </>
+                  )}
                 </li>
               )
             })}

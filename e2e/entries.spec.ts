@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type Locator, type Page } from '@playwright/test'
 
 import {
   clearDefaultGroup,
@@ -7,11 +7,17 @@ import {
 } from './support/local-supabase'
 import { logIn, openLogbookOption } from './support/login'
 
-// Yesterday at a given time, as a datetime-local value in local time.
-function yesterdayAt(time: string) {
+// Fills "When" with yesterday at a given time; dates are typed dd/mm/yyyy.
+async function fillYesterdayAt(form: Locator, time: string) {
   const day = new Date(Date.now() - 24 * 3600 * 1000)
   const pad = (n: number) => String(n).padStart(2, '0')
-  return `${day.getFullYear()}-${pad(day.getMonth() + 1)}-${pad(day.getDate())}T${time}`
+  const when = form.getByRole('group', { name: 'When' })
+  await when
+    .getByLabel('Date', { exact: true })
+    .fill(
+      `${pad(day.getDate())}/${pad(day.getMonth() + 1)}/${day.getFullYear()}`,
+    )
+  await when.getByLabel('Time', { exact: true }).fill(time)
 }
 
 test('a logbook shows charts first, then its latest entries', async ({
@@ -133,8 +139,17 @@ test.describe('logging', () => {
     await sheet.getByLabel('Weight (kg)').fill('72,4')
     await sheet.getByLabel('Waist (cm)').fill('81')
     await sheet.getByLabel('Comment (optional)').fill('After a run')
-    // A fixed time, so the duplicate check below doesn't depend on the clock.
-    await sheet.getByLabel('When').fill(yesterdayAt('08:00'))
+    // A wrong date is explained. Then a fixed time, so the duplicate check
+    // below doesn't depend on the clock.
+    await sheet
+      .getByRole('group', { name: 'When' })
+      .getByLabel('Date', { exact: true })
+      .fill('31/02/2026')
+    await sheet.getByRole('button', { name: 'Save 2 values' }).click()
+    await expect(
+      sheet.getByText('Enter the date as dd/mm/yyyy and the time as hh:mm.'),
+    ).toBeVisible()
+    await fillYesterdayAt(sheet, '08:00')
     await sheet.getByRole('button', { name: 'Save 2 values' }).click()
 
     await expect(sheet).toHaveCount(0)
@@ -146,12 +161,12 @@ test.describe('logging', () => {
     // The same moment twice is refused; an earlier time is fine.
     await logEntry.click()
     await sheet.getByLabel('Weight (kg)').fill('72')
-    await sheet.getByLabel('When').fill(yesterdayAt('08:00'))
+    await fillYesterdayAt(sheet, '08:00')
     await sheet.getByRole('button', { name: 'Save' }).click()
     await expect(
       sheet.getByText('There is already an entry for this participant'),
     ).toBeVisible()
-    await sheet.getByLabel('When').fill(yesterdayAt('07:00'))
+    await fillYesterdayAt(sheet, '7:00')
     await sheet.getByRole('button', { name: 'Save' }).click()
     await expect(sheet).toHaveCount(0)
     await expect(entries.getByRole('listitem')).toHaveCount(3)

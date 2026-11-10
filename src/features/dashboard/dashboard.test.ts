@@ -175,16 +175,16 @@ describe('xOf', () => {
 })
 
 describe('dateTickFormat', () => {
-  it('shows day and month within a year, month and year beyond', () => {
-    const short = dateTickFormat(
-      [{ x: t('2026-10-05T12:00:00Z') }, { x: t('2026-11-09T12:00:00Z') }],
-      'en-US',
-    )
-    expect(short(t('2026-10-05T12:00:00Z'))).toBe('Oct 5')
-    const long = dateTickFormat(
-      [{ x: t('2025-11-01T12:00:00Z') }, { x: t('2026-11-01T12:00:00Z') }],
-      'en-US',
-    )
+  it('shows day then month within a year, month and year beyond', () => {
+    const short = dateTickFormat([
+      { x: t('2026-10-05T12:00:00Z') },
+      { x: t('2026-11-09T12:00:00Z') },
+    ])
+    expect(short(t('2026-10-05T12:00:00Z'))).toBe('5 Oct')
+    const long = dateTickFormat([
+      { x: t('2025-11-01T12:00:00Z') },
+      { x: t('2026-11-01T12:00:00Z') },
+    ])
     expect(long(t('2025-11-01T12:00:00Z'))).toBe('Nov 2025')
   })
 })

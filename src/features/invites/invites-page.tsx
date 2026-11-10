@@ -23,6 +23,7 @@ import {
   useRevokeInvite,
   type InviteRole,
 } from '@/features/invites/use-invites'
+import { formatDate } from '@/lib/dates'
 
 const roles: { value: InviteRole; label: string }[] = [
   { value: 'viewer', label: 'Viewer' },
@@ -37,8 +38,6 @@ const durations = [
   { days: 7, label: '7 days' },
   { days: 30, label: '30 days' },
 ]
-
-const dateFormat = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' })
 
 // FR-20 – FR-22: invite links for owners and editors, and for the owner the
 // requests to be linked to a participant.
@@ -195,7 +194,7 @@ function OpenInvites({ group }: { group: GroupRow }) {
                   {invite.role === 'editor' ? 'Editor' : 'Viewer'} link
                 </span>
                 <span className="text-muted-foreground">
-                  Until {dateFormat.format(new Date(invite.expires_at))}
+                  Until {formatDate(new Date(invite.expires_at))}
                   {invite.created_by !== session?.user.id &&
                     ` · by ${invite.creator?.display_name ?? 'a former member'}`}
                 </span>

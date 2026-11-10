@@ -1,6 +1,7 @@
 import { ArrowDown, ArrowUp, Pencil, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
+import { toast } from 'sonner'
 
 import { BackLink } from '@/app/layout/back-link'
 import { PageHeader } from '@/app/layout/page-header'
@@ -56,7 +57,10 @@ function ManageAttributes({ group }: { group: GroupRow }) {
   function move(index: number, by: -1 | 1) {
     const ids = active.map((a) => a.id)
     ;[ids[index], ids[index + by]] = [ids[index + by], ids[index]]
-    reorder.mutate([...ids, ...archived.map((a) => a.id)])
+    reorder.mutate([...ids, ...archived.map((a) => a.id)], {
+      onSuccess: () =>
+        toast.success('Saved. The new order is shown everywhere.'),
+    })
   }
 
   return (
