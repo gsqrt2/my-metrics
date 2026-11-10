@@ -26,7 +26,7 @@ Status: ✅ done · 🚧 in progress · ⏸️ paused with open items · ⬜ not
 | 6 | Logging | ✅ | 2026-11-09 | `cc02785` |
 | 7 | Group dashboard with charts | ✅ | 2026-11-09 | `16add64` |
 | 8 | Charts and tables | ✅ | 2026-11-09 | `e5485d3` |
-| 9 | Invitations and joining | 🚧 | | |
+| 9 | Invitations and joining | ✅ | 2026-11-10 | |
 | 10 | Managing members and leaving | ⬜ | | |
 | 11 | Value visibility | ⬜ | | |
 | 12 | "Own subject only" setting, CSV export | ⬜ | | |
@@ -35,7 +35,7 @@ Status: ✅ done · 🚧 in progress · ⏸️ paused with open items · ⬜ not
 | 15 | Account deletion | ⬜ | | |
 | 16 | Go live | ⬜ | | |
 
-**Next:** finish step 9 (Invitations and joining).
+**Next:** step 10 (Managing members and leaving).
 
 ### Open items
 
