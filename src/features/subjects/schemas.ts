@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 import { todayIso } from '@/features/subjects/age'
 import { SUBJECT_COLORS } from '@/features/subjects/colors'
+import { DATE_FORMAT_MESSAGE, isIsoDay } from '@/lib/dates'
 import type { Tables } from '@/types/database'
 
 // Matches the check constraints on public.subjects (FR-80).
@@ -27,12 +28,13 @@ export function subjectSchema(today = todayIso()) {
     // Optional; ISO dates (yyyy-mm-dd) compare as text.
     birthdate: z
       .string()
+      .refine((date) => date === '' || isIsoDay(date), DATE_FORMAT_MESSAGE)
       .refine(
-        (date) => date === '' || date >= MIN_BIRTHDATE,
+        (date) => date === '' || !isIsoDay(date) || date >= MIN_BIRTHDATE,
         'Use a date in 1900 or later.',
       )
       .refine(
-        (date) => date === '' || date <= today,
+        (date) => date === '' || !isIsoDay(date) || date <= today,
         "A birthdate can't be in the future.",
       ),
     color: z.enum(colorValues),

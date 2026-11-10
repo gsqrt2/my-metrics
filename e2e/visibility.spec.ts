@@ -79,6 +79,12 @@ test.describe('choosing what others see', () => {
       setting.getByRole('button', { name: 'Actual values' }),
     ).toHaveAttribute('aria-pressed', 'true')
     await setting.getByRole('button', { name: '% only' }).click()
+    // Saved as soon as it's chosen, and a toast says so.
+    await expect(
+      page.getByText(
+        "Saved. Others now see only the % change of Yan Example's Weight.",
+      ),
+    ).toBeVisible()
     await page.reload()
     await expect(
       setting.getByRole('button', { name: '% only' }),

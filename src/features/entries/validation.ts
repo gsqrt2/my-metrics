@@ -46,7 +46,7 @@ export function valueError(
 // FR-50, FR-53: a date and time is needed and can't be in the future.
 export function measuredAtError(text: string, now = new Date()) {
   const date = fromLocalInputValue(text)
-  if (!date) return 'Choose a date and time.'
+  if (!date) return 'Enter the date as dd/mm/yyyy and the time as hh:mm.'
   if (date.getTime() > now.getTime() + FUTURE_SKEW_MS) {
     return "The time can't be in the future."
   }

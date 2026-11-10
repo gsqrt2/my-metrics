@@ -1,5 +1,6 @@
 import { useState } from 'react'
 
+import { DateTimeField } from '@/components/date-field'
 import { FormField } from '@/components/form-field'
 import { NativeSelect } from '@/components/native-select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -228,14 +229,13 @@ export function LogEntryForm({
             )}
           </div>
 
-          <FormField
+          <DateTimeField
             id="entry-measured-at"
             label="When"
-            type="datetime-local"
             value={measuredAt}
             max={toLocalInputValue(new Date())}
             error={errors.measuredAt}
-            onChange={(event) => setMeasuredAt(event.target.value)}
+            onChange={setMeasuredAt}
           />
 
           <fieldset className="flex flex-col gap-4">

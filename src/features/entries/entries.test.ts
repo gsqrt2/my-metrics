@@ -56,8 +56,12 @@ describe('measuredAtError', () => {
   const now = new Date(2026, 10, 9, 8, 0)
 
   it('needs a valid date and time', () => {
-    expect(measuredAtError('', now)).toBe('Choose a date and time.')
-    expect(measuredAtError('2026-11-09', now)).toBe('Choose a date and time.')
+    expect(measuredAtError('', now)).toBe(
+      'Enter the date as dd/mm/yyyy and the time as hh:mm.',
+    )
+    expect(measuredAtError('2026-11-09', now)).toBe(
+      'Enter the date as dd/mm/yyyy and the time as hh:mm.',
+    )
   })
 
   it('refuses the future, allowing a few minutes of clock skew', () => {

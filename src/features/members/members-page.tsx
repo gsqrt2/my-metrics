@@ -1,6 +1,7 @@
 import { Crown, LogOut, UserMinus } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
+import { toast } from 'sonner'
 
 import { BackLink } from '@/app/layout/back-link'
 import { PageHeader } from '@/app/layout/page-header'
@@ -125,10 +126,18 @@ function MemberItem({
               value={member.role}
               disabled={changeRole.isPending}
               onChange={(event) =>
-                changeRole.mutate({
-                  userId: member.user_id,
-                  role: event.target.value as 'editor' | 'viewer',
-                })
+                changeRole.mutate(
+                  {
+                    userId: member.user_id,
+                    role: event.target.value as 'editor' | 'viewer',
+                  },
+                  {
+                    onSuccess: (_, { role }) =>
+                      toast.success(
+                        `Saved. ${name} is now ${role === 'editor' ? 'an editor' : 'a viewer'}.`,
+                      ),
+                  },
+                )
               }
             >
               <option value="editor">Editor</option>

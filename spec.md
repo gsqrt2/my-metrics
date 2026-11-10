@@ -238,7 +238,7 @@
 - **Data ownership:** Users can export their groups' data (FR-70), can take their data out of a group when leaving (FR-23), and deleting an account removes the user's personal data (FR-3).
 - **Accessibility:** Best effort, following good practice (contrast, keyboard use, labels, information never shown by colour alone). There's no formal WCAG target.
 - **Browsers:** The last two versions of Chrome, Edge, Firefox and Safari, including iOS Safari and Android Chrome.
-- **Language & formats:** The UI is in English only. Dates and numbers are formatted according to the viewer's browser settings (e.g. `03.11.2026` and `72.5`, or `11/3/2026`).
+- **Language & formats:** The UI is in English only. Dates are always shown and typed as dd/mm/yyyy with 24-hour times (e.g. `03/11/2026, 07:30`), whatever the browser's language. Numbers follow the viewer's browser settings (e.g. `72.5` or `72,5`).
 
 ---
 
@@ -318,6 +318,8 @@ None at the moment.
 | 2026-11-10 | The member count stays "N members" (linked to the member list); no extra wording or hints about members vs participants on the group page. | FR-12 |
 | 2026-11-10 | A former member's kept subject is read-only: its history stays, but nobody logs for it any more. | FR-23, FR-43 |
 | 2026-11-10 | Value visibility is chosen on a "Privacy" page reachable by every member (Options → Privacy), per subject and attribute. Hidden values appear everywhere as their % change with a "% only" mark: charts that contain any are shown as % change, and entry lists still list hidden entries (with date and comment) rather than leaving them out. | FR-43, FR-62 |
+| 2026-11-10 | Dates are shown and typed as dd/mm/yyyy (24-hour times) regardless of the browser's language, instead of following it. Date fields are text fields with a calendar button that opens the browser's picker, since the browser's own date fields follow its language. | §6 |
+| 2026-11-10 | Settings that save as soon as they're changed (privacy, member roles, metric order) confirm it with a short "Saved." message at the bottom of the screen. | §6 |
 | 2026-11-09 | The app tracks without judging: attributes have no "higher/lower is better" direction, and changes aren't coloured as good or bad. | FR-40, FR-60 |
 | 2026-11-09 | A group's management pages (participants, metrics, editing the group, later members) sit behind one "Options" menu on the group page. | FR-11 |
 | 2026-11-09 | Groups are called "logbooks" in the app (text and URLs, e.g. `/logbooks/…`), as a more intuitive name for a shared or personal measurement record. The spec, database and code keep "group". | Glossary |

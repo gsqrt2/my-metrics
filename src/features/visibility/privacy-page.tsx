@@ -1,3 +1,5 @@
+import { toast } from 'sonner'
+
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Segmented } from '@/components/segmented'
 import { BackLink } from '@/app/layout/back-link'
@@ -122,11 +124,21 @@ function Privacy({ group }: { group: GroupRow }) {
                       options={options}
                       value={current(subject.id, attribute.id)}
                       onChange={(visibility) =>
-                        set.mutate({
-                          subjectId: subject.id,
-                          attributeId: attribute.id,
-                          visibility,
-                        })
+                        set.mutate(
+                          {
+                            subjectId: subject.id,
+                            attributeId: attribute.id,
+                            visibility,
+                          },
+                          {
+                            onSuccess: () =>
+                              toast.success(
+                                visibility === 'relative'
+                                  ? `Saved. Others now see only the % change of ${subject.name}'s ${attribute.name}.`
+                                  : `Saved. Others now see ${subject.name}'s ${attribute.name} values.`,
+                              ),
+                          },
+                        )
                       }
                     />
                   </li>

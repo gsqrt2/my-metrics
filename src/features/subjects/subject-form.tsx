@@ -1,7 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { Link } from 'react-router'
 
+import { DateField } from '@/components/date-field'
 import { FormField } from '@/components/form-field'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -74,14 +75,21 @@ export function SubjectForm({
       </div>
 
       <div className="flex flex-col gap-2">
-        <FormField
-          id="subject-birthdate"
-          label="Birthdate (optional)"
-          type="date"
-          min={MIN_BIRTHDATE}
-          max={todayIso()}
-          error={errors.birthdate?.message}
-          {...form.register('birthdate')}
+        <Controller
+          control={form.control}
+          name="birthdate"
+          render={({ field }) => (
+            <DateField
+              id="subject-birthdate"
+              label="Birthdate (optional)"
+              min={MIN_BIRTHDATE}
+              max={todayIso()}
+              value={field.value}
+              onChange={field.onChange}
+              onBlur={field.onBlur}
+              error={errors.birthdate?.message}
+            />
+          )}
         />
         <p className="text-sm text-muted-foreground">
           Lets charts show measurements by age, e.g. for children's growth.
