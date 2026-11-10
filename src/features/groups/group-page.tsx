@@ -96,7 +96,7 @@ function GroupHome({ group }: { group: GroupRow }) {
         actions={canEditGroup(group) && <GroupOptionsMenu group={group} />}
       />
       <div className="-mt-4 mb-8">
-        <GroupMeta group={group} />
+        <GroupMeta group={group} linkMembers />
       </div>
       {group.role === 'owner' && <PendingRequestsNotice group={group} />}
       <div className="flex flex-col gap-4">

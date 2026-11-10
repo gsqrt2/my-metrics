@@ -76,7 +76,7 @@ GitHub Actions: CI, deploys, keep-alive ping, nightly backup
   - The email uses our own template (`supabase/templates/recovery.html`). Its link goes straight to the app, `/reset-password?token_hash=…&type=recovery`, and the page calls `supabase.auth.verifyOtp`. Unlike the default link, this works when the email is opened on another device than the one that requested it, and link scanners in mail clients can't use up the token, because verifying needs JavaScript.
   - The same template and subject must be set in the cloud project (step 16).
   - The request form always shows the same confirmation, so it doesn't reveal which addresses have accounts.
-- **Seed accounts (local only):** `alex`, `sam`, `kim`, `lee`, `robin`, `pat`, `max`, `jo`, `ari`, `noa`, `eli`, `tom` and `uma`, all `@example.com` and all with the password `password`, created in `supabase/seed.sql`. The end-to-end tests that change an account each use their own (see `e2e/support/local-supabase.ts`).
+- **Seed accounts (local only):** `alex`, `sam`, `kim`, `lee`, `robin`, `pat`, `max`, `jo`, `ari`, `noa`, `eli`, `tom`, `uma`, `val` and `wes`, all `@example.com` and all with the password `password`, created in `supabase/seed.sql`. The end-to-end tests that change an account each use their own (see `e2e/support/local-supabase.ts`).
 - **Profile changes** (spec FR-2): display name in `profiles`; password and email through `supabase.auth.updateUser`.
   - **Email change:** `double_confirm_changes = false`, so only the new address confirms. Its email uses our template (`supabase/templates/email_change.html`) with a `token_hash` link to `/confirm-email`, which calls `verifyOtp({ type: 'email_change' })`, like the password reset. Until then, the pending address is in `user.new_email` and the profile page shows it. The `email_changed` notification then goes to the old address.
   - **Password change:** the `password_changed` notification is on. Supabase's `updateUser` doesn't check the current password, so the profile page checks it first with a throwaway login (`verify-password.ts`), whose session it ends right away. This protects against someone using an unlocked device, but it isn't a server-side check: a stolen session token could still change the password directly. Supabase's `secure_password_change` (re-authentication by emailed code) would close that gap, at the cost of an extra email step.
@@ -214,8 +214,9 @@ Helper functions (`security definer`, `stable`) avoid recursive policies on `mem
 - `decide_link_request(request_id, approve)`: owner only. Approving links the subject to the user.
 - `change_member_role(group_id, user_id, role)`: owner only.
 - `remove_member(group_id, user_id)`: owner only. Keeps the subject's entries, unlinks it, and sets `visibility_frozen = true` (FR-23).
-- `leave_group(group_id, keep_entries)`: refused for the owner and for default groups. With `keep_entries`, unlinks the subject and sets `visibility_frozen = true`. Otherwise deletes the subject and its entries.
-- `transfer_ownership(group_id, new_owner_id)`: makes sure a group always has exactly one owner. Refused for default groups.
+- `leave_group(group_id, keep_entries)`: refused for the owner (so nobody leaves their own default group); members of someone else's default group may leave. With `keep_entries`, unlinks the subject and sets `visibility_frozen = true`. Otherwise deletes the subject and its entries.
+- `transfer_ownership(group_id, new_owner_id)`: makes sure a group always has exactly one owner (demotes the old owner to editor, then promotes the new one). Refused for default groups.
+- Removing and leaving both go through `release_member_subject` (not callable from the app): with entries kept, the subject is unlinked, `visibility_frozen` and `name_customized`; otherwise it's deleted with its entries. The former member's open link requests are deleted either way. Frozen subjects aren't offered or accepted as link requests when joining.
 
 **Triggers:**
 - New group: the creator becomes the `owner` membership. For a default group, created when there's no signed-in user, the owner is `default_for_user_id`.
