@@ -362,7 +362,7 @@ describe('when logged in', () => {
       within(menu)
         .getAllByRole('menuitem')
         .map((item) => item.textContent),
-    ).toEqual(['Members', 'Privacy'])
+    ).toEqual(['Members', 'Privacy', 'Export CSV'])
   })
 
   it('keeps viewers out of subject management', async () => {

@@ -28,6 +28,8 @@ export const groupSchema = z
     hasDuration: z.boolean(),
     startsOn: z.string(),
     endsOn: z.string(),
+    // §5 "Members can only edit their own subject"; offered to the owner only.
+    ownSubjectOnly: z.boolean(),
   })
   .superRefine((values, ctx) => {
     if (!values.hasDuration) return
@@ -62,15 +64,20 @@ export const emptyGroupForm: GroupFormValues = {
   hasDuration: false,
   startsOn: '',
   endsOn: '',
+  ownSubjectOnly: false,
 }
 
-export function toGroupForm(group: GroupFields): GroupFormValues {
+export function toGroupForm(
+  group: GroupFields,
+  ownSubjectOnly = false,
+): GroupFormValues {
   return {
     name: group.name,
     description: group.description ?? '',
     hasDuration: group.starts_on !== null,
     startsOn: group.starts_on ?? '',
     endsOn: group.ends_on ?? '',
+    ownSubjectOnly,
   }
 }
 

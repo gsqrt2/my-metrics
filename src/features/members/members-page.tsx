@@ -1,4 +1,4 @@
-import { Crown, LogOut, UserMinus } from 'lucide-react'
+import { Crown, Download, LogOut, UserMinus } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { toast } from 'sonner'
@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { useAuth } from '@/features/auth/use-auth'
+import { useExportCsv } from '@/features/export/use-export'
 import { roleLabels } from '@/features/groups/format'
 import { WithGroup } from '@/features/groups/group-page'
 import { canEditGroup, type GroupRow } from '@/features/groups/types'
@@ -250,12 +251,14 @@ function Confirm({
   )
 }
 
-// FR-23: leaving, with the choice of what happens to one's entries.
+// FR-23: leaving, with the choice of what happens to one's entries and the
+// offer to export them first (FR-70).
 function LeaveSection({ group }: { group: GroupRow }) {
   const navigate = useNavigate()
   const { session } = useAuth()
   const subjects = useSubjects(group.id)
   const leave = useLeaveGroup(group.id, () => navigate('/logbooks'))
+  const exportCsv = useExportCsv(group)
   const [keep, setKeep] = useState(true)
   const [confirming, setConfirming] = useState(false)
   const mine = subjects.data?.find((s) => s.linked_user_id === session?.user.id)
@@ -307,6 +310,18 @@ function LeaveSection({ group }: { group: GroupRow }) {
           You don't have a participant here, so nothing of yours is left behind.
         </p>
       )}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-muted-foreground">
+        <span>Want a copy of the entries first?</span>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={exportCsv.isPending}
+          onClick={() => exportCsv.mutate()}
+        >
+          <Download aria-hidden />
+          {exportCsv.isPending ? 'Exporting…' : 'Export CSV'}
+        </Button>
+      </div>
       {leave.isError && (
         <Alert variant="destructive">
           <AlertDescription>Leaving failed. Please try again.</AlertDescription>

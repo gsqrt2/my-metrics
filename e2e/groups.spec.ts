@@ -53,6 +53,7 @@ test.describe('creating and editing', () => {
       .getByLabel('Description (optional)')
       .fill('Daily steps until the holidays.')
     await page.getByLabel('Runs between two dates').check()
+    await page.getByLabel('Everyone logs only for themselves').check()
     await page.getByLabel('Start date', { exact: true }).fill('1/6/2027')
     await page.getByLabel('End date', { exact: true }).fill('31/06/2027')
     await page.getByRole('button', { name: 'Create logbook' }).click()
@@ -78,6 +79,11 @@ test.describe('creating and editing', () => {
 
     await openLogbookOption(page, 'Edit logbook')
     await expect(page.getByLabel('Name')).toHaveValue('Summer Steps')
+    // The owner's setting (§5) was saved, and can be switched off again.
+    await expect(
+      page.getByLabel('Everyone logs only for themselves'),
+    ).toBeChecked()
+    await page.getByLabel('Everyone logs only for themselves').uncheck()
     await page.getByLabel('Name').fill('Summer Steps 2027')
     await page.getByLabel('Runs between two dates').uncheck()
     await page.getByRole('button', { name: 'Save changes' }).click()
@@ -86,6 +92,11 @@ test.describe('creating and editing', () => {
       page.getByRole('heading', { name: 'Summer Steps 2027' }),
     ).toBeVisible()
     await expect(page.getByText(/31\/08\/2027/)).toHaveCount(0)
+    await openLogbookOption(page, 'Edit logbook')
+    await expect(
+      page.getByLabel('Everyone logs only for themselves'),
+    ).not.toBeChecked()
+    await page.getByRole('link', { name: 'Cancel' }).click()
 
     await page
       .getByRole('navigation', { name: 'Main' })

@@ -23,7 +23,8 @@ export async function openLogbookOption(
     | 'Members'
     | 'Invite people'
     | 'Privacy'
-    | 'Edit logbook',
+    | 'Edit logbook'
+    | 'Export CSV',
 ) {
   await page.getByRole('button', { name: 'Options' }).click()
   await page.getByRole('menuitem', { name: option }).click()

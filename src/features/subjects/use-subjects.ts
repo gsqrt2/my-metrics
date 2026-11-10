@@ -23,19 +23,21 @@ export const subjectKeys = {
 }
 
 // All of a group's subjects, archived ones included, by name.
+export async function fetchSubjects(groupId: string) {
+  const { data, error } = await supabase
+    .from('subjects')
+    .select(
+      'id, group_id, name, birthdate, color, linked_user_id, name_customized, archived_at, visibility_frozen',
+    )
+    .eq('group_id', groupId)
+  if (error) throw error
+  return data.sort((a, b) => a.name.localeCompare(b.name))
+}
+
 export function useSubjects(groupId: string) {
   return useQuery({
     queryKey: subjectKeys.list(groupId),
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('subjects')
-        .select(
-          'id, group_id, name, birthdate, color, linked_user_id, name_customized, archived_at, visibility_frozen',
-        )
-        .eq('group_id', groupId)
-      if (error) throw error
-      return data.sort((a, b) => a.name.localeCompare(b.name))
-    },
+    queryFn: () => fetchSubjects(groupId),
   })
 }
 

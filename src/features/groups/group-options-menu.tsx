@@ -1,5 +1,6 @@
 import {
   ChevronDown,
+  Download,
   Contact,
   EyeOff,
   Pencil,
@@ -17,14 +18,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { useExportCsv } from '@/features/export/use-export'
 import { canEditGroup, type GroupRow } from '@/features/groups/types'
 
 // The logbook's other pages behind one button, so the header stays one line
 // on phones. Everyone gets the items they may use: members and privacy for
-// all, management for owners and editors (§5).
+// all, management for owners and editors (§5), and the CSV export (FR-70).
 export function GroupOptionsMenu({ group }: { group: GroupRow }) {
   const base = `/logbooks/${group.id}`
   const manage = canEditGroup(group)
+  const exportCsv = useExportCsv(group)
   const items: {
     to: string
     label: string
@@ -58,6 +61,13 @@ export function GroupOptionsMenu({ group }: { group: GroupRow }) {
               </Link>
             </DropdownMenuItem>
           ))}
+        <DropdownMenuItem
+          disabled={exportCsv.isPending}
+          onSelect={() => exportCsv.mutate()}
+        >
+          <Download aria-hidden />
+          {exportCsv.isPending ? 'Exporting…' : 'Export CSV'}
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )

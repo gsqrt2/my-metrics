@@ -22,20 +22,22 @@ export const attributeKeys = {
 }
 
 // All of a group's attributes, archived ones included, in their order.
+export async function fetchAttributes(groupId: string) {
+  const { data, error } = await supabase
+    .from('attributes')
+    .select(
+      'id, group_id, name, unit, precision, min_value, max_value, sort_order, archived_at',
+    )
+    .eq('group_id', groupId)
+    .order('sort_order')
+  if (error) throw error
+  return data
+}
+
 export function useAttributes(groupId: string) {
   return useQuery({
     queryKey: attributeKeys.list(groupId),
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('attributes')
-        .select(
-          'id, group_id, name, unit, precision, min_value, max_value, sort_order, archived_at',
-        )
-        .eq('group_id', groupId)
-        .order('sort_order')
-      if (error) throw error
-      return data
-    },
+    queryFn: () => fetchAttributes(groupId),
   })
 }
 
