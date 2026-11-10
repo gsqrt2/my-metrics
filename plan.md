@@ -28,7 +28,7 @@ Status: ✅ done · 🚧 in progress · ⏸️ paused with open items · ⬜ not
 | 8 | Charts and tables | ✅ | 2026-11-09 | `e5485d3` |
 | 9 | Invitations and joining | ✅ | 2026-11-10 | `13842c5`, `4fa2c2e` |
 | 10 | Managing members and leaving | ✅ | 2026-11-10 | `3576ec8` |
-| 11 | Value visibility | 🚧 | | |
+| 11 | Value visibility | ✅ | `848d4fd` | Also: "Saved." toasts, dates as dd/mm/yyyy |
 | 12 | "Own subject only" setting, CSV export | ⬜ | | |
 | 13 | Email invites | ⬜ | | |
 | 14 | Archive and delete groups | ⬜ | | |
