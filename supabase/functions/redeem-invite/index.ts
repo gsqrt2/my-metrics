@@ -40,7 +40,8 @@ type Input = {
 function readInput(body: unknown): Input | string {
   if (typeof body !== 'object' || body === null) return 'invalid_input'
   const b = body as Record<string, unknown>
-  const text = (key: string) => (typeof b[key] === 'string' ? (b[key] as string) : '')
+  const text = (key: string) =>
+    typeof b[key] === 'string' ? (b[key] as string) : ''
   const input: Input = {
     token: text('token'),
     email: text('email').trim(),
@@ -55,13 +56,16 @@ function readInput(body: unknown): Input | string {
   if (!input.displayName || input.displayName.length > MAX_NAME_LENGTH) {
     return 'invalid_display_name'
   }
-  if (!['new', 'request', 'none'].includes(input.choice)) return 'invalid_choice'
+  if (!['new', 'request', 'none'].includes(input.choice))
+    return 'invalid_choice'
   return input
 }
 
 Deno.serve(async (request) => {
-  if (request.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
-  if (request.method !== 'POST') return reply(405, { error: 'method_not_allowed' })
+  if (request.method === 'OPTIONS')
+    return new Response('ok', { headers: corsHeaders })
+  if (request.method !== 'POST')
+    return reply(405, { error: 'method_not_allowed' })
 
   let body: unknown
   try {
@@ -78,12 +82,17 @@ Deno.serve(async (request) => {
   })
 
   // 1. The invite must be valid (and, for email invites, for this address).
-  const preview = await admin.rpc('get_invite_preview', { invite_token: input.token })
+  const preview = await admin.rpc('get_invite_preview', {
+    invite_token: input.token,
+  })
   const invite = preview.data?.[0]
   if (preview.error || !invite || invite.status !== 'valid') {
     return reply(400, { error: 'invite_invalid' })
   }
-  if (invite.invite_email && invite.invite_email.toLowerCase() !== input.email.toLowerCase()) {
+  if (
+    invite.invite_email &&
+    invite.invite_email.toLowerCase() !== input.email.toLowerCase()
+  ) {
     return reply(400, { error: 'invite_for_other_email' })
   }
 
@@ -96,8 +105,11 @@ Deno.serve(async (request) => {
   })
   if (created.error || !created.data.user) {
     const taken =
-      created.error?.code === 'email_exists' || /already/i.test(created.error?.message ?? '')
-    return reply(taken ? 409 : 500, { error: taken ? 'email_taken' : 'account_failed' })
+      created.error?.code === 'email_exists' ||
+      /already/i.test(created.error?.message ?? '')
+    return reply(taken ? 409 : 500, {
+      error: taken ? 'email_taken' : 'account_failed',
+    })
   }
   const userId = created.data.user.id
 
@@ -120,8 +132,14 @@ Deno.serve(async (request) => {
   // 4. No account without its group.
   if (joined.error) {
     await admin.auth.admin.deleteUser(userId)
-    const known = ['invite_invalid', 'subject_unavailable', 'member_limit_reached']
-    const code = known.includes(joined.error.message) ? joined.error.message : 'join_failed'
+    const known = [
+      'invite_invalid',
+      'subject_unavailable',
+      'member_limit_reached',
+    ]
+    const code = known.includes(joined.error.message)
+      ? joined.error.message
+      : 'join_failed'
     return reply(400, { error: code })
   }
 
