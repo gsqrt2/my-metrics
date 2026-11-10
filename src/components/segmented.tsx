@@ -1,7 +1,8 @@
 import { cn } from 'cn'
 
 // A small row of mutually exclusive choices, e.g. "By metric | By participant"
-// or "Week | Month | Year". Each option is a toggle button.
+// or "Week | Month | Year". Each option is a toggle button. Choosing the
+// option that's already chosen does nothing (no save, no "Saved." message).
 export function Segmented<T extends string>({
   label,
   options,
@@ -29,11 +30,13 @@ export function Segmented<T extends string>({
           key={option.value}
           type="button"
           aria-pressed={value === option.value}
-          onClick={() => onChange(option.value)}
+          onClick={() => {
+            if (option.value !== value) onChange(option.value)
+          }}
           className={cn(
             'rounded-md px-3 py-1 text-sm transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none',
             value === option.value
-              ? 'bg-primary text-primary-foreground'
+              ? 'cursor-default bg-primary text-primary-foreground'
               : 'text-muted-foreground hover:text-foreground',
           )}
         >

@@ -89,7 +89,13 @@ test.describe('choosing what others see', () => {
     await expect(
       setting.getByRole('button', { name: '% only' }),
     ).toHaveAttribute('aria-pressed', 'true')
+    // Choosing what's already chosen saves nothing; the real change says so.
+    await setting.getByRole('button', { name: '% only' }).click()
     await setting.getByRole('button', { name: 'Actual values' }).click()
+    await expect(
+      page.getByText("Saved. Others now see Yan Example's Weight values."),
+    ).toBeVisible()
+    await expect(page.getByText(/^Saved\. Others now see only/)).toHaveCount(0)
     await page.reload()
     await expect(
       setting.getByRole('button', { name: 'Actual values' }),
