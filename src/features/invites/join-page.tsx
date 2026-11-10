@@ -208,6 +208,31 @@ function JoinSignedIn({
   const accept = useAcceptInvite(token)
   const choice = useChoice(invite)
 
+  // An email invite works only for its address (FR-20).
+  const email = session?.user.email ?? ''
+  if (
+    invite.invite_email &&
+    invite.invite_email.toLowerCase() !== email.toLowerCase()
+  ) {
+    return (
+      <div className="flex flex-col gap-4">
+        <p className="text-sm">
+          This invite is for{' '}
+          <span className="font-medium">{invite.invite_email}</span>, but you're
+          logged in as <span className="font-medium">{email}</span>. Log out,
+          then open the link again to join with that address.
+        </p>
+        <Button
+          variant="outline"
+          className="self-start"
+          onClick={() => supabase.auth.signOut()}
+        >
+          Log out
+        </Button>
+      </div>
+    )
+  }
+
   if (invite.already_member) {
     return (
       <div className="flex flex-col gap-4">
@@ -271,7 +296,7 @@ function JoinNew({ token, invite }: { token: string; invite: InvitePreview }) {
   const choice = useChoice(invite)
   const [fields, setFields] = useState({
     displayName: '',
-    email: '',
+    email: invite.invite_email ?? '',
     password: '',
     confirm: '',
   })
@@ -345,7 +370,19 @@ function JoinNew({ token, invite }: { token: string; invite: InvitePreview }) {
           value={fields.email}
           error={errors.email}
           onChange={set('email')}
+          readOnly={!!invite.invite_email}
+          aria-describedby={
+            invite.invite_email && !errors.email ? 'join-email-hint' : undefined
+          }
         />
+        {invite.invite_email && (
+          <p
+            id="join-email-hint"
+            className="-mt-3 text-sm text-muted-foreground"
+          >
+            The invite is for this address.
+          </p>
+        )}
         <FormField
           id="join-password"
           label="Password"
