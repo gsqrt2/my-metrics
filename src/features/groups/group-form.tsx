@@ -27,6 +27,7 @@ export function GroupForm({
   cancelTo,
   isPending,
   error,
+  offerOwnSubjectOnly,
   onSubmit,
 }: {
   defaultValues: GroupFormValues
@@ -35,7 +36,9 @@ export function GroupForm({
   cancelTo: string
   isPending: boolean
   error?: string
-  onSubmit: (fields: GroupFields) => void
+  // Only the owner sets "own participant only" (§5).
+  offerOwnSubjectOnly: boolean
+  onSubmit: (fields: GroupFields, ownSubjectOnly: boolean) => void
 }) {
   const form = useForm<GroupFormValues, unknown, GroupFormOutput>({
     resolver: zodResolver(groupSchema),
@@ -46,7 +49,9 @@ export function GroupForm({
 
   return (
     <form
-      onSubmit={form.handleSubmit((values) => onSubmit(toGroupRow(values)))}
+      onSubmit={form.handleSubmit((values) =>
+        onSubmit(toGroupRow(values), values.ownSubjectOnly),
+      )}
       noValidate
       className="flex max-w-xl flex-col gap-6"
     >
@@ -142,6 +147,39 @@ export function GroupForm({
           </div>
         )}
       </fieldset>
+
+      {offerOwnSubjectOnly && (
+        <div className="flex items-start gap-3">
+          <Controller
+            control={form.control}
+            name="ownSubjectOnly"
+            render={({ field }) => (
+              <Checkbox
+                id="group-own-subject-only"
+                checked={field.value}
+                onCheckedChange={(checked) => field.onChange(checked === true)}
+                onBlur={field.onBlur}
+                className="mt-0.5"
+                aria-describedby="group-own-subject-only-hint"
+              />
+            )}
+          />
+          <div className="flex flex-col gap-1">
+            <Label htmlFor="group-own-subject-only">
+              Everyone logs only for themselves
+            </Label>
+            <p
+              id="group-own-subject-only-hint"
+              className="text-sm text-muted-foreground"
+            >
+              For a challenge where each member tracks their own values. Then
+              nobody, you included, can log or change entries of another
+              participant. Leave it off when someone logs for others, like
+              parents for their children.
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" disabled={isPending}>

@@ -622,6 +622,10 @@ export type Database = {
         Args: { attribute_ids: string[]; target_group_id: string }
         Returns: undefined
       }
+      set_members_edit_own_subject_only: {
+        Args: { enabled: boolean; target_group_id: string }
+        Returns: undefined
+      }
       shares_group_with: { Args: { target_user_id: string }; Returns: boolean }
       subject_group_id: { Args: { target_subject_id: string }; Returns: string }
       transfer_ownership: {

@@ -116,12 +116,19 @@ export function groupErrorMessage(error: Error) {
 export function useCreateGroup() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (fields: GroupFields) => {
+    mutationFn: async ({
+      ownSubjectOnly,
+      ...fields
+    }: GroupFields & { ownSubjectOnly: boolean }) => {
       // The id is made here because the new row can't be read back in the same
       // request: the owner membership that makes it visible is added by a
       // trigger after the insert (see the groups migration).
       const id = crypto.randomUUID()
-      const { error } = await supabase.from('groups').insert({ id, ...fields })
+      const { error } = await supabase.from('groups').insert({
+        id,
+        ...fields,
+        members_edit_own_subject_only: ownSubjectOnly,
+      })
       if (error) throw error
       return id
     },
@@ -132,7 +139,11 @@ export function useCreateGroup() {
 export function useUpdateGroup(groupId: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (fields: GroupFields) => {
+    // ownSubjectOnly: the owner's new choice, or undefined to leave it.
+    mutationFn: async ({
+      ownSubjectOnly,
+      ...fields
+    }: GroupFields & { ownSubjectOnly?: boolean }) => {
       const { data, error } = await supabase
         .from('groups')
         .update(fields)
@@ -141,7 +152,18 @@ export function useUpdateGroup(groupId: string) {
       if (error) throw error
       // RLS turns a refused update into "no rows", not an error.
       if (data.length === 0) throw new Error('not_allowed')
+      if (ownSubjectOnly !== undefined) {
+        const { error } = await supabase.rpc(
+          'set_members_edit_own_subject_only',
+          { target_group_id: groupId, enabled: ownSubjectOnly },
+        )
+        if (error) throw error
+      }
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: groupKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: groupKeys.all })
+      // Whom the user may log for can change with the setting.
+      queryClient.invalidateQueries({ queryKey: ['loggable-groups'] })
+    },
   })
 }

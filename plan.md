@@ -29,7 +29,7 @@ Status: ✅ done · 🚧 in progress · ⏸️ paused with open items · ⬜ not
 | 9 | Invitations and joining | ✅ | 2026-11-10 | `13842c5`, `4fa2c2e` |
 | 10 | Managing members and leaving | ✅ | 2026-11-10 | `3576ec8` |
 | 11 | Value visibility | ✅ | `848d4fd` | Also: "Saved." toasts, dates as dd/mm/yyyy |
-| 12 | "Own subject only" setting, CSV export | ⬜ | | |
+| 12 | "Own subject only" setting, CSV export | 🚧 | | |
 | 13 | Email invites | ⬜ | | |
 | 14 | Archive and delete groups | ⬜ | | |
 | 15 | Account deletion | ⬜ | | |
@@ -45,7 +45,6 @@ Anything left unfinished, deferred or worth knowing before the next step. Each i
 - **Cloud auth settings** (steps 1–2). Everything set in `supabase/config.toml` (sign-ups off, minimum password length 8, site/redirect URLs, `double_confirm_changes = false`, email templates, change notifications) has to be repeated in the cloud project. Resolved in step 16.
 - **End-to-end cleanup goes around the app** (step 3). `deleteOwnedGroups` in `e2e/support/local-supabase.ts` deletes test groups straight from the local database (`pg`), because the app can't delete groups yet. `clearDefaultGroup` (step 6) likewise removes what tests add to an account's default group. Switch the tests to deleting through the app in step 14.
 - **`subjects.visibility_frozen` not added yet** (step 4). tech.md's data model has it for former members' subjects (FR-23); it's added with leaving and removing members in step 10.
-- **Leaving doesn't offer the CSV export yet** (step 10). FR-23 offers an export before leaving; add it to the leave section once the export exists (step 12).
 - **App bundle size** (step 7). The main JavaScript bundle is about 285 KB gzipped (Supabase client, UI primitives, forms); the charts load separately (about 110 KB) on group pages only. Consider splitting by route before going live (step 16).
 - **Local end-to-end runs use 4 browsers at a time** (step 9, `playwright.config.ts`). With 8 (the default on a 16-core machine) tests got slow and timed out at random once the Edge Function runtime joined the stack. CI keeps the default and its 2 retries.
 - **CI**: green on `main` through step 11 (`b057730`). Chromium is cached per Playwright version and installed without `--with-deps`; if a runner image update ever breaks Chromium with missing libraries, add `pnpm exec playwright install-deps chromium` back. The slowest e2e step is now starting Supabase (~80 s).
@@ -213,6 +212,7 @@ At this point the app is fully usable for **solo and family tracking**, without 
 
 - Owner-only group setting that limits logging to each member's own subject.
 - CSV export per group, using `get_series`, with actual values where visible and % where hidden, plus a column saying which.
+  - Done with `get_entry_rows` instead of `get_series`: it lists every entry with its comment and who logged it, and already gives hidden values as %. Also offered in the leave section (FR-23).
 
 ---
 

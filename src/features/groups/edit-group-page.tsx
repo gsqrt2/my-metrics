@@ -9,7 +9,8 @@ import { toGroupForm } from '@/features/groups/schemas'
 import { canEditGroup, type GroupRow } from '@/features/groups/types'
 import { groupErrorMessage, useUpdateGroup } from '@/features/groups/use-groups'
 
-// FR-11: owners and editors edit name, description and duration.
+// FR-11: owners and editors edit name, description and duration; the owner
+// also "Everyone logs only for themselves" (§5).
 export function EditGroupPage() {
   return <WithGroup>{(group) => <EditGroup group={group} />}</WithGroup>
 }
@@ -41,14 +42,25 @@ function EditGroup({ group }: { group: GroupRow }) {
       {back}
       <PageHeader title="Edit logbook" description={group.name} />
       <GroupForm
-        defaultValues={toGroupForm(group)}
+        defaultValues={toGroupForm(group, group.membersEditOwnSubjectOnly)}
         submitLabel="Save changes"
         pendingLabel="Saving…"
         cancelTo={groupPath}
         isPending={update.isPending}
         error={update.error ? groupErrorMessage(update.error) : undefined}
-        onSubmit={(fields) =>
-          update.mutate(fields, { onSuccess: () => navigate(groupPath) })
+        offerOwnSubjectOnly={group.role === 'owner'}
+        onSubmit={(fields, ownSubjectOnly) =>
+          update.mutate(
+            {
+              ...fields,
+              ownSubjectOnly:
+                group.role === 'owner' &&
+                ownSubjectOnly !== group.membersEditOwnSubjectOnly
+                  ? ownSubjectOnly
+                  : undefined,
+            },
+            { onSuccess: () => navigate(groupPath) },
+          )
         }
       />
     </>

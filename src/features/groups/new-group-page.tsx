@@ -25,10 +25,14 @@ export function NewGroupPage() {
         cancelTo="/logbooks"
         isPending={create.isPending}
         error={create.error ? groupErrorMessage(create.error) : undefined}
-        onSubmit={(fields) =>
-          create.mutate(fields, {
-            onSuccess: (id) => navigate(`/logbooks/${id}`),
-          })
+        offerOwnSubjectOnly
+        onSubmit={(fields, ownSubjectOnly) =>
+          create.mutate(
+            { ...fields, ownSubjectOnly },
+            {
+              onSuccess: (id) => navigate(`/logbooks/${id}`),
+            },
+          )
         }
       />
     </>

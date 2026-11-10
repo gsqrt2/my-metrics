@@ -102,6 +102,7 @@ describe('saving a group', () => {
         ends_on: '2027-03-28',
       }),
     ).toEqual({
+      ownSubjectOnly: false,
       name: 'Diet',
       description: '',
       hasDuration: true,
