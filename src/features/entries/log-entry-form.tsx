@@ -76,6 +76,14 @@ export function LogEntryForm({
   const [switchTo, setSwitchTo] = useState<string | null>(null)
 
   const group = groups.find((g) => g.id === groupId)
+  // FR-43: attributes the chosen subject keeps "% only" are logged by its
+  // linked user alone, so they aren't offered here.
+  const subject = group?.subjects.find((s) => s.id === subjectId)
+  const locked = group?.attributes.filter((a) =>
+    subject?.lockedAttributeIds.includes(a.id),
+  )
+  const fields =
+    group?.attributes.filter((a) => !locked?.some((l) => l.id === a.id)) ?? []
   const presetUnavailable =
     presetGroupId !== undefined && !groups.some((g) => g.id === presetGroupId)
   const hasValues = Object.values(values).some((v) => v.trim() !== '')
@@ -92,12 +100,12 @@ export function LogEntryForm({
     log.reset()
   }
 
-  function validate(target: LoggableGroup): Errors {
+  function validate(): Errors {
     const found: Errors = {}
     if (!subjectId) found.subject = 'Choose a participant.'
     const when = measuredAtError(measuredAt)
     if (when) found.measuredAt = when
-    for (const attribute of target.attributes) {
+    for (const attribute of fields) {
       const error = valueError(values[attribute.id] ?? '', attribute)
       if (error) found[attribute.id] = error
     }
@@ -113,12 +121,12 @@ export function LogEntryForm({
       setErrors({ group: 'Choose a logbook.' })
       return
     }
-    const found = validate(group)
+    const found = validate()
     setErrors(found)
     if (Object.keys(found).length > 0) return
 
     const at = fromLocalInputValue(measuredAt)!.toISOString()
-    const entries: NewEntry[] = group.attributes
+    const entries: NewEntry[] = fields
       .filter((a) => (values[a.id] ?? '').trim() !== '')
       .map((a) => ({
         subject_id: subjectId,
@@ -237,7 +245,14 @@ export function LogEntryForm({
             <p className="-mt-1 text-sm text-muted-foreground">
               Fill in what you measured; leave the rest empty.
             </p>
-            {group.attributes.map((attribute) => (
+            {locked && locked.length > 0 && subject && (
+              <p className="text-sm text-muted-foreground">
+                {subject.name} keeps {locked.map((a) => a.name).join(', ')}{' '}
+                private, so only {subject.name} can log{' '}
+                {locked.length === 1 ? 'it' : 'them'}.
+              </p>
+            )}
+            {fields.map((attribute) => (
               <FormField
                 key={attribute.id}
                 id={`entry-value-${attribute.id}`}

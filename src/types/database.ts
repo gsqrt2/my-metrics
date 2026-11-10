@@ -426,6 +426,43 @@ export type Database = {
           },
         ]
       }
+      value_visibility: {
+        Row: {
+          attribute_id: string
+          subject_id: string
+          updated_at: string
+          visibility: Database['public']['Enums']['value_visibility_mode']
+        }
+        ComputedFields: never
+        Insert: {
+          attribute_id: string
+          subject_id: string
+          updated_at?: string
+          visibility: Database['public']['Enums']['value_visibility_mode']
+        }
+        Update: {
+          attribute_id?: string
+          subject_id?: string
+          updated_at?: string
+          visibility?: Database['public']['Enums']['value_visibility_mode']
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'value_visibility_attribute_id_fkey'
+            columns: ['attribute_id']
+            isOneToOne: false
+            referencedRelation: 'attributes'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'value_visibility_subject_id_fkey'
+            columns: ['subject_id']
+            isOneToOne: false
+            referencedRelation: 'subjects'
+            referencedColumns: ['id']
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -439,12 +476,20 @@ export type Database = {
         }
         Returns: string
       }
+      attribute_entry_count: {
+        Args: { target_attribute_id: string }
+        Returns: number
+      }
       attribute_has_entries: {
         Args: { target_attribute_id: string }
         Returns: boolean
       }
       can_see_values: {
         Args: { target_attribute_id: string; target_subject_id: string }
+        Returns: boolean
+      }
+      can_set_visibility: {
+        Args: { target_subject_id: string }
         Returns: boolean
       }
       can_write_entry: {
@@ -483,6 +528,30 @@ export type Database = {
           previous_at: string
           previous_value: number
           subject_id: string
+        }[]
+      }
+      get_entry_rows: {
+        Args: {
+          attribute_filter?: string
+          page_offset?: number
+          page_size?: number
+          sort?: string
+          subject_filter?: string
+          target_group_id: string
+        }
+        Returns: {
+          attribute_id: string
+          comment: string
+          created_at: string
+          creator_name: string
+          entry_id: string
+          measured_at: string
+          pct_change: number
+          subject_id: string
+          total_count: number
+          updated_at: string
+          updater_name: string
+          value: number
         }[]
       }
       get_invite_preview: {
@@ -554,6 +623,7 @@ export type Database = {
         Returns: undefined
       }
       shares_group_with: { Args: { target_user_id: string }; Returns: boolean }
+      subject_group_id: { Args: { target_subject_id: string }; Returns: string }
       transfer_ownership: {
         Args: { new_owner_id: string; target_group_id: string }
         Returns: undefined
@@ -575,6 +645,7 @@ export type Database = {
         | 'green'
         | 'violet'
         | 'red'
+      value_visibility_mode: 'absolute' | 'relative'
     }
     CompositeTypes: {
       [_ in never]: never
@@ -714,6 +785,7 @@ export const Constants = {
         'violet',
         'red',
       ],
+      value_visibility_mode: ['absolute', 'relative'],
     },
   },
 } as const

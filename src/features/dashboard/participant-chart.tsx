@@ -1,3 +1,4 @@
+import { Badge } from '@/components/ui/badge'
 import type { Attribute } from '@/features/attributes/use-attributes'
 import { attributesWithoutChange } from '@/features/dashboard/chart-data'
 import { formatPercent } from '@/features/dashboard/chart-format'
@@ -95,9 +96,16 @@ export function ParticipantChart({
                   <span className="truncate">{attribute.name}</span>
                 </span>
                 <span className="font-medium tabular-nums">
-                  {row!.latest_value === null
-                    ? 'hidden'
-                    : formatValue(row!.latest_value, attribute)}
+                  {row!.latest_value === null ? (
+                    <Badge
+                      variant="outline"
+                      title="Only the change since the first entry is shared"
+                    >
+                      % only
+                    </Badge>
+                  ) : (
+                    formatValue(row!.latest_value, attribute)
+                  )}
                 </span>
                 {row!.entry_count > 1 && row!.pct_since_first !== null && (
                   <span className="text-xs text-muted-foreground tabular-nums">

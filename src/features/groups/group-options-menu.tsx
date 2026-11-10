@@ -1,10 +1,12 @@
 import {
   ChevronDown,
   Contact,
+  EyeOff,
   Pencil,
   Ruler,
   UserPlus,
   Users,
+  type LucideIcon,
 } from 'lucide-react'
 import { Link } from 'react-router'
 
@@ -15,12 +17,28 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import type { GroupRow } from '@/features/groups/types'
+import { canEditGroup, type GroupRow } from '@/features/groups/types'
 
-// The logbook's management pages behind one button, so the header stays one
-// line on phones as later steps add members, archiving and so on.
+// The logbook's other pages behind one button, so the header stays one line
+// on phones. Everyone gets the items they may use: members and privacy for
+// all, management for owners and editors (§5).
 export function GroupOptionsMenu({ group }: { group: GroupRow }) {
   const base = `/logbooks/${group.id}`
+  const manage = canEditGroup(group)
+  const items: {
+    to: string
+    label: string
+    icon: LucideIcon
+    show: boolean
+  }[] = [
+    { to: 'participants', label: 'Participants', icon: Users, show: manage },
+    { to: 'metrics', label: 'Metrics', icon: Ruler, show: manage },
+    { to: 'members', label: 'Members', icon: Contact, show: true },
+    { to: 'invites', label: 'Invite people', icon: UserPlus, show: manage },
+    { to: 'privacy', label: 'Privacy', icon: EyeOff, show: true },
+    { to: 'edit', label: 'Edit logbook', icon: Pencil, show: manage },
+  ]
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -30,36 +48,16 @@ export function GroupOptionsMenu({ group }: { group: GroupRow }) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-48">
-        <DropdownMenuItem asChild>
-          <Link to={`${base}/participants`}>
-            <Users aria-hidden />
-            Participants
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link to={`${base}/metrics`}>
-            <Ruler aria-hidden />
-            Metrics
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link to={`${base}/members`}>
-            <Contact aria-hidden />
-            Members
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link to={`${base}/invites`}>
-            <UserPlus aria-hidden />
-            Invite people
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link to={`${base}/edit`}>
-            <Pencil aria-hidden />
-            Edit logbook
-          </Link>
-        </DropdownMenuItem>
+        {items
+          .filter((item) => item.show)
+          .map((item) => (
+            <DropdownMenuItem key={item.to} asChild>
+              <Link to={`${base}/${item.to}`}>
+                <item.icon aria-hidden />
+                {item.label}
+              </Link>
+            </DropdownMenuItem>
+          ))}
       </DropdownMenuContent>
     </DropdownMenu>
   )

@@ -12,14 +12,14 @@ import { attributeLabel } from '@/features/attributes/format'
 import { useAttributes } from '@/features/attributes/use-attributes'
 import { useAuth } from '@/features/auth/use-auth'
 import { formatDateTime } from '@/features/entries/datetime'
-import { formatValue } from '@/features/entries/format'
+import { EntryValue } from '@/features/entries/entry-value'
 import { canLogFor } from '@/features/entries/permissions'
 import {
   ENTRIES_PAGE_SIZE,
-  useEntryTable,
-  type Entry,
+  useEntryRows,
+  type EntryRow,
   type EntrySort,
-} from '@/features/entries/use-entries'
+} from '@/features/entries/use-entry-rows'
 import { WithGroup } from '@/features/groups/group-page'
 import type { GroupRow } from '@/features/groups/types'
 import { SubjectAvatar } from '@/features/subjects/subject-avatar'
@@ -40,16 +40,19 @@ function EntryTable({ group }: { group: GroupRow }) {
   const [attributeId, setAttributeId] = useState('')
   const [sort, setSort] = useState<EntrySort>('newest')
   const [page, setPage] = useState(0)
-  const table = useEntryTable(group.id, {
+  const table = useEntryRows(group.id, {
     subjectId: subjectId || undefined,
     attributeId: attributeId || undefined,
     sort,
+    pageSize: ENTRIES_PAGE_SIZE,
     page,
   })
 
-  const canEdit = (entry: Entry) =>
+  // Values hidden from the viewer (FR-43) can't be edited by them.
+  const canEdit = (entry: EntryRow) =>
     canLogFor(group, entry.subject, session?.user.id) &&
-    !entry.attribute.archived_at
+    !entry.attribute.archived_at &&
+    entry.value !== null
   const pages = Math.max(
     1,
     Math.ceil((table.data?.total ?? 0) / ENTRIES_PAGE_SIZE),
@@ -160,9 +163,11 @@ function EntryTable({ group }: { group: GroupRow }) {
                 <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <div className="flex flex-wrap items-baseline gap-x-2">
                     <span className="font-medium">{entry.attribute.name}</span>
-                    <span className="font-medium tabular-nums">
-                      {formatValue(entry.value, entry.attribute)}
-                    </span>
+                    <EntryValue
+                      value={entry.value}
+                      pctChange={entry.pct_change}
+                      attribute={entry.attribute}
+                    />
                   </div>
                   <span className="text-sm text-muted-foreground">
                     {entry.subject.name} ·{' '}
@@ -224,8 +229,12 @@ function EntryTable({ group }: { group: GroupRow }) {
                       </span>
                     </td>
                     <td className="px-4 py-2">{entry.attribute.name}</td>
-                    <td className="px-4 py-2 text-right font-medium whitespace-nowrap tabular-nums">
-                      {formatValue(entry.value, entry.attribute)}
+                    <td className="px-4 py-2 text-right whitespace-nowrap">
+                      <EntryValue
+                        value={entry.value}
+                        pctChange={entry.pct_change}
+                        attribute={entry.attribute}
+                      />
                     </td>
                     <td className="max-w-64 px-4 py-2 break-words text-muted-foreground">
                       {entry.comment}
@@ -270,7 +279,7 @@ function EntryTable({ group }: { group: GroupRow }) {
   )
 }
 
-function EditLink({ groupId, entry }: { groupId: string; entry: Entry }) {
+function EditLink({ groupId, entry }: { groupId: string; entry: EntryRow }) {
   return (
     <Button asChild variant="ghost" size="icon">
       <Link

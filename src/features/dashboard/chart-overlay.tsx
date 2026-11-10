@@ -14,6 +14,7 @@ import { attributeLabel } from '@/features/attributes/format'
 import type { Attribute } from '@/features/attributes/use-attributes'
 import {
   fullScreenMaxPoints,
+  hasHiddenValues,
   periodRange,
   type Period,
   type XMode,
@@ -151,7 +152,16 @@ function FullScreenChart({
   const canAge =
     shownSubjects.length > 0 && shownSubjects.every((s) => s.birthdate)
   const xMode = canAge ? x : 'date'
-  const yMode = isMetric ? y : 'pct'
+  // FR-62: with values hidden from the viewer (FR-43), only % change.
+  const hidden =
+    isMetric &&
+    !!attribute &&
+    hasHiddenValues(
+      series.data ?? [],
+      attribute.id,
+      shownSubjects.map((s) => s.id),
+    )
+  const yMode = !isMetric || hidden ? 'pct' : y
   const showsChange = yMode !== 'value'
 
   const title = attribute
@@ -196,8 +206,13 @@ function FullScreenChart({
           value={period}
           onChange={setPeriod}
         />
-        {isMetric && (
+        {isMetric && !hidden && (
           <Segmented label="Show" options={yModes} value={y} onChange={setY} />
+        )}
+        {hidden && (
+          <p className="text-sm text-muted-foreground">
+            % change only: some participants keep their values here private.
+          </p>
         )}
         {hasDuration && showsChange && (
           <Segmented

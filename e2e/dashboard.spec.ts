@@ -90,12 +90,13 @@ test('only the expand button opens a chart full screen', async ({ page }) => {
 test('a chart opens full screen with time spans, y-axis and age options', async ({
   page,
 }) => {
+  // Waist: nobody keeps it private, so every option is there.
   await page.goto('/logbooks/b0000000-0000-0000-0000-000000000002') // Diet Challenge
   await page
-    .getByRole('button', { name: 'Open Weight (kg) full screen' })
+    .getByRole('button', { name: 'Open Waist (cm) full screen' })
     .click()
 
-  const full = page.getByRole('dialog', { name: 'Weight (kg)' })
+  const full = page.getByRole('dialog', { name: 'Waist (cm)' })
   const span = full.getByRole('group', { name: 'Time span' })
   // Everything by default; there's no "Duration" span.
   await expect(span.getByRole('button', { name: 'All' })).toHaveAttribute(
@@ -103,9 +104,7 @@ test('a chart opens full screen with time spans, y-axis and age options', async 
     'true',
   )
   await expect(span.getByRole('button', { name: 'Duration' })).toHaveCount(0)
-  await expect(
-    full.getByRole('img', { name: /Weight over time/ }),
-  ).toBeVisible()
+  await expect(full.getByRole('img', { name: /Waist over time/ })).toBeVisible()
   await span.getByRole('button', { name: 'Week' }).click()
   await expect(span.getByRole('button', { name: 'Week' })).toHaveAttribute(
     'aria-pressed',
@@ -128,6 +127,23 @@ test('a chart opens full screen with time spans, y-axis and age options', async 
   await page.keyboard.press('Escape')
   await expect(full).toHaveCount(0)
   await page.getByRole('button', { name: 'Show all' }).click()
+})
+
+test('a chart with private values offers only % change (FR-62)', async ({
+  page,
+}) => {
+  // Kim keeps her weight private in the demo data.
+  await page.goto('/logbooks/b0000000-0000-0000-0000-000000000002') // Diet Challenge
+  await page
+    .getByRole('button', { name: 'Open Weight (kg) full screen' })
+    .click()
+  const full = page.getByRole('dialog', { name: 'Weight (kg)' })
+  await expect(full.getByRole('group', { name: 'Show' })).toHaveCount(0)
+  await expect(
+    full.getByText(
+      '% change only: some participants keep their values here private.',
+    ),
+  ).toBeVisible()
 })
 
 test('children can be compared by age', async ({ page }) => {

@@ -6,13 +6,11 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/features/auth/use-auth'
 import { formatDateTime } from '@/features/entries/datetime'
-import { formatValue } from '@/features/entries/format'
+import { EntryValue } from '@/features/entries/entry-value'
 import { useLogEntry } from '@/features/entries/log-entry-context'
 import { canLogFor } from '@/features/entries/permissions'
-import {
-  RECENT_ENTRIES_LIMIT,
-  useRecentEntries,
-} from '@/features/entries/use-entries'
+import { useEntryRows } from '@/features/entries/use-entry-rows'
+import { RECENT_ENTRIES_LIMIT } from '@/features/entries/use-entries'
 import type { GroupRow } from '@/features/groups/types'
 import { SubjectAvatar } from '@/features/subjects/subject-avatar'
 
@@ -22,7 +20,12 @@ const INITIAL_COUNT = 5
 // The group's latest entries on the group page, newest first, below the
 // charts: secondary to them. The full table comes in step 8.
 export function EntriesSection({ group }: { group: GroupRow }) {
-  const entries = useRecentEntries(group.id)
+  const rows = useEntryRows(group.id, {
+    sort: 'newest',
+    pageSize: RECENT_ENTRIES_LIMIT,
+    page: 0,
+  })
+  const entries = { ...rows, data: rows.data?.entries }
   const [showAll, setShowAll] = useState(false)
   const shown = showAll ? entries.data : entries.data?.slice(0, INITIAL_COUNT)
   const { openLogEntry } = useLogEntry()
@@ -64,9 +67,11 @@ export function EntriesSection({ group }: { group: GroupRow }) {
           className="divide-y rounded-xl border bg-card"
         >
           {shown!.map((entry) => {
+            // Values hidden from the viewer (FR-43) can't be edited by them.
             const editable =
               canLogFor(group, entry.subject, userId) &&
-              !entry.attribute.archived_at
+              !entry.attribute.archived_at &&
+              entry.value !== null
             return (
               <li key={entry.id} className="flex items-start gap-3 px-4 py-3">
                 <SubjectAvatar
@@ -77,9 +82,11 @@ export function EntriesSection({ group }: { group: GroupRow }) {
                 <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <div className="flex flex-wrap items-baseline gap-x-2">
                     <span className="font-medium">{entry.attribute.name}</span>
-                    <span className="font-medium tabular-nums">
-                      {formatValue(entry.value, entry.attribute)}
-                    </span>
+                    <EntryValue
+                      value={entry.value}
+                      pctChange={entry.pct_change}
+                      attribute={entry.attribute}
+                    />
                   </div>
                   <span className="text-sm text-muted-foreground">
                     {entry.subject.name} ·{' '}

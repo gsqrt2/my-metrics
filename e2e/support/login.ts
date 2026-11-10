@@ -17,7 +17,13 @@ export async function logIn(
 // Opens one of the logbook's management pages through its Options menu.
 export async function openLogbookOption(
   page: Page,
-  option: 'Participants' | 'Metrics' | 'Invite people' | 'Edit logbook',
+  option:
+    | 'Participants'
+    | 'Metrics'
+    | 'Members'
+    | 'Invite people'
+    | 'Privacy'
+    | 'Edit logbook',
 ) {
   await page.getByRole('button', { name: 'Options' }).click()
   await page.getByRole('menuitem', { name: option }).click()

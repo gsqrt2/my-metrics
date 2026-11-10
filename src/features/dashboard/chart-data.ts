@@ -160,3 +160,20 @@ export function fullScreenMaxPoints(width: number) {
 }
 
 export const SMALL_CHART_MAX_POINTS = 100
+
+// Whether any of these subjects keeps this attribute's values private from
+// the viewer (FR-43): such points have a % change but no value. Charts with
+// hidden values are shown as % change only (FR-62).
+export function hasHiddenValues(
+  points: Pick<SeriesPoint, 'subject_id' | 'attribute_id' | 'value'>[],
+  attributeId: string,
+  subjectIds: string[],
+) {
+  const shown = new Set(subjectIds)
+  return points.some(
+    (p) =>
+      p.attribute_id === attributeId &&
+      shown.has(p.subject_id) &&
+      p.value === null,
+  )
+}

@@ -6,7 +6,7 @@ import { PageHeader } from '@/app/layout/page-header'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { GroupMeta } from '@/features/groups/group-meta'
-import { canEditGroup, type GroupRow } from '@/features/groups/types'
+import type { GroupRow } from '@/features/groups/types'
 import { useGroup } from '@/features/groups/use-groups'
 import { AttributesSection } from '@/features/attributes/attributes-section'
 import { EntriesSection } from '@/features/entries/entries-section'
@@ -93,7 +93,7 @@ function GroupHome({ group }: { group: GroupRow }) {
       <PageHeader
         title={group.name}
         description={group.description ?? undefined}
-        actions={canEditGroup(group) && <GroupOptionsMenu group={group} />}
+        actions={<GroupOptionsMenu group={group} />}
       />
       <div className="-mt-4 mb-8">
         <GroupMeta group={group} linkMembers />

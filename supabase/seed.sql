@@ -30,7 +30,8 @@ from (values
   ('a0000000-0000-0000-0000-000000000012'::uuid, 'tom@example.com', 'Tom Example'),
   ('a0000000-0000-0000-0000-000000000013'::uuid, 'uma@example.com', 'Uma Example'),
   ('a0000000-0000-0000-0000-000000000014'::uuid, 'val@example.com', 'Val Example'),
-  ('a0000000-0000-0000-0000-000000000015'::uuid, 'wes@example.com', 'Wes Example')
+  ('a0000000-0000-0000-0000-000000000015'::uuid, 'wes@example.com', 'Wes Example'),
+  ('a0000000-0000-0000-0000-000000000016'::uuid, 'yan@example.com', 'Yan Example')
 ) as u (id, email, display_name);
 
 insert into auth.identities (
@@ -130,3 +131,8 @@ $$;
 
 drop table diet_entries;
 select set_config('request.jwt.claims', '', false);
+
+-- Value visibility (step 11): Kim shows the others only the % change of her
+-- weight in Diet Challenge (FR-43).
+insert into public.value_visibility (subject_id, attribute_id, visibility) values
+  ('c0000000-0000-0000-0000-000000000005', 'd1000000-0000-0000-0000-000000000003', 'relative');
