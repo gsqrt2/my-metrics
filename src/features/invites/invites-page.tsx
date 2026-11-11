@@ -15,7 +15,11 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { useAuth } from '@/features/auth/use-auth'
 import { WithGroup } from '@/features/groups/group-page'
-import { canEditGroup, type GroupRow } from '@/features/groups/types'
+import {
+  canEditGroup,
+  cantManageText,
+  type GroupRow,
+} from '@/features/groups/types'
 import {
   inviteLink,
   sendInviteErrorMessage,
@@ -68,7 +72,10 @@ function Invites({ group }: { group: GroupRow }) {
         {back}
         <PageHeader
           title="Invite people"
-          description="Only the logbook's owner and editors can invite people."
+          description={cantManageText(
+            group,
+            "Only the logbook's owner and editors can invite people.",
+          )}
         />
         <Button asChild variant="outline">
           <Link to={groupPath}>Back to {group.name}</Link>

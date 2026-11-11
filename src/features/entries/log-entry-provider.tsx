@@ -39,6 +39,7 @@ export function LogEntryProvider({ children }: { children: React.ReactNode }) {
     },
     [queryClient],
   )
+  const presetGroup = allGroups.data?.find((g) => g.id === state.presetGroupId)
   const close = () => setState((s) => ({ ...s, open: false }))
   const value = useMemo(() => ({ openLogEntry }), [openLogEntry])
 
@@ -79,10 +80,8 @@ export function LogEntryProvider({ children }: { children: React.ReactNode }) {
                 key={state.key}
                 groups={groups.data}
                 presetGroupId={state.presetGroupId}
-                presetGroupName={
-                  allGroups.data?.find((g) => g.id === state.presetGroupId)
-                    ?.name
-                }
+                presetGroupName={presetGroup?.name}
+                presetGroupArchived={presetGroup?.isArchived}
                 onCancel={close}
                 onSaved={(groupId) => {
                   close()

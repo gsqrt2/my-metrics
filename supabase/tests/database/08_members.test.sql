@@ -128,7 +128,8 @@ select throws_ok(
 insert into public.invites (id, group_id, role, expires_at)
 values ('f1000000-0000-0000-0000-000000000001', 'd0000000-0000-0000-0000-000000000001', 'viewer', now() + interval '1 day');
 reset role;
-create temporary table tokens on commit drop as select id, token from public.invites;
+create temporary table tokens on commit drop as
+  select id, token from public.invites where id = 'f1000000-0000-0000-0000-000000000001';
 grant select on tokens to authenticated;
 set local role authenticated;
 select is(

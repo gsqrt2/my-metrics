@@ -10,6 +10,7 @@ import type { GroupRow } from '@/features/groups/types'
 import { useGroup } from '@/features/groups/use-groups'
 import { AttributesSection } from '@/features/attributes/attributes-section'
 import { EntriesSection } from '@/features/entries/entries-section'
+import { ArchivedNotice } from '@/features/groups/group-lifecycle'
 import { GroupOptionsMenu } from '@/features/groups/group-options-menu'
 import { useAttributes } from '@/features/attributes/use-attributes'
 import { useChartMode } from '@/features/dashboard/chart-mode'
@@ -98,7 +99,10 @@ function GroupHome({ group }: { group: GroupRow }) {
       <div className="-mt-4 mb-8">
         <GroupMeta group={group} linkMembers />
       </div>
-      {group.role === 'owner' && <PendingRequestsNotice group={group} />}
+      {group.isArchived && <ArchivedNotice group={group} />}
+      {group.role === 'owner' && !group.isArchived && (
+        <PendingRequestsNotice group={group} />
+      )}
       <div className="flex flex-col gap-4">
         <SubjectsSection
           subjects={activeSubjects}

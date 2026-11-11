@@ -25,6 +25,7 @@ export const users = {
   val: { email: 'val@example.com', displayName: 'Val Example' }, // members (owner)
   wes: { email: 'wes@example.com', displayName: 'Wes Example' }, // members (member)
   yan: { email: 'yan@example.com', displayName: 'Yan Example' }, // privacy
+  zoe: { email: 'zoe@example.com', displayName: 'Zoe Example' }, // archive, delete
 }
 
 export const MAILPIT_URL = 'http://127.0.0.1:54324'

@@ -11,8 +11,20 @@ export type GroupRow = Pick<
   // §5 "Members can only edit their own subject" (set by the owner, step 12).
   membersEditOwnSubjectOnly: boolean
   isArchived: boolean
+  archivedAt: string | null
 }
 
+// FR-11: owners and editors manage a group, unless it's archived (read-only
+// for everyone, step 14).
 export function canEditGroup(group: GroupRow) {
-  return group.role === 'owner' || group.role === 'editor' // FR-11
+  return (
+    !group.isArchived && (group.role === 'owner' || group.role === 'editor')
+  )
+}
+
+// Why a management page can't be used: archived, or the user's role.
+export function cantManageText(group: GroupRow, roleText: string) {
+  return group.isArchived
+    ? 'This logbook is archived, so nothing in it can be changed.'
+    : roleText
 }

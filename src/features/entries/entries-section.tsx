@@ -38,14 +38,16 @@ export function EntriesSection({ group }: { group: GroupRow }) {
         <h2 id="entries-heading" className="font-heading font-semibold">
           Recent entries
         </h2>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => openLogEntry(group.id)}
-        >
-          <Plus aria-hidden />
-          Log entry
-        </Button>
+        {!group.isArchived && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => openLogEntry(group.id)}
+          >
+            <Plus aria-hidden />
+            Log entry
+          </Button>
+        )}
       </div>
 
       {entries.isPending && (

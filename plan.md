@@ -31,7 +31,7 @@ Status: ✅ done · 🚧 in progress · ⏸️ paused with open items · ⬜ not
 | 11 | Value visibility | ✅ | `848d4fd` | Also: "Saved." toasts, dates as dd/mm/yyyy |
 | 12 | "Own subject only" setting, CSV export | ✅ | `49de995` | |
 | 13 | Email invites | ✅ | `9ae2b51` | Cloud SMTP: open item for step 16 |
-| 14 | Archive and delete groups | ⬜ | | |
+| 14 | Archive and delete groups | 🚧 | | |
 | 15 | Account deletion | ⬜ | | |
 | 16 | Go live | ⬜ | | |
 
@@ -44,11 +44,11 @@ Anything left unfinished, deferred or worth knowing before the next step. Each i
 - **Current-password check is client-side** (step 2). Supabase doesn't verify `current_password` on password change, so the app checks it with a throwaway sign-in ([verify-password.ts](src/features/profile/verify-password.ts)). It stops mistakes, not someone who already holds the session. Revisit if a server-side check (Edge Function) becomes worth it; see [tech.md §3](tech.md).
 - **Cloud auth settings** (steps 1–2). Everything set in `supabase/config.toml` (sign-ups off, minimum password length 8, site/redirect URLs, `double_confirm_changes = false`, email templates, change notifications) has to be repeated in the cloud project. Resolved in step 16.
 - **Cloud email** (step 13). Choose a mail provider that offers SMTP on port 465 (Supabase blocks outgoing 25 and 587 from Edge Functions), e.g. Resend, Brevo or SendGrid, and a sender address on a domain we control. Then set it twice: `supabase secrets set SMTP_HOST SMTP_PORT=465 SMTP_USER SMTP_PASS MAIL_FROM APP_URL` for `send-invite`, and the project's custom SMTP (Auth settings) for password reset and email change. Resolved in step 16.
-- **End-to-end cleanup goes around the app** (step 3). `deleteOwnedGroups` in `e2e/support/local-supabase.ts` deletes test groups straight from the local database (`pg`), because the app can't delete groups yet. `clearDefaultGroup` (step 6) likewise removes what tests add to an account's default group. Switch the tests to deleting through the app in step 14.
+- **End-to-end cleanup goes around the app** (step 3). Kept on purpose after step 14: `deleteOwnedGroups` and `clearDefaultGroup` still clean up straight in the local database, since cleanup must also work after a test failed halfway. Deleting through the app is tested in `e2e/lifecycle.spec.ts`.
 - **`subjects.visibility_frozen` not added yet** (step 4). tech.md's data model has it for former members' subjects (FR-23); it's added with leaving and removing members in step 10.
 - **App bundle size** (step 7). The main JavaScript bundle is about 285 KB gzipped (Supabase client, UI primitives, forms); the charts load separately (about 110 KB) on group pages only. Consider splitting by route before going live (step 16).
 - **Local end-to-end runs use 4 browsers at a time** (step 9, `playwright.config.ts`). With 8 (the default on a 16-core machine) tests got slow and timed out at random once the Edge Function runtime joined the stack. CI keeps the default and its 2 retries.
-- **CI**: green on `main` through step 12 (`9c7fc4f`). Chromium is cached per Playwright version and installed without `--with-deps`; if a runner image update ever breaks Chromium with missing libraries, add `pnpm exec playwright install-deps chromium` back. The slowest e2e step is now starting Supabase (~80 s).
+- **CI**: green on `main` through step 13 (`ff7edae`). Chromium is cached per Playwright version and installed without `--with-deps`; if a runner image update ever breaks Chromium with missing libraries, add `pnpm exec playwright install-deps chromium` back. The slowest e2e step is now starting Supabase (~80 s).
 
 ---
 
