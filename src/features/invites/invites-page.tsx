@@ -1,9 +1,11 @@
-import { Check, Copy, Link2 } from 'lucide-react'
+import { Check, Copy, Link2, Mail } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
+import { toast } from 'sonner'
 
 import { BackLink } from '@/app/layout/back-link'
 import { PageHeader } from '@/app/layout/page-header'
+import { FormField } from '@/components/form-field'
 import { NativeSelect } from '@/components/native-select'
 import { Segmented } from '@/components/segmented'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -16,11 +18,13 @@ import { WithGroup } from '@/features/groups/group-page'
 import { canEditGroup, type GroupRow } from '@/features/groups/types'
 import {
   inviteLink,
+  sendInviteErrorMessage,
   useCreateInvite,
   useDecideLinkRequest,
   useOpenInvites,
   usePendingLinkRequests,
   useRevokeInvite,
+  useSendInvite,
   type InviteRole,
 } from '@/features/invites/use-invites'
 import { formatDate } from '@/lib/dates'
@@ -33,14 +37,23 @@ const roleHints: Record<InviteRole, string> = {
   viewer: 'Sees everything, and logs for themselves.',
   editor: 'Also logs for others and manages participants and metrics.',
 }
+type Channel = 'link' | 'email'
+const channels: { value: Channel; label: string }[] = [
+  { value: 'link', label: 'Link' },
+  { value: 'email', label: 'Email' },
+]
+const channelHints: Record<Channel, string> = {
+  link: 'A link you share through any channel. Anyone who opens it can join until it expires or you withdraw it.',
+  email: 'We email a link that works once, only for that address.',
+}
 const durations = [
   { days: 1, label: '1 day' },
   { days: 7, label: '7 days' },
   { days: 30, label: '30 days' },
 ]
 
-// FR-20 – FR-22: invite links for owners and editors, and for the owner the
-// requests to be linked to a participant.
+// FR-20 – FR-22: invite links and email invites for owners and editors, and
+// for the owner the requests to be linked to a participant.
 export function InvitesPage() {
   return <WithGroup>{(group) => <Invites group={group} />}</WithGroup>
 }
@@ -69,7 +82,7 @@ function Invites({ group }: { group: GroupRow }) {
       {back}
       <PageHeader
         title="Invite people"
-        description={`Share a link to ${group.name} through any channel. Whoever opens it can join until it expires or you withdraw it.`}
+        description={`Invite people to ${group.name} with a link you share, or by email.`}
       />
       <div className="flex max-w-2xl flex-col gap-8">
         {group.role === 'owner' && <LinkRequests group={group} />}
@@ -83,9 +96,32 @@ function Invites({ group }: { group: GroupRow }) {
 
 function NewInvite({ group }: { group: GroupRow }) {
   const create = useCreateInvite(group.id)
+  const send = useSendInvite(group.id)
+  const [channel, setChannel] = useState<Channel>('link')
   const [role, setRole] = useState<InviteRole>('viewer')
   const [days, setDays] = useState(7)
   const [token, setToken] = useState<string | null>(null)
+  const [email, setEmail] = useState('')
+  const [emailError, setEmailError] = useState<string>()
+
+  function sendEmail(event: React.FormEvent) {
+    event.preventDefault()
+    const address = email.trim()
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)) {
+      setEmailError('Enter a valid email address.')
+      return
+    }
+    setEmailError(undefined)
+    send.mutate(
+      { email: address, role, days },
+      {
+        onSuccess: () => {
+          toast.success(`Invite sent to ${address}.`)
+          setEmail('')
+        },
+      },
+    )
+  }
 
   return (
     <section
@@ -93,8 +129,18 @@ function NewInvite({ group }: { group: GroupRow }) {
       className="flex flex-col gap-4"
     >
       <h2 id="new-invite-heading" className="font-heading font-semibold">
-        New invite link
+        New invite
       </h2>
+      <div className="flex flex-col gap-2">
+        <span className="text-sm font-medium">Invite with</span>
+        <Segmented
+          label="Invite with"
+          options={channels}
+          value={channel}
+          onChange={setChannel}
+        />
+        <p className="text-sm text-muted-foreground">{channelHints[channel]}</p>
+      </div>
       <div className="flex flex-col gap-2">
         <span className="text-sm font-medium">Joins as</span>
         <Segmented
@@ -119,24 +165,58 @@ function NewInvite({ group }: { group: GroupRow }) {
           ))}
         </NativeSelect>
       </div>
-      {create.isError && (
+      {channel === 'email' && (
+        <form
+          noValidate
+          onSubmit={sendEmail}
+          className="flex max-w-md flex-col gap-4"
+        >
+          <FormField
+            id="invite-email"
+            label="Email address"
+            type="email"
+            autoComplete="off"
+            value={email}
+            error={emailError}
+            onChange={(event) => setEmail(event.target.value)}
+          />
+          {send.isError && (
+            <Alert variant="destructive">
+              <AlertDescription>
+                {sendInviteErrorMessage(send.error)}
+              </AlertDescription>
+            </Alert>
+          )}
+          <Button
+            type="submit"
+            className="self-start"
+            disabled={send.isPending}
+          >
+            <Mail aria-hidden />
+            {send.isPending ? 'Sending…' : 'Send invite'}
+          </Button>
+        </form>
+      )}
+      {channel === 'link' && create.isError && (
         <Alert variant="destructive">
           <AlertDescription>
             The link couldn't be created. Please try again.
           </AlertDescription>
         </Alert>
       )}
-      <Button
-        className="self-start"
-        disabled={create.isPending}
-        onClick={() =>
-          create.mutate({ role, days }, { onSuccess: (t) => setToken(t) })
-        }
-      >
-        <Link2 aria-hidden />
-        {create.isPending ? 'Creating…' : 'Create link'}
-      </Button>
-      {token && (
+      {channel === 'link' && (
+        <Button
+          className="self-start"
+          disabled={create.isPending}
+          onClick={() =>
+            create.mutate({ role, days }, { onSuccess: (t) => setToken(t) })
+          }
+        >
+          <Link2 aria-hidden />
+          {create.isPending ? 'Creating…' : 'Create link'}
+        </Button>
+      )}
+      {channel === 'link' && token && (
         <div className="flex flex-col gap-2 rounded-lg border bg-muted/40 p-3">
           <Label htmlFor="new-invite-link">Your new link</Label>
           <div className="flex gap-2">
@@ -190,8 +270,9 @@ function OpenInvites({ group }: { group: GroupRow }) {
               className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3"
             >
               <div className="flex min-w-0 flex-1 flex-col gap-0.5 text-sm">
-                <span className="font-medium">
-                  {invite.role === 'editor' ? 'Editor' : 'Viewer'} link
+                <span className="font-medium break-all">
+                  {invite.role === 'editor' ? 'Editor' : 'Viewer'}{' '}
+                  {invite.email ? `invite to ${invite.email}` : 'link'}
                 </span>
                 <span className="text-muted-foreground">
                   Until {formatDate(new Date(invite.expires_at))}
@@ -199,7 +280,9 @@ function OpenInvites({ group }: { group: GroupRow }) {
                     ` · by ${invite.creator?.display_name ?? 'a former member'}`}
                 </span>
               </div>
-              <CopyButton text={inviteLink(invite.token)} label="Copy link" />
+              {!invite.email && (
+                <CopyButton text={inviteLink(invite.token)} label="Copy link" />
+              )}
               <Button
                 variant="ghost"
                 size="sm"

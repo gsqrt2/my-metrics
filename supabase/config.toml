@@ -410,8 +410,14 @@ inspector_port = 8083
 # The Deno major version to use.
 deno_version = 2
 
-# [edge_runtime.secrets]
-# secret_key = "env(SECRET_VALUE)"
+# Local values only: the cloud's are set with `supabase secrets set` (step 16).
+# send-invite mails through the local Mailpit (its SMTP port inside Docker).
+[edge_runtime.secrets]
+SMTP_HOST = "supabase_inbucket_my-metrics"
+SMTP_PORT = "1025"
+SMTP_INSECURE = "true"
+MAIL_FROM = "my-metrics <invites@my-metrics.local>"
+APP_URL = "http://localhost:5173"
 
 [analytics]
 enabled = true
@@ -446,3 +452,7 @@ enabled = true
 # user; it checks the invite token itself instead.
 [functions.redeem-invite]
 verify_jwt = false
+
+# Only signed-in members invite by email (plan step 13).
+[functions.send-invite]
+verify_jwt = true

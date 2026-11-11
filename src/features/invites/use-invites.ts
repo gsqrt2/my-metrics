@@ -9,7 +9,7 @@ export type InviteRole = 'editor' | 'viewer'
 
 export type Invite = Pick<
   Tables<'invites'>,
-  'id' | 'token' | 'role' | 'expires_at' | 'revoked_at' | 'created_by'
+  'id' | 'token' | 'role' | 'email' | 'expires_at' | 'revoked_at' | 'created_by'
 > & { creator: { display_name: string } | null }
 
 export type LinkRequest = Pick<
@@ -26,6 +26,8 @@ export type InvitePreview = {
   group_name: string | null
   inviter_name: string | null
   role: Enums<'group_role'> | null
+  // Email invites only work for this address (FR-20).
+  invite_email: string | null
   expires_at: string | null
   already_member: boolean
   subjects: { id: string; name: string }[]
@@ -43,8 +45,8 @@ export function inviteLink(token: string) {
   return `${window.location.origin}/join/${token}`
 }
 
-// A group's open invites: not revoked, not expired. Owners see all; editors
-// the ones they made (RLS).
+// A group's open invites: not revoked, expired or used (email invites are
+// used once). Owners see all; editors the ones they made (RLS).
 export function useOpenInvites(groupId: string) {
   return useQuery({
     queryKey: inviteKeys.list(groupId),
@@ -52,10 +54,11 @@ export function useOpenInvites(groupId: string) {
       const { data, error } = await supabase
         .from('invites')
         .select(
-          'id, token, role, expires_at, revoked_at, created_by, creator:profiles!invites_created_by_fkey(display_name)',
+          'id, token, role, email, expires_at, revoked_at, created_by, creator:profiles!invites_created_by_fkey(display_name)',
         )
         .eq('group_id', groupId)
         .is('revoked_at', null)
+        .is('accepted_at', null)
         .gt('expires_at', new Date().toISOString())
         .order('created_at', { ascending: false })
         .overrideTypes<Invite[], { merge: false }>()
@@ -85,6 +88,47 @@ export function useCreateInvite(groupId: string) {
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: inviteKeys.list(groupId) }),
   })
+}
+
+// FR-20 by email: the send-invite Edge Function makes a single-use invite for
+// the address and mails the link.
+export function useSendInvite(groupId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (input: {
+      email: string
+      role: InviteRole
+      days: number
+    }) => {
+      const { error } = await supabase.functions.invoke('send-invite', {
+        body: { groupId, ...input },
+      })
+      if (error) {
+        // The function's own error code is in the response body.
+        const body = await (error as { context?: Response }).context
+          ?.json()
+          .catch(() => null)
+        throw new Error(body?.error ?? 'send_failed')
+      }
+    },
+    onSettled: () =>
+      queryClient.invalidateQueries({ queryKey: inviteKeys.list(groupId) }),
+  })
+}
+
+export function sendInviteErrorMessage(error: Error) {
+  switch (error.message) {
+    case 'invalid_email':
+      return 'Enter a valid email address.'
+    case 'already_member':
+      return 'Someone with this email address is already a member.'
+    case 'email_invite_limit':
+      return "You've sent 20 email invites today, the most allowed. Try again tomorrow, or share a link."
+    case 'not_allowed':
+      return 'Only the owner and editors can invite people.'
+    default:
+      return "The invite couldn't be sent. Please try again, or share a link."
+  }
 }
 
 export function useRevokeInvite(groupId: string) {
