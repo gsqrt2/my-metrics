@@ -249,7 +249,7 @@ At this point every feature in [features.md](features.md) is built.
 - Supabase cloud project (EU Frankfurt): auth settings matching `config.toml` (sign-ups off, minimum password length, site URL and redirect URLs), the email templates and notifications (password reset, email change, change notices), custom SMTP through Resend (`smtp.resend.com:465`, sending domain verified), Edge Function secrets (the same Resend credentials).
 - Firebase Hosting site with the SPA rewrite.
 - Deploy workflow on push to `main`: migrations, Edge Functions, hosting.
-- Keep-alive workflow (daily) and nightly backup workflow. **Decide:** backup location (tech.md open question 1).
+- Keep-alive workflow (daily) and nightly backup workflow, both in a separate private repo (`my-metrics-ops`): encrypted `pg_dump` kept as a GitHub Actions artifact for 90 days (decided 2026-11-11, tech.md §8).
 - Create the first account(s) in the Supabase dashboard; smoke-test every main flow in production.
 
 ---

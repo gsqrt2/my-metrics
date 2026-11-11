@@ -19,7 +19,7 @@ Firebase Hosting (GCP)         Supabase (EU, Frankfurt)
                                         ▼
                                Resend (email, over SMTP)
 
-GitHub Actions: CI, deploys, keep-alive ping, nightly backup
+GitHub Actions: CI and deploys (this repo); keep-alive ping and nightly backup (private ops repo)
 ```
 
 - There's **no custom backend server**. The SPA talks directly to Supabase.
@@ -291,7 +291,9 @@ Firebase Hosting needs an SPA rewrite: all routes go to `/index.html`.
 | CI | pull request | lint, type-check, Vitest, `supabase test db`, build |
 | Deploy | push to `main` | `supabase db push` (migrations), deploy Edge Functions, `firebase deploy --only hosting` |
 | Keep-alive | daily cron | a light query against Supabase, so the free project isn't paused after 7 days without activity |
-| Backup | nightly cron | `pg_dump` saved to off-site storage (a GCS bucket or similar) **[OPEN: where]** |
+| Backup | nightly cron | `pg_dump` through the session pooler, encrypted with `gpg` (AES-256, `BACKUP_PASSPHRASE`), kept as a GitHub Actions artifact for 90 days |
+
+Keep-alive and Backup run in a separate **private** repo (`my-metrics-ops`), not in this public one: artifacts and logs of a public repo can be downloaded by anyone, and GitHub switches off scheduled workflows in a public repo after 60 days without commits, which would let the project be paused. The passphrase is also kept outside GitHub; without it the backups can't be opened. Restoring: download the artifact, `gpg --decrypt`, then `psql` (or `pg_restore`) into the project.
 
 ---
 
@@ -308,4 +310,4 @@ Firebase Hosting needs an SPA rewrite: all routes go to `/index.html`.
 
 ## 10. Open Technical Questions
 
-1. Where nightly backups are stored.
+None at the moment. (Decided 2026-11-11: backups are encrypted GitHub Actions artifacts in a private ops repo; see §8.)
