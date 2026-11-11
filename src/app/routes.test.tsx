@@ -68,6 +68,7 @@ const personal: GroupRow = {
   memberCount: 1,
   membersEditOwnSubjectOnly: false,
   isArchived: false,
+  archivedAt: null,
 }
 const diet: GroupRow = {
   id: 'g-diet',
@@ -80,6 +81,7 @@ const diet: GroupRow = {
   memberCount: 3,
   membersEditOwnSubjectOnly: false,
   isArchived: false,
+  archivedAt: null,
 }
 
 const loggedIn = {

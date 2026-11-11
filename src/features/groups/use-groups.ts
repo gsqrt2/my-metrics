@@ -42,6 +42,7 @@ function toGroup(row: GroupQueryRow): GroupRow {
     memberCount: row.members[0]?.count ?? 0,
     membersEditOwnSubjectOnly: row.members_edit_own_subject_only,
     isArchived: row.archived_at !== null,
+    archivedAt: row.archived_at,
   }
 }
 
@@ -108,9 +109,52 @@ export const GROUP_LIMIT_MESSAGE =
   "You're already in 50 logbooks, the most allowed. Leave a logbook to create a new one."
 
 export function groupErrorMessage(error: Error) {
-  return error.message === 'group_limit_reached'
-    ? GROUP_LIMIT_MESSAGE
-    : 'Saving failed. Please try again.'
+  switch (error.message) {
+    case 'group_limit_reached':
+      return GROUP_LIMIT_MESSAGE
+    case 'group_archived':
+      return 'This logbook is archived, so nothing in it can be changed.'
+    default:
+      return 'Saving failed. Please try again.'
+  }
+}
+
+// FR-11: the owner archives (read-only for everyone) or restores a group.
+export function useSetGroupArchived(groupId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (archived: boolean) => {
+      const { error } = await supabase.rpc('set_group_archived', {
+        target_group_id: groupId,
+        archived,
+      })
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: groupKeys.all })
+      queryClient.invalidateQueries({ queryKey: ['loggable-groups'] })
+      queryClient.invalidateQueries({ queryKey: ['invites', groupId] })
+    },
+  })
+}
+
+// FR-11: the owner deletes a group for everyone. onDeleted runs first (to
+// leave the group's pages), before the lists are refreshed.
+export function useDeleteGroup(groupId: string, onDeleted: () => void) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.rpc('delete_group', {
+        target_group_id: groupId,
+      })
+      if (error) throw error
+    },
+    onSuccess: () => {
+      onDeleted()
+      queryClient.invalidateQueries({ queryKey: groupKeys.all })
+      queryClient.invalidateQueries({ queryKey: ['loggable-groups'] })
+    },
+  })
 }
 
 export function useCreateGroup() {

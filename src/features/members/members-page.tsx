@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 
 import { BackLink } from '@/app/layout/back-link'
 import { PageHeader } from '@/app/layout/page-header'
+import { Confirm } from '@/components/confirm'
 import { NativeSelect } from '@/components/native-select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
@@ -207,47 +208,6 @@ function MemberItem({
         />
       )}
     </li>
-  )
-}
-
-function Confirm({
-  label,
-  text,
-  action,
-  destructive = false,
-  pending,
-  onConfirm,
-  onCancel,
-}: {
-  label: string
-  text: string
-  action: string
-  destructive?: boolean
-  pending: boolean
-  onConfirm: () => void
-  onCancel: () => void
-}) {
-  return (
-    <div
-      role="group"
-      aria-label={label}
-      className="flex flex-col gap-3 rounded-lg border p-3"
-    >
-      <p className="text-sm">{text}</p>
-      <div className="flex flex-wrap gap-2">
-        <Button
-          size="sm"
-          variant={destructive ? 'destructive' : 'default'}
-          disabled={pending}
-          onClick={onConfirm}
-        >
-          {action}
-        </Button>
-        <Button size="sm" variant="ghost" onClick={onCancel}>
-          Cancel
-        </Button>
-      </div>
-    </div>
   )
 }
 

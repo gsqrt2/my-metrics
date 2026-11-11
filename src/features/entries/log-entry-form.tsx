@@ -37,12 +37,14 @@ export function LogEntryForm({
   groups,
   presetGroupId,
   presetGroupName,
+  presetGroupArchived = false,
   onSaved,
   onCancel,
 }: {
   groups: LoggableGroup[]
   presetGroupId?: string
   presetGroupName?: string
+  presetGroupArchived?: boolean
   onSaved: (groupId: string) => void
   onCancel: () => void
 }) {
@@ -150,8 +152,9 @@ export function LogEntryForm({
     <form onSubmit={submit} noValidate className="flex flex-col gap-5">
       {presetUnavailable && (
         <p className="rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
-          {presetGroupName ?? 'That logbook'} isn't ready for logging yet: it
-          needs at least one metric and a participant you may log for.
+          {presetGroupArchived
+            ? `${presetGroupName ?? 'That logbook'} is archived, so nothing can be logged in it.`
+            : `${presetGroupName ?? 'That logbook'} isn't ready for logging yet: it needs at least one metric and a participant you may log for.`}
         </p>
       )}
 

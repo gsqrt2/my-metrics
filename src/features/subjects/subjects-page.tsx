@@ -9,7 +9,11 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/features/auth/use-auth'
 import { WithGroup } from '@/features/groups/group-page'
-import { canEditGroup, type GroupRow } from '@/features/groups/types'
+import {
+  canEditGroup,
+  cantManageText,
+  type GroupRow,
+} from '@/features/groups/types'
 import { formatAge } from '@/features/subjects/age'
 import { SubjectAvatar } from '@/features/subjects/subject-avatar'
 import { useSubjects, type Subject } from '@/features/subjects/use-subjects'
@@ -33,7 +37,10 @@ function ManageSubjects({ group }: { group: GroupRow }) {
         {back}
         <PageHeader
           title="Participants"
-          description="Only the logbook's owner and editors can manage participants."
+          description={cantManageText(
+            group,
+            "Only the logbook's owner and editors can manage participants.",
+          )}
         />
         <Button asChild variant="outline">
           <Link to={groupPath}>Back to {group.name}</Link>

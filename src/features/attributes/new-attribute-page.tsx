@@ -10,7 +10,11 @@ import {
   useCreateAttribute,
 } from '@/features/attributes/use-attributes'
 import { WithGroup } from '@/features/groups/group-page'
-import { canEditGroup, type GroupRow } from '@/features/groups/types'
+import {
+  canEditGroup,
+  cantManageText,
+  type GroupRow,
+} from '@/features/groups/types'
 
 // FR-40: owners and editors add attributes, shown as "metrics".
 export function NewAttributePage() {
@@ -29,7 +33,10 @@ function NewAttribute({ group }: { group: GroupRow }) {
         {back}
         <PageHeader
           title="Add metric"
-          description="Only the logbook's owner and editors can add metrics."
+          description={cantManageText(
+            group,
+            "Only the logbook's owner and editors can add metrics.",
+          )}
         />
         <Button asChild variant="outline">
           <Link to={`/logbooks/${group.id}`}>Back to {group.name}</Link>

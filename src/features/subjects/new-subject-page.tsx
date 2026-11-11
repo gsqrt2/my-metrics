@@ -4,7 +4,11 @@ import { BackLink } from '@/app/layout/back-link'
 import { PageHeader } from '@/app/layout/page-header'
 import { Button } from '@/components/ui/button'
 import { WithGroup } from '@/features/groups/group-page'
-import { canEditGroup, type GroupRow } from '@/features/groups/types'
+import {
+  canEditGroup,
+  cantManageText,
+  type GroupRow,
+} from '@/features/groups/types'
 import { nextSubjectColor } from '@/features/subjects/colors'
 import { SubjectForm } from '@/features/subjects/subject-form'
 import { useCreateSubject, useSubjects } from '@/features/subjects/use-subjects'
@@ -28,7 +32,10 @@ function NewSubject({ group }: { group: GroupRow }) {
         {back}
         <PageHeader
           title="Add participant"
-          description="Only the logbook's owner and editors can add participants."
+          description={cantManageText(
+            group,
+            "Only the logbook's owner and editors can add participants.",
+          )}
         />
         <Button asChild variant="outline">
           <Link to={groupPath}>Back to {group.name}</Link>

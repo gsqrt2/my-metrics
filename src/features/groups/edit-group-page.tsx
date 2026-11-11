@@ -3,10 +3,16 @@ import { Link, useNavigate } from 'react-router'
 import { BackLink } from '@/app/layout/back-link'
 import { PageHeader } from '@/app/layout/page-header'
 import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
 import { GroupForm } from '@/features/groups/group-form'
+import { ArchiveDeleteSection } from '@/features/groups/group-lifecycle'
 import { WithGroup } from '@/features/groups/group-page'
 import { toGroupForm } from '@/features/groups/schemas'
-import { canEditGroup, type GroupRow } from '@/features/groups/types'
+import {
+  canEditGroup,
+  cantManageText,
+  type GroupRow,
+} from '@/features/groups/types'
 import { groupErrorMessage, useUpdateGroup } from '@/features/groups/use-groups'
 
 // FR-11: owners and editors edit name, description and duration; the owner
@@ -28,7 +34,10 @@ function EditGroup({ group }: { group: GroupRow }) {
         {back}
         <PageHeader
           title="Edit logbook"
-          description="Only the logbook's owner and editors can change it."
+          description={cantManageText(
+            group,
+            "Only the logbook's owner and editors can change it.",
+          )}
         />
         <Button asChild variant="outline">
           <Link to={groupPath}>Back to {group.name}</Link>
@@ -63,6 +72,12 @@ function EditGroup({ group }: { group: GroupRow }) {
           )
         }
       />
+      {group.role === 'owner' && (
+        <>
+          <Separator className="my-8 max-w-xl" />
+          <ArchiveDeleteSection group={group} />
+        </>
+      )}
     </>
   )
 }

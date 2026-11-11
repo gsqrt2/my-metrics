@@ -8,7 +8,11 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { useAuth } from '@/features/auth/use-auth'
 import { WithGroup } from '@/features/groups/group-page'
-import { canEditGroup, type GroupRow } from '@/features/groups/types'
+import {
+  canEditGroup,
+  cantManageText,
+  type GroupRow,
+} from '@/features/groups/types'
 import { toSubjectForm } from '@/features/subjects/schemas'
 import { SubjectForm } from '@/features/subjects/subject-form'
 import {
@@ -40,7 +44,10 @@ function FindSubject({ group }: { group: GroupRow }) {
           title={subject ? 'Edit participant' : 'Participant not found'}
           description={
             subject
-              ? "Only the logbook's owner and editors can change participants."
+              ? cantManageText(
+                  group,
+                  "Only the logbook's owner and editors can change participants.",
+                )
               : "It doesn't exist in this logbook."
           }
         />

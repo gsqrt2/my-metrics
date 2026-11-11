@@ -18,7 +18,11 @@ import {
 } from '@/features/attributes/use-attributes'
 import { useAttributeEntryCount } from '@/features/entries/use-entries'
 import { WithGroup } from '@/features/groups/group-page'
-import { canEditGroup, type GroupRow } from '@/features/groups/types'
+import {
+  canEditGroup,
+  cantManageText,
+  type GroupRow,
+} from '@/features/groups/types'
 
 // FR-40 – FR-42: edit, archive, restore and delete an attribute ("metric").
 export function EditAttributePage() {
@@ -42,7 +46,10 @@ function FindAttribute({ group }: { group: GroupRow }) {
           title={attribute ? 'Edit metric' : 'Metric not found'}
           description={
             attribute
-              ? "Only the logbook's owner and editors can change metrics."
+              ? cantManageText(
+                  group,
+                  "Only the logbook's owner and editors can change metrics.",
+                )
               : "It doesn't exist in this logbook."
           }
         />

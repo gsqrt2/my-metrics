@@ -16,7 +16,11 @@ import {
   type Attribute,
 } from '@/features/attributes/use-attributes'
 import { WithGroup } from '@/features/groups/group-page'
-import { canEditGroup, type GroupRow } from '@/features/groups/types'
+import {
+  canEditGroup,
+  cantManageText,
+  type GroupRow,
+} from '@/features/groups/types'
 
 // FR-40 – FR-42: a group's attributes, shown as "metrics", for owners and
 // editors to add, edit, reorder and archive.
@@ -40,7 +44,10 @@ function ManageAttributes({ group }: { group: GroupRow }) {
         {back}
         <PageHeader
           title="Metrics"
-          description="Only the logbook's owner and editors can manage metrics."
+          description={cantManageText(
+            group,
+            "Only the logbook's owner and editors can manage metrics.",
+          )}
         />
         <Button asChild variant="outline">
           <Link to={groupPath}>Back to {group.name}</Link>

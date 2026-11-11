@@ -512,6 +512,7 @@ export type Database = {
         Args: { approve: boolean; request_id: string }
         Returns: undefined
       }
+      delete_group: { Args: { target_group_id: string }; Returns: undefined }
       get_dashboard: {
         Args: { target_group_id: string }
         Returns: {
@@ -597,6 +598,7 @@ export type Database = {
         }
         Returns: string
       }
+      is_group_archived: { Args: { target_group_id: string }; Returns: boolean }
       is_member: { Args: { target_group_id: string }; Returns: boolean }
       leave_group: {
         Args: { keep_entries: boolean; target_group_id: string }
@@ -620,6 +622,10 @@ export type Database = {
       }
       reorder_attributes: {
         Args: { attribute_ids: string[]; target_group_id: string }
+        Returns: undefined
+      }
+      set_group_archived: {
+        Args: { archived: boolean; target_group_id: string }
         Returns: undefined
       }
       set_members_edit_own_subject_only: {
