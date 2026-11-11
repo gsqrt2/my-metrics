@@ -30,7 +30,7 @@ Status: ✅ done · 🚧 in progress · ⏸️ paused with open items · ⬜ not
 | 10 | Managing members and leaving | ✅ | 2026-11-10 | `3576ec8` |
 | 11 | Value visibility | ✅ | `848d4fd` | Also: "Saved." toasts, dates as dd/mm/yyyy |
 | 12 | "Own subject only" setting, CSV export | ✅ | `49de995` | |
-| 13 | Email invites | 🚧 | | |
+| 13 | Email invites | ✅ | `9ae2b51` | Cloud SMTP: open item for step 16 |
 | 14 | Archive and delete groups | ⬜ | | |
 | 15 | Account deletion | ⬜ | | |
 | 16 | Go live | ⬜ | | |
