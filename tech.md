@@ -17,7 +17,7 @@ Firebase Hosting (GCP)         Supabase (EU, Frankfurt)
                                  └─ Edge Functions (invite redemption, invite emails, account deletion)
                                         │
                                         ▼
-                               Custom SMTP (own hosting provider)
+                               Resend (email, over SMTP)
 
 GitHub Actions: CI, deploys, keep-alive ping, nightly backup
 ```
@@ -46,7 +46,7 @@ GitHub Actions: CI, deploys, keep-alive ping, nightly backup
 | Backend platform | Supabase: Postgres, Auth, Edge Functions (Deno/TypeScript) |
 | DB types | Generated with `supabase gen types typescript` |
 | Frontend hosting | Firebase Hosting (Spark plan, free) |
-| Email | Custom SMTP on the owner's hosting provider: configured in Supabase Auth (password reset) and as Edge Function secrets (invite emails) |
+| Email | Resend, used over SMTP (`smtp.resend.com`, port 465): configured as Supabase Auth's custom SMTP (password reset, email change) and as Edge Function secrets (invite emails). Locally, Mailpit catches everything. |
 | Unit / component tests | Vitest + React Testing Library |
 | E2E tests | Playwright |
 | DB / RLS tests | pgTAP (`supabase test db`) |
@@ -72,7 +72,7 @@ GitHub Actions: CI, deploys, keep-alive ping, nightly backup
 - **Sessions:** supabase-js keeps the session in `localStorage` and refreshes it automatically. An `AuthProvider` listens to `onAuthStateChange`; a `RequireAuth` route wrapper sends logged-out visitors to `/login` and back to the requested page afterwards.
   - The session's user (email, pending email) is a copy stored with the tokens and only renewed with the access token, up to an hour later. So on start and whenever the tab becomes visible again, `AuthProvider` asks the server for the current user (`getUser`) and refreshes the session if the email differs, e.g. after an email change confirmed on another device. If the session was ended elsewhere (logout ends all of an account's sessions), this check logs the tab out too.
 - **Passwords:** at least 8 characters (`minimum_password_length` in `config.toml`, mirrored in the frontend validation).
-- **Password reset** uses Supabase Auth's reset email, sent through the custom SMTP provider.
+- **Password reset** uses Supabase Auth's reset email, sent through Resend's SMTP.
   - The email uses our own template (`supabase/templates/recovery.html`). Its link goes straight to the app, `/reset-password?token_hash=…&type=recovery`, and the page calls `supabase.auth.verifyOtp`. Unlike the default link, this works when the email is opened on another device than the one that requested it, and link scanners in mail clients can't use up the token, because verifying needs JavaScript.
   - The same template and subject must be set in the cloud project (step 16).
   - The request form always shows the same confirmation, so it doesn't reveal which addresses have accounts.
@@ -97,8 +97,9 @@ The `delete-account` Edge Function needs the service role key, because deleting 
    - `entries.created_by`: on delete set null
 
 ### Invite emails (spec FR-20)
-- The `send-invite` Edge Function checks that the caller is the group's owner or an editor. It then creates an `invites` row with `email` set, and sends the link through the custom SMTP provider.
-- The SMTP credentials are stored as Edge Function secrets. Supabase Auth's SMTP settings only cover auth emails, so the function needs its own copy.
+- The `send-invite` Edge Function checks that the caller is the group's owner or an editor. It then creates an `invites` row with `email` set, and sends the link through Resend's SMTP.
+- The SMTP credentials are stored as Edge Function secrets. Supabase Auth's SMTP settings only cover auth emails, so the function needs its own copy of the same Resend credentials (user `resend`, password: a Resend API key).
+- Why SMTP rather than Resend's HTTP API (decided 2026-11-11): Supabase Auth can only send over SMTP anyway, so one set of credentials serves both; and `send-invite` keeps the code path that's tested locally against Mailpit. Switching `send-invite` to the API later would be a small, contained change.
 
 ---
 
@@ -300,8 +301,8 @@ Firebase Hosting needs an SPA rewrite: all routes go to `/index.html`.
 |---|---|
 | Supabase Free | 500 MB database, 50k monthly active users, ~500k Edge Function calls/month, paused after 7 days without activity, no automatic backups, 2 projects |
 | Firebase Hosting (Spark) | ~10 GB storage, ~360 MB/day transfer |
-| Supabase Auth email | must use custom SMTP (built-in: 2 emails/hour, team addresses only) |
-| Own SMTP provider | check the hosting provider's sending limits per hour/day |
+| Supabase Auth email | must use custom SMTP, here Resend (built-in: 2 emails/hour, team addresses only) |
+| Resend Free | 3,000 emails/month, 100/day, one sending domain (verified with DNS records) |
 
 ---
 

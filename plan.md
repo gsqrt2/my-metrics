@@ -30,7 +30,7 @@ Status: ✅ done · 🚧 in progress · ⏸️ paused with open items · ⬜ not
 | 10 | Managing members and leaving | ✅ | 2026-11-10 | `3576ec8` |
 | 11 | Value visibility | ✅ | `848d4fd` | Also: "Saved." toasts, dates as dd/mm/yyyy |
 | 12 | "Own subject only" setting, CSV export | ✅ | `49de995` | |
-| 13 | Email invites | ✅ | `9ae2b51` | Cloud SMTP: open item for step 16 |
+| 13 | Email invites | ✅ | `9ae2b51` | Cloud email (Resend over SMTP): open item for step 16 |
 | 14 | Archive and delete groups | ✅ | `da07326` | |
 | 15 | Account deletion | ✅ | `577a1b3` | |
 | 16 | Go live | ⬜ | | |
@@ -43,7 +43,7 @@ Anything left unfinished, deferred or worth knowing before the next step. Each i
 
 - **Current-password check is client-side** (step 2). Supabase doesn't verify `current_password` on password change, so the app checks it with a throwaway sign-in ([verify-password.ts](src/features/profile/verify-password.ts)). It stops mistakes, not someone who already holds the session. Revisit if a server-side check (Edge Function) becomes worth it; see [tech.md §3](tech.md).
 - **Cloud auth settings** (steps 1–2). Everything set in `supabase/config.toml` (sign-ups off, minimum password length 8, site/redirect URLs, `double_confirm_changes = false`, email templates, change notifications) has to be repeated in the cloud project. Resolved in step 16.
-- **Cloud email** (step 13). Choose a mail provider that offers SMTP on port 465 (Supabase blocks outgoing 25 and 587 from Edge Functions), e.g. Resend, Brevo or SendGrid, and a sender address on a domain we control. Then set it twice: `supabase secrets set SMTP_HOST SMTP_PORT=465 SMTP_USER SMTP_PASS MAIL_FROM APP_URL` for `send-invite`, and the project's custom SMTP (Auth settings) for password reset and email change. Resolved in step 16.
+- **Cloud email** (step 13). Decided 2026-11-11: **Resend over SMTP** (`smtp.resend.com`, port 465; Supabase blocks outgoing 25 and 587 from Edge Functions). Needs a Resend account, a domain we control verified in Resend (DNS records), and a sender address on it. Then set the same credentials twice: `supabase secrets set SMTP_HOST=smtp.resend.com SMTP_PORT=465 SMTP_USER=resend SMTP_PASS=<API key> MAIL_FROM=<sender> APP_URL=<site>` for `send-invite`, and the project's custom SMTP (Auth settings) for password reset and email change. Resolved in step 16.
 - **End-to-end cleanup goes around the app** (step 3). Kept on purpose after step 14: `deleteOwnedGroups` and `clearDefaultGroup` still clean up straight in the local database, since cleanup must also work after a test failed halfway. Deleting through the app is tested in `e2e/lifecycle.spec.ts`.
 - **`subjects.visibility_frozen` not added yet** (step 4). tech.md's data model has it for former members' subjects (FR-23); it's added with leaving and removing members in step 10.
 - **App bundle size** (step 7). The main JavaScript bundle is about 285 KB gzipped (Supabase client, UI primitives, forms); the charts load separately (about 110 KB) on group pages only. Consider splitting by route before going live (step 16).
@@ -219,7 +219,7 @@ At this point the app is fully usable for **solo and family tracking**, without 
 
 ## Step 13: Email invites
 
-- Custom SMTP set up (locally still caught by Mailpit).
+- Custom SMTP set up (locally still caught by Mailpit; in the cloud Resend over SMTP, decided 2026-11-11).
 - `send-invite` Edge Function: single-use invite bound to an email address.
 - Invite form: "send by email" next to the shareable link.
 - Password reset emails go through the same SMTP in the cloud.
@@ -246,7 +246,7 @@ At this point every feature in [features.md](features.md) is built.
 
 ## Step 16: Go live
 
-- Supabase cloud project (EU Frankfurt): auth settings matching `config.toml` (sign-ups off, minimum password length, site URL and redirect URLs), the email templates and notifications (password reset, email change, change notices), custom SMTP, Edge Function secrets.
+- Supabase cloud project (EU Frankfurt): auth settings matching `config.toml` (sign-ups off, minimum password length, site URL and redirect URLs), the email templates and notifications (password reset, email change, change notices), custom SMTP through Resend (`smtp.resend.com:465`, sending domain verified), Edge Function secrets (the same Resend credentials).
 - Firebase Hosting site with the SPA rewrite.
 - Deploy workflow on push to `main`: migrations, Edge Functions, hosting.
 - Keep-alive workflow (daily) and nightly backup workflow. **Decide:** backup location (tech.md open question 1).
