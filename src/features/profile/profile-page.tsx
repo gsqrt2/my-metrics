@@ -1,12 +1,13 @@
 import { PageHeader } from '@/app/layout/page-header'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useAuth } from '@/features/auth/use-auth'
+import { DeleteAccountCard } from '@/features/profile/delete-account-card'
 import { DisplayNameCard } from '@/features/profile/display-name-card'
 import { EmailCard } from '@/features/profile/email-card'
 import { PasswordCard } from '@/features/profile/password-card'
 import { useProfile } from '@/features/profile/use-profile'
 
-// FR-2: display name, email address and password.
+// FR-2: display name, email address and password; FR-3: deleting the account.
 export function ProfilePage() {
   const { session } = useAuth()
   const profile = useProfile()
@@ -16,7 +17,7 @@ export function ProfilePage() {
     <>
       <PageHeader
         title="Profile"
-        description="Your display name, email address and password."
+        description="Your display name, email address and password, and deleting your account."
       />
       <div className="flex max-w-xl flex-col gap-6">
         {profile.isError && (
@@ -34,6 +35,7 @@ export function ProfilePage() {
         )}
         <EmailCard email={user.email ?? ''} pendingEmail={user.new_email} />
         <PasswordCard email={user.email ?? ''} />
+        <DeleteAccountCard />
       </div>
     </>
   )

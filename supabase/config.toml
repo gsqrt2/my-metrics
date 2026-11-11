@@ -456,3 +456,7 @@ verify_jwt = false
 # Only signed-in members invite by email (plan step 13).
 [functions.send-invite]
 verify_jwt = true
+
+# Only the signed-in user deletes their own account (plan step 15).
+[functions.delete-account]
+verify_jwt = true

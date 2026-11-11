@@ -170,3 +170,43 @@ export async function addMember(
     await client.end()
   }
 }
+
+// Creates an account like the seed ones (password "password"), for tests that
+// delete it again. Its profile and default group come from the database's
+// trigger, as for any new account.
+export async function createAccount(email: string, displayName: string) {
+  const client = new pg.Client({ connectionString: DB_URL })
+  await client.connect()
+  try {
+    await client.query(
+      `with u as (
+         insert into auth.users (
+           instance_id, id, aud, role, email, encrypted_password,
+           email_confirmed_at, raw_app_meta_data, raw_user_meta_data,
+           created_at, updated_at, confirmation_token, recovery_token,
+           email_change, email_change_token_new
+         )
+         values (
+           '00000000-0000-0000-0000-000000000000', gen_random_uuid(),
+           'authenticated', 'authenticated', $1,
+           extensions.crypt($3, extensions.gen_salt('bf')), now(),
+           '{"provider": "email", "providers": ["email"]}',
+           jsonb_build_object('display_name', $2::text), now(), now(),
+           '', '', '', ''
+         )
+         returning id, email
+       )
+       insert into auth.identities (
+         id, user_id, provider_id, provider, identity_data,
+         last_sign_in_at, created_at, updated_at
+       )
+       select gen_random_uuid(), u.id, u.id::text, 'email',
+         jsonb_build_object('sub', u.id::text, 'email', u.email, 'email_verified', true),
+         now(), now(), now()
+       from u`,
+      [email, displayName, SEED_PASSWORD],
+    )
+  } finally {
+    await client.end()
+  }
+}

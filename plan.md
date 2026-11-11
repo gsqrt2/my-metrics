@@ -32,7 +32,7 @@ Status: ✅ done · 🚧 in progress · ⏸️ paused with open items · ⬜ not
 | 12 | "Own subject only" setting, CSV export | ✅ | `49de995` | |
 | 13 | Email invites | ✅ | `9ae2b51` | Cloud SMTP: open item for step 16 |
 | 14 | Archive and delete groups | ✅ | `da07326` | |
-| 15 | Account deletion | ⬜ | | |
+| 15 | Account deletion | 🚧 | | |
 | 16 | Go live | ⬜ | | |
 
 **Next:** finish step 11 (Value visibility).
