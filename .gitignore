@@ -36,3 +36,7 @@ blob-report
 
 # Playwright login state
 e2e/.auth
+
+
+# Firebase CLI deploy cache
+.firebase/

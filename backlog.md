@@ -1,0 +1,2 @@
+- when editing an entry, all attributes fields should be available. currently, only the attributes already entered are availalbe as fields.
+- the 'log entry' button should be above the charts - or both above and below.

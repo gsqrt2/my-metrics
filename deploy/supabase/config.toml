@@ -1,0 +1,65 @@
+# Production auth settings (plan step 16), pushed to the cloud project with
+#
+#   pnpm auth:diff
+#   pnpm auth:push
+#
+# which first copy the email templates from supabase/templates (the CLI only
+# reads files inside the deploy folder).
+#
+# Only what's declared here is pushed. It mirrors the [auth] part of
+# supabase/config.toml with production values: the site's URLs, a 60-second
+# gap between emails to the same address, and the email rate limit that
+# applies with custom SMTP. The SMTP server itself (Resend) is entered in the
+# dashboard (Authentication → Emails → SMTP Settings), so its API key never
+# passes through a file.
+project_id = "my-metrics"
+
+[auth]
+enabled = true
+site_url = "https://mymetrics.gmarios.dev"
+additional_redirect_urls = [
+  "https://mymetrics.gmarios.dev/**",
+  "https://my-metrics-d4eba.web.app/**",
+]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+enable_signup = false
+enable_anonymous_sign_ins = false
+enable_manual_linking = false
+minimum_password_length = 8
+password_requirements = ""
+
+[auth.mfa.totp]
+enroll_enabled = false
+verify_enabled = false
+
+[auth.rate_limit]
+email_sent = 30
+
+[auth.email]
+enabled = true
+double_confirm_changes = false
+enable_confirmations = false
+secure_password_change = false
+max_frequency = "60s"
+otp_length = 6
+otp_expiry = 3600
+
+[auth.email.template.recovery]
+subject = "Reset your my-metrics password"
+content_path = "./supabase/templates/recovery.html"
+
+[auth.email.template.email_change]
+subject = "Confirm your new my-metrics email address"
+content_path = "./supabase/templates/email_change.html"
+
+[auth.email.notification.email_changed]
+enabled = true
+subject = "Your my-metrics email address was changed"
+content_path = "./supabase/templates/email_changed_notification.html"
+
+[auth.email.notification.password_changed]
+enabled = true
+subject = "Your my-metrics password was changed"
+content_path = "./supabase/templates/password_changed_notification.html"

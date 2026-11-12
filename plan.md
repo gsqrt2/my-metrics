@@ -33,17 +33,17 @@ Status: ✅ done · 🚧 in progress · ⏸️ paused with open items · ⬜ not
 | 13 | Email invites | ✅ | `9ae2b51` | Cloud email (Resend over SMTP): open item for step 16 |
 | 14 | Archive and delete groups | ✅ | `da07326` | |
 | 15 | Account deletion | ✅ | `577a1b3` | |
-| 16 | Go live | ⬜ | | |
+| 16 | Go live | 🟡 | | Live at https://mymetrics.gmarios.dev (smoke-tested 2026-11-12); first GitHub deploy and first scheduled backup and keep-alive runs pending |
 
-**Next:** finish step 11 (Value visibility).
+**Next:** finish step 16 (first GitHub deploy, first scheduled backup and keep-alive runs); then the backlog (`backlog.md`).
 
 ### Open items
 
 Anything left unfinished, deferred or worth knowing before the next step. Each item says where it gets resolved. Remove an item when it's done.
 
 - **Current-password check is client-side** (step 2). Supabase doesn't verify `current_password` on password change, so the app checks it with a throwaway sign-in ([verify-password.ts](src/features/profile/verify-password.ts)). It stops mistakes, not someone who already holds the session. Revisit if a server-side check (Edge Function) becomes worth it; see [tech.md §3](tech.md).
-- **Cloud auth settings** (steps 1–2). Everything set in `supabase/config.toml` (sign-ups off, minimum password length 8, site/redirect URLs, `double_confirm_changes = false`, email templates, change notifications) has to be repeated in the cloud project. Resolved in step 16.
-- **Cloud email** (step 13). Decided 2026-11-11: **Resend over SMTP** (`smtp.resend.com`, port 465; Supabase blocks outgoing 25 and 587 from Edge Functions). Needs a Resend account, a domain we control verified in Resend (DNS records), and a sender address on it. Then set the same credentials twice: `supabase secrets set SMTP_HOST=smtp.resend.com SMTP_PORT=465 SMTP_USER=resend SMTP_PASS=<API key> MAIL_FROM=<sender> APP_URL=<site>` for `send-invite`, and the project's custom SMTP (Auth settings) for password reset and email change. Resolved in step 16.
+- **Cloud auth settings** (steps 1–2). Pushed on 2026-11-12 from `deploy/supabase/config.toml` (`pnpm auth:diff`, `pnpm auth:push`), which mirrors the `[auth]` part of `supabase/config.toml` with production values. A change to the local auth settings or the email templates has to be repeated there and pushed. The email rate limit (`email_sent`) isn't managed by the push; check it in the dashboard. Remove once the email flows are smoke-tested.
+- **Cloud email** (step 13). Decided 2026-11-11: **Resend over SMTP** (`smtp.resend.com`, port 465; Supabase blocks outgoing 25 and 587 from Edge Functions). Needs a Resend account, a domain we control verified in Resend (DNS records), and a sender address on it. Then set the same credentials twice: `supabase secrets set SMTP_HOST=smtp.resend.com SMTP_PORT=465 SMTP_USER=resend SMTP_PASS=<API key> MAIL_FROM=<sender> APP_URL=<site>` for `send-invite`, and the project's custom SMTP (Auth settings) for password reset and email change. Set up on 2026-11-12 (domain verified, Auth SMTP and Edge Function secrets set); remove once invites and password reset are smoke-tested in production.
 - **End-to-end cleanup goes around the app** (step 3). Kept on purpose after step 14: `deleteOwnedGroups` and `clearDefaultGroup` still clean up straight in the local database, since cleanup must also work after a test failed halfway. Deleting through the app is tested in `e2e/lifecycle.spec.ts`.
 - **`subjects.visibility_frozen` not added yet** (step 4). tech.md's data model has it for former members' subjects (FR-23); it's added with leaving and removing members in step 10.
 - **App bundle size** (step 7). The main JavaScript bundle is about 285 KB gzipped (Supabase client, UI primitives, forms); the charts load separately (about 110 KB) on group pages only. Consider splitting by route before going live (step 16).

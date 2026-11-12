@@ -275,7 +275,8 @@ The setting is per subject and attribute, and each entry row has exactly one sub
 ## 7. Environments & Configuration
 
 - **Local:** `supabase start` (Docker Desktop; on Windows it needs WSL 2) runs the whole Supabase stack locally, and `vite dev` runs the frontend. Local emails are caught by Supabase's built-in mail testing tool (Inbucket/Mailpit).
-- **Production:** one Supabase project (EU Frankfurt) and one Firebase Hosting site.
+- **Production:** one Supabase project (EU Frankfurt) and one Firebase Hosting site (`my-metrics-d4eba`, at `https://mymetrics.gmarios.dev`). Auth settings come from `deploy/supabase/config.toml` (`pnpm auth:push`); the Resend SMTP credentials are entered in the dashboard and set as Edge Function secrets, never in a file.
+- **Rights:** nothing in the public schema is reachable through the Data API unless a migration grants it ("Automatically expose new tables" is off in the cloud project; the first migration does the same locally).
 - A second free Supabase project could be added as staging later.
 
 Frontend environment variables: `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`. Both are safe to expose; RLS protects the data. The secret/service-role key and the SMTP credentials are only used in Edge Functions and CI.

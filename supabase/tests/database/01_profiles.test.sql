@@ -26,7 +26,7 @@ select is(
 
 -- Logged out
 set local role anon;
-select is_empty('select * from public.profiles', 'logged-out visitors see no profiles');
+select throws_ok('select 1 from public.profiles', '42501', null, 'logged-out visitors cannot read profiles');
 
 -- Logged in as Alex
 set local role authenticated;
