@@ -290,7 +290,9 @@ Firebase Hosting needs an SPA rewrite: all routes go to `/index.html`.
 | Workflow | Trigger | Steps |
 |---|---|---|
 | CI | pull request | lint, type-check, Vitest, `supabase test db`, build |
-| Deploy | push to `main` | `supabase db push` (migrations), deploy Edge Functions, `firebase deploy --only hosting` |
+| Deploy | CI passed on `main` | `supabase db push` through the session pooler (runners have no IPv6), deploy Edge Functions, build, `firebase deploy --only hosting` |
+
+Deploy secrets (app repo): `SUPABASE_ACCESS_TOKEN` (scoped to the project: Projects read, Project Settings read, Production Branches read, Database config read, Migrations, Edge functions read/write), `SUPABASE_PROJECT_REF`, `SUPABASE_DB_URL` (session pooler string), `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `FIREBASE_SERVICE_ACCOUNT` (JSON key of the `github-deploy` service account, roles Firebase Hosting Admin and Service Usage Consumer).
 | Keep-alive | daily cron | a light query against Supabase, so the free project isn't paused after 7 days without activity |
 | Backup | nightly cron | `pg_dump` through the session pooler, encrypted with `gpg` (AES-256, `BACKUP_PASSPHRASE`), kept as a GitHub Actions artifact for 90 days |
 
