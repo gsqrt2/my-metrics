@@ -35,7 +35,15 @@ Status: ✅ done · 🚧 in progress · ⏸️ paused with open items · ⬜ not
 | 15 | Account deletion | ✅ | `577a1b3` | |
 | 16 | Go live | ✅ | `5cca4d6`, `46fcc80` | Live at https://mymetrics.gmarios.dev (smoke-tested 2026-11-12, including invite and password-reset emails); deploys from GitHub; backup and keep-alive in the private ops repo |
 
-**Next:** the backlog (`backlog.md`).
+### Backlog (after go-live)
+
+| Item | Status | Commit | Notes |
+|---|---|---|---|
+| Editing an entry shows every metric (the whole moment) | 🟡 | | branch `backlog-edit-moment`; `save_entry_moment` SQL function |
+| "Log entry" above the charts | 🟡 | | in the logbook header |
+| "Remember me" on login | dropped | | users already stay logged in until they log out |
+
+**Next:** new items in `backlog.md`.
 
 ### Open items
 

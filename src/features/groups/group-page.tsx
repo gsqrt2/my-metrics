@@ -1,3 +1,4 @@
+import { Plus } from 'lucide-react'
 import { lazy, Suspense, useState } from 'react'
 import { Link, useParams } from 'react-router'
 
@@ -10,6 +11,7 @@ import type { GroupRow } from '@/features/groups/types'
 import { useGroup } from '@/features/groups/use-groups'
 import { AttributesSection } from '@/features/attributes/attributes-section'
 import { EntriesSection } from '@/features/entries/entries-section'
+import { useLogEntry } from '@/features/entries/log-entry-context'
 import { ArchivedNotice } from '@/features/groups/group-lifecycle'
 import { GroupOptionsMenu } from '@/features/groups/group-options-menu'
 import { useAttributes } from '@/features/attributes/use-attributes'
@@ -87,6 +89,7 @@ function GroupHome({ group }: { group: GroupRow }) {
   // Each view filters one row of chips; null means all.
   const [subjectFilter, setSubjectFilter] = useState<Selection>(null)
   const [attributeFilter, setAttributeFilter] = useState<Selection>(null)
+  const { openLogEntry } = useLogEntry()
 
   return (
     <>
@@ -94,7 +97,18 @@ function GroupHome({ group }: { group: GroupRow }) {
       <PageHeader
         title={group.name}
         description={group.description ?? undefined}
-        actions={<GroupOptionsMenu group={group} />}
+        actions={
+          <div className="flex flex-wrap gap-2">
+            {/* Above the charts too, so logging needs no scrolling. */}
+            {!group.isArchived && (
+              <Button onClick={() => openLogEntry(group.id)}>
+                <Plus aria-hidden />
+                Log entry
+              </Button>
+            )}
+            <GroupOptionsMenu group={group} />
+          </div>
+        }
       />
       <div className="-mt-4 mb-8">
         <GroupMeta group={group} linkMembers />

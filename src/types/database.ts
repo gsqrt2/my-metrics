@@ -624,6 +624,16 @@ export type Database = {
         Args: { attribute_ids: string[]; target_group_id: string }
         Returns: undefined
       }
+      save_entry_moment: {
+        Args: {
+          measured_at_before: string
+          new_comment: string
+          new_measured_at: string
+          new_values: Json
+          target_subject_id: string
+        }
+        Returns: undefined
+      }
       set_group_archived: {
         Args: { archived: boolean; target_group_id: string }
         Returns: undefined

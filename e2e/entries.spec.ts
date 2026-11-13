@@ -201,27 +201,57 @@ test.describe('logging', () => {
     ).toHaveText('Eli Example (you)')
     await page.keyboard.press('Escape')
 
-    // Edit and delete
+    // Editing opens everything logged at that moment, with every metric:
+    // values change, cleared ones go, empty ones can be filled in.
     await page.goto('/logbooks')
     await page.getByRole('link', { name: /^Eli Log/ }).click()
     await entries.getByRole('link', { name: /^Edit Waist of Bea/ }).click()
+    await expect(
+      page.getByRole('heading', { name: 'Edit entry' }),
+    ).toBeVisible()
     await expect(page.getByText(/Logged by Eli Example on/)).toBeVisible()
+    await expect(page.getByLabel('Weight (kg)')).toHaveValue('72.4')
+    await expect(page.getByLabel('Comment (optional)')).toHaveValue(
+      'After a run',
+    )
     await page.getByLabel('Waist (cm)').fill('80.5')
+    await page.getByLabel('Weight (kg)').fill('')
     await page.getByRole('button', { name: 'Save changes' }).click()
     await expect(entries).toContainText('80.5 cm')
+    await expect(entries).not.toContainText('72.4 kg')
+    await expect(entries.getByRole('listitem')).toHaveCount(2)
 
-    await entries.getByRole('link', { name: /^Edit Waist of Bea/ }).click()
+    // The 7:00 moment has only a weight; a waist is added to it.
+    await entries.getByRole('link', { name: /^Edit Weight of Bea/ }).click()
+    await expect(
+      page.getByRole('heading', { name: 'Edit entry' }),
+    ).toBeVisible()
+    await expect(page.getByLabel('Waist (cm)')).toHaveValue('')
+    await page.getByLabel('Waist (cm)').fill('79')
+    await page.getByRole('button', { name: 'Save changes' }).click()
+    await expect(entries).toContainText('79.0 cm')
+    await expect(entries.getByRole('listitem')).toHaveCount(3)
+
+    // Deleting removes the whole moment.
+    await entries.getByRole('link', { name: /^Edit Weight of Bea/ }).click()
+    await expect(
+      page.getByRole('heading', { name: 'Edit entry' }),
+    ).toBeVisible()
     await expect(page.getByText(/Last changed by Eli Example on/)).toBeVisible()
     await page.getByRole('button', { name: 'Delete entry…' }).click()
+    await expect(
+      page.getByText('Delete the 2 values logged at this time?'),
+    ).toBeVisible()
     await page.getByRole('button', { name: 'Delete for good' }).click()
-    await expect(entries.getByRole('listitem')).toHaveCount(2)
+    await expect(entries.getByRole('listitem')).toHaveCount(1)
+    await expect(entries).toContainText('80.5 cm')
 
     // Metrics with entries warn before their unit changes.
     await openLogbookOption(page, 'Metrics')
-    await page.getByRole('link', { name: 'Edit Weight' }).click()
-    await page.getByLabel('Unit (optional)').fill('lb')
+    await page.getByRole('link', { name: 'Edit Waist' }).click()
+    await page.getByLabel('Unit (optional)').fill('in')
     await expect(
-      page.getByText('2 entries have already been logged.'),
+      page.getByText('1 entry has already been logged.'),
     ).toBeVisible()
   })
 })

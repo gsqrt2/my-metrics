@@ -61,6 +61,56 @@ export function useEntry(entryId: string) {
   })
 }
 
+// Everything logged for a subject at one moment (values logged together share
+// subject and time, FR-51), as far as the viewer may see it.
+export function useEntryMoment(subjectId: string, measuredAt: string) {
+  return useQuery({
+    queryKey: [...entryKeys.all, 'moment', subjectId, measuredAt],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('entries')
+        .select(ENTRY_COLUMNS)
+        .eq('subject_id', subjectId)
+        .eq('measured_at', measuredAt)
+        .overrideTypes<Entry[], { merge: false }>()
+      if (error) throw error
+      return data
+    },
+  })
+}
+
+export type MomentChanges = {
+  measuredAt: string
+  comment: string
+  // attribute id → new value, or null to delete its entry
+  values: Record<string, number | null>
+}
+
+// Saves an edited moment in one transaction (save_entry_moment): changed and
+// new values, deleted ones, and the time and comment for all.
+export function useSaveEntryMoment(
+  subjectId: string,
+  measuredAtBefore: string,
+) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (changes: MomentChanges) => {
+      const { error } = await supabase.rpc('save_entry_moment', {
+        target_subject_id: subjectId,
+        measured_at_before: measuredAtBefore,
+        new_measured_at: changes.measuredAt,
+        new_comment: changes.comment,
+        new_values: changes.values,
+      })
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: entryKeys.all })
+      queryClient.invalidateQueries({ queryKey: ['attribute-entry-count'] })
+    },
+  })
+}
+
 export type NewEntry = Pick<
   Tables<'entries'>,
   'subject_id' | 'attribute_id' | 'value' | 'measured_at' | 'comment'
@@ -73,44 +123,6 @@ export function useLogEntries() {
     mutationFn: async (entries: NewEntry[]) => {
       const { error } = await supabase.from('entries').insert(entries)
       if (error) throw error
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: entryKeys.all })
-      queryClient.invalidateQueries({ queryKey: ['attribute-entry-count'] })
-    },
-  })
-}
-
-export function useUpdateEntry(entryId: string) {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: async (
-      fields: Pick<Tables<'entries'>, 'value' | 'measured_at' | 'comment'>,
-    ) => {
-      const { data, error } = await supabase
-        .from('entries')
-        .update(fields)
-        .eq('id', entryId)
-        .select('id')
-      if (error) throw error
-      // RLS turns a refused update into "no rows", not an error.
-      if (data.length === 0) throw new Error('not_allowed')
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: entryKeys.all }),
-  })
-}
-
-export function useDeleteEntry(entryId: string) {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: async () => {
-      const { data, error } = await supabase
-        .from('entries')
-        .delete()
-        .eq('id', entryId)
-        .select('id')
-      if (error) throw error
-      if (data.length === 0) throw new Error('not_allowed')
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: entryKeys.all })

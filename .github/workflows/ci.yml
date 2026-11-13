@@ -56,8 +56,8 @@ jobs:
       - name: Download Chromium
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: pnpm exec playwright install chromium
-      # Only what the app uses: database, auth, REST API, gateway, Mailpit and,
-      # from step 9, Edge Functions (redeem-invite).
+      # Only what the app uses: database, auth, REST API, gateway, Mailpit and
+      # the Edge Functions (redeem-invite, send-invite, delete-account).
       - name: Start local Supabase
         run: pnpm exec supabase start -x studio,storage-api,imgproxy,realtime,logflare,vector,supavisor,postgres-meta
       - name: Write .env.local

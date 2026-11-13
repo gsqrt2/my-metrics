@@ -18,7 +18,8 @@ import { SubjectAvatar } from '@/features/subjects/subject-avatar'
 const INITIAL_COUNT = 5
 
 // The group's latest entries on the group page, newest first, below the
-// charts: secondary to them. The full table comes in step 8.
+// charts: secondary to them. Its own "Log entry" button is there for after
+// scrolling; the page header has one too.
 export function EntriesSection({ group }: { group: GroupRow }) {
   const rows = useEntryRows(group.id, {
     sort: 'newest',
