@@ -40,11 +40,8 @@ export function EntriesSection({ group }: { group: GroupRow }) {
           Recent entries
         </h2>
         {!group.isArchived && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => openLogEntry(group.id)}
-          >
+          // The same as the one in the page header.
+          <Button onClick={() => openLogEntry(group.id)}>
             <Plus aria-hidden />
             Log entry
           </Button>

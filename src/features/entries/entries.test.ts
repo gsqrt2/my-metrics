@@ -8,6 +8,7 @@ import { formatValue } from '@/features/entries/format'
 import { readLastUsed, rememberLastUsed } from '@/features/entries/last-used'
 import { canLogFor } from '@/features/entries/permissions'
 import {
+  blockedGroups,
   startingPoint,
   toLoggableGroups,
   type LoggableGroup,
@@ -221,6 +222,34 @@ describe('toLoggableGroups', () => {
         'me',
       ),
     ).toEqual([])
+  })
+
+  it("says why the left-out groups can't be logged in", () => {
+    const viewerOfOthers = {
+      ...row,
+      id: 'g2',
+      me: [{ role: 'viewer' as const }],
+      subjects: row.subjects.slice(0, 2),
+    }
+    expect(
+      blockedGroups(
+        [
+          row,
+          { ...row, id: 'g3', archived_at: '2026-02-01' },
+          { ...row, id: 'g4', attributes: [row.attributes[2]] },
+          viewerOfOthers,
+        ],
+        'me',
+      ),
+    ).toEqual({
+      g3: { reason: 'archived', canManage: true, canTrackMyself: false },
+      g4: { reason: 'no_metrics', canManage: true, canTrackMyself: false },
+      g2: {
+        reason: 'no_participants',
+        canManage: false,
+        canTrackMyself: true,
+      },
+    })
   })
 })
 

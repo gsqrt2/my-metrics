@@ -36,15 +36,14 @@ type Errors = Partial<Record<string, string>>
 export function LogEntryForm({
   groups,
   presetGroupId,
-  presetGroupName,
-  presetGroupArchived = false,
+  lockGroup = false,
   onSaved,
   onCancel,
 }: {
   groups: LoggableGroup[]
   presetGroupId?: string
-  presetGroupName?: string
-  presetGroupArchived?: boolean
+  // Opened from a logbook: it stays that logbook (no choice of another).
+  lockGroup?: boolean
   onSaved: (groupId: string) => void
   onCancel: () => void
 }) {
@@ -87,8 +86,6 @@ export function LogEntryForm({
   )
   const fields =
     group?.attributes.filter((a) => !locked?.some((l) => l.id === a.id)) ?? []
-  const presetUnavailable =
-    presetGroupId !== undefined && !groups.some((g) => g.id === presetGroupId)
   const hasValues = Object.values(values).some((v) => v.trim() !== '')
 
   function selectGroup(id: string) {
@@ -150,66 +147,65 @@ export function LogEntryForm({
 
   return (
     <form onSubmit={submit} noValidate className="flex flex-col gap-5">
-      {presetUnavailable && (
-        <p className="rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
-          {presetGroupArchived
-            ? `${presetGroupName ?? 'That logbook'} is archived, so nothing can be logged in it.`
-            : `${presetGroupName ?? 'That logbook'} isn't ready for logging yet: it needs at least one metric and a participant you may log for.`}
+      {lockGroup && group ? (
+        <p className="text-sm">
+          <span className="text-muted-foreground">Logbook: </span>
+          <span className="font-medium">{group.name}</span>
         </p>
-      )}
-
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="entry-group">Logbook</Label>
-        <NativeSelect
-          id="entry-group"
-          value={groupId}
-          aria-invalid={errors.group ? true : undefined}
-          onChange={(event) => {
-            const id = event.target.value
-            if (hasValues) setSwitchTo(id)
-            else selectGroup(id)
-          }}
-        >
-          {!group && <option value="">Choose a logbook…</option>}
-          {groups.map((g) => (
-            <option key={g.id} value={g.id}>
-              {g.name}
-            </option>
-          ))}
-        </NativeSelect>
-        {errors.group && (
-          <p className="text-sm text-destructive">{errors.group}</p>
-        )}
-        {switchTo !== null && (
-          <div
-            role="group"
-            aria-label="Confirm switching logbook"
-            className="flex flex-col gap-2 rounded-lg border p-3"
+      ) : (
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="entry-group">Logbook</Label>
+          <NativeSelect
+            id="entry-group"
+            value={groupId}
+            aria-invalid={errors.group ? true : undefined}
+            onChange={(event) => {
+              const id = event.target.value
+              if (hasValues) setSwitchTo(id)
+              else selectGroup(id)
+            }}
           >
-            <p className="text-sm">
-              Switch to {groups.find((g) => g.id === switchTo)?.name}? The
-              values you've entered will be discarded.
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                type="button"
-                size="sm"
-                onClick={() => selectGroup(switchTo)}
-              >
-                Switch and discard
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                onClick={() => setSwitchTo(null)}
-              >
-                Keep editing
-              </Button>
+            {!group && <option value="">Choose a logbook…</option>}
+            {groups.map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.name}
+              </option>
+            ))}
+          </NativeSelect>
+          {errors.group && (
+            <p className="text-sm text-destructive">{errors.group}</p>
+          )}
+          {switchTo !== null && (
+            <div
+              role="group"
+              aria-label="Confirm switching logbook"
+              className="flex flex-col gap-2 rounded-lg border p-3"
+            >
+              <p className="text-sm">
+                Switch to {groups.find((g) => g.id === switchTo)?.name}? The
+                values you've entered will be discarded.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => selectGroup(switchTo)}
+                >
+                  Switch and discard
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setSwitchTo(null)}
+                >
+                  Keep editing
+                </Button>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
       {group && (
         <>

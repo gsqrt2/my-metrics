@@ -115,7 +115,7 @@ function LoadMoment({
       </>
     )
   }
-  const group = groups.data.find((g) => g.id === entry.subject.group_id)
+  const group = groups.data.groups.find((g) => g.id === entry.subject.group_id)
   const subject = group?.subjects.find((s) => s.id === entry.subject.id)
   const fields =
     group && subject

@@ -22,12 +22,24 @@ export function LogEntryButton({
       : undefined
   const open = () => openLogEntry(groupId)
 
+  // Phones: the floating button only where people browse (the logbook list,
+  // a logbook, its entries), never over a form. Hidden while a sheet, dialog
+  // or menu is open too (index.css: .log-entry-fab).
+  const onList = useMatch('/logbooks') !== null
+  const onLogbook =
+    useMatch('/logbooks/:groupId') !== null && groupId !== undefined
+  const onEntries = useMatch('/logbooks/:groupId/entries') !== null
+
   if (variant === 'floating') {
+    if (!onList && !onLogbook && !onEntries) return null
     return (
       <Button
         size="icon-lg"
         aria-label="Log entry"
-        className={cn('size-14 rounded-full shadow-lg', className)}
+        className={cn(
+          'log-entry-fab size-14 rounded-full shadow-lg',
+          className,
+        )}
         onClick={open}
       >
         <Plus className="size-6" aria-hidden />

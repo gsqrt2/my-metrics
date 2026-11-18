@@ -42,6 +42,7 @@ Status: ✅ done · 🚧 in progress · ⏸️ paused with open items · ⬜ not
 | Editing an entry shows every metric (the whole moment) | ✅ | `4e7c627` | `save_entry_moment` SQL function |
 | "Log entry" above the charts | ✅ | `4e7c627` | in the logbook header |
 | "Track myself here" for the creator and watching members | ✅ | `1de35dd` | `track_myself` SQL function |
+| Log entry fixed to the logbook it's opened from; floating button only on browsing pages | 🟡 | | branch `backlog-log-entry-context` |
 | "Remember me" on login | dropped | | users already stay logged in until they log out |
 
 **Next:** new items in `backlog.md`.

@@ -39,14 +39,48 @@ test('a logbook shows charts first, then its latest entries', async ({
   await expect(page.getByText('Showing the latest 50 entries.')).toBeVisible()
 })
 
+// Phones: the floating button only where people browse, and never over a
+// form, sheet, dialog or menu.
+test('the floating Log entry button stays out of the way', async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(!isMobile, 'phones only')
+  const floating = page.locator('.log-entry-fab')
+  await page.goto('/logbooks')
+  await expect(floating).toBeVisible()
+  await page.goto('/logbooks/new')
+  await expect(page.getByRole('heading', { name: 'New logbook' })).toBeVisible()
+  await expect(floating).toHaveCount(0)
+  await page.goto('/profile')
+  await expect(page.getByRole('heading', { name: 'Profile' })).toBeVisible()
+  await expect(floating).toHaveCount(0)
+
+  await page.goto('/logbooks/b0000000-0000-0000-0000-000000000002') // Diet Challenge
+  await expect(floating).toBeVisible()
+  await page.getByRole('button', { name: 'Options' }).click()
+  await expect(page.getByRole('menu')).toBeVisible()
+  await expect(floating).toBeHidden()
+  await page.keyboard.press('Escape')
+  await expect(floating).toBeVisible()
+  await page
+    .getByRole('main')
+    .getByRole('button', { name: 'Log entry' })
+    .first()
+    .click()
+  await expect(page.getByRole('dialog', { name: 'Log entry' })).toBeVisible()
+  await expect(floating).toBeHidden()
+})
+
 test('the log entry form is readable in dark mode', async ({ page }) => {
   await page.emulateMedia({ colorScheme: 'dark' })
-  await page.goto('/logbooks/b0000000-0000-0000-0000-000000000002') // Diet Challenge
+  // From the logbook list, where the logbook is chosen in a select box.
+  await page.goto('/logbooks')
   await page.getByRole('button', { name: 'Log entry' }).first().click()
   const logbook = page
     .getByRole('dialog', { name: 'Log entry' })
     .getByLabel('Logbook')
-  await expect(logbook.locator('option:checked')).toHaveText('Diet Challenge')
+  await expect(logbook.locator('option')).toContainText(['Diet Challenge'])
 
   // Runs in the browser; the e2e code itself is compiled without DOM globals.
   const colours = await logbook.evaluate((select) => {
@@ -118,17 +152,24 @@ test.describe('logging', () => {
     await page.getByLabel('Name').fill('Bea')
     await page.getByRole('button', { name: 'Add participant' }).click()
     await page.getByRole('main').getByRole('link', { name: 'Eli Log' }).click()
+    // Opened from a logbook that can't be logged in yet: why, and the way
+    // out, rather than another logbook.
+    await logEntry.click()
+    await expect(sheet.getByText('Logbook: Eli Log')).toBeVisible()
+    await expect(sheet.getByText('It has no metrics yet')).toBeVisible()
+    await sheet.getByRole('button', { name: 'Choose what to measure' }).click()
+    await expect(page).toHaveURL(/\/metrics$/)
+    await page.getByRole('main').getByRole('link').first().click() // back
     await addSuggestedMetrics(page, ['Weight (kg)', 'Waist (cm)'])
     await expect(
       page.getByRole('region', { name: 'Recent entries' }),
     ).toContainText('Nothing logged yet.')
 
-    // From the logbook: it's preselected, with its participant.
+    // From the logbook: it's fixed (no other logbook to choose), with its
+    // participant.
     await logEntry.click()
-    await expect(sheet.getByLabel('Logbook')).toHaveValue(/.+/)
-    await expect(
-      sheet.getByLabel('Logbook').locator('option:checked'),
-    ).toHaveText('Eli Log')
+    await expect(sheet.getByText('Logbook: Eli Log')).toBeVisible()
+    await expect(sheet.getByLabel('Logbook')).toHaveCount(0)
     await expect(
       sheet.getByLabel('Participant').locator('option:checked'),
     ).toHaveText('Bea')

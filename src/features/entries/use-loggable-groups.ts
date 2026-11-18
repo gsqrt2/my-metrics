@@ -114,7 +114,41 @@ export function toLoggableGroups(rows: Row[], userId: string): LoggableGroup[] {
     }))
 }
 
-// The groups shown in the "Log entry" form: only those the user can log in.
+// Why a logbook the user is in can't be logged in, so the form opened from
+// it can say so and show the way out instead of switching to another one.
+export type BlockedGroup = {
+  reason: 'archived' | 'no_metrics' | 'no_participants'
+  // Owner or editor: may add metrics and participants.
+  canManage: boolean
+  // Not a participant yet (archived ones count), so "Track myself here".
+  canTrackMyself: boolean
+}
+
+export function blockedGroups(
+  rows: Row[],
+  userId: string,
+): Record<string, BlockedGroup> {
+  const loggable = new Set(toLoggableGroups(rows, userId).map((g) => g.id))
+  const blocked: Record<string, BlockedGroup> = {}
+  for (const row of rows) {
+    if (loggable.has(row.id)) continue
+    const role = row.me[0].role
+    blocked[row.id] = {
+      reason:
+        row.archived_at !== null
+          ? 'archived'
+          : row.attributes.every((a) => a.archived_at)
+            ? 'no_metrics'
+            : 'no_participants',
+      canManage: role === 'owner' || role === 'editor',
+      canTrackMyself: !row.subjects.some((s) => s.linked_user_id === userId),
+    }
+  }
+  return blocked
+}
+
+// The groups shown in the "Log entry" form: only those the user can log in;
+// for the others, why not.
 export function useLoggableGroups(enabled: boolean) {
   const { session } = useAuth()
   const userId = session?.user.id
@@ -134,7 +168,10 @@ export function useLoggableGroups(enabled: boolean) {
         .eq('me.user_id', userId!)
         .overrideTypes<Row[], { merge: false }>()
       if (error) throw error
-      return toLoggableGroups(data, userId!)
+      return {
+        groups: toLoggableGroups(data, userId!),
+        blocked: blockedGroups(data, userId!),
+      }
     },
   })
 }

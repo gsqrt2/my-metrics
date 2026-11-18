@@ -174,3 +174,10 @@
     cursor: pointer;
   }
 }
+
+/* The phone's floating "Log entry" button stays out of the way while a
+   sheet, dialog or menu is open (Radix marks the body while it locks
+   scrolling). */
+body[data-scroll-locked] .log-entry-fab {
+  display: none;
+}
