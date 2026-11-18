@@ -28,6 +28,7 @@ export function GroupForm({
   isPending,
   error,
   offerOwnSubjectOnly,
+  offerTrackMyself = false,
   onSubmit,
 }: {
   defaultValues: GroupFormValues
@@ -38,7 +39,13 @@ export function GroupForm({
   error?: string
   // Only the owner sets "own participant only" (§5).
   offerOwnSubjectOnly: boolean
-  onSubmit: (fields: GroupFields, ownSubjectOnly: boolean) => void
+  // Only when creating a logbook.
+  offerTrackMyself?: boolean
+  onSubmit: (
+    fields: GroupFields,
+    ownSubjectOnly: boolean,
+    trackMyself: boolean,
+  ) => void
 }) {
   const form = useForm<GroupFormValues, unknown, GroupFormOutput>({
     resolver: zodResolver(groupSchema),
@@ -50,7 +57,7 @@ export function GroupForm({
   return (
     <form
       onSubmit={form.handleSubmit((values) =>
-        onSubmit(toGroupRow(values), values.ownSubjectOnly),
+        onSubmit(toGroupRow(values), values.ownSubjectOnly, values.trackMyself),
       )}
       noValidate
       className="flex max-w-xl flex-col gap-6"
@@ -147,6 +154,36 @@ export function GroupForm({
           </div>
         )}
       </fieldset>
+
+      {offerTrackMyself && (
+        <div className="flex items-start gap-3">
+          <Controller
+            control={form.control}
+            name="trackMyself"
+            render={({ field }) => (
+              <Checkbox
+                id="group-track-myself"
+                checked={field.value}
+                onCheckedChange={(checked) => field.onChange(checked === true)}
+                onBlur={field.onBlur}
+                className="mt-0.5"
+                aria-describedby="group-track-myself-hint"
+              />
+            )}
+          />
+          <div className="flex flex-col gap-1">
+            <Label htmlFor="group-track-myself">Track myself here</Label>
+            <p
+              id="group-track-myself-hint"
+              className="text-sm text-muted-foreground"
+            >
+              Adds you as a participant, so you can log your own values and
+              choose what others see of them. Leave it off if you only log for
+              others.
+            </p>
+          </div>
+        </div>
+      )}
 
       {offerOwnSubjectOnly && (
         <div className="flex items-start gap-3">

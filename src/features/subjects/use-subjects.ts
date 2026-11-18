@@ -79,3 +79,36 @@ export function useUpdateSubject(subject: Pick<Subject, 'id' | 'group_id'>) {
       }),
   })
 }
+
+// Backlog: a member who isn't a participant yet adds themselves, linked to
+// their account (track_myself). Returns the new participant's id.
+export function useTrackMyself(groupId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.rpc('track_myself', {
+        target_group_id: groupId,
+      })
+      if (error) throw error
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: subjectKeys.list(groupId) })
+      queryClient.invalidateQueries({ queryKey: ['loggable-groups'] })
+      queryClient.invalidateQueries({ queryKey: ['visibility'] })
+    },
+  })
+}
+
+export function trackMyselfErrorMessage(error: Error) {
+  switch (error.message) {
+    case 'already_tracked':
+      return "You're already a participant here."
+    case 'link_request_pending':
+      return "You've asked to be linked to a participant here. The owner decides first."
+    case 'group_archived':
+      return 'This logbook is archived, so nothing can be added.'
+    default:
+      return "You couldn't be added as a participant. Please try again."
+  }
+}

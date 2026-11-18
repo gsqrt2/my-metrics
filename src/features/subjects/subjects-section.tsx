@@ -19,12 +19,15 @@ export function SubjectsSection({
   filters,
   selected,
   onSelectedChange,
+  action,
 }: {
   subjects: Subject[] | undefined
   isError: boolean
   filters: boolean
   selected: Selection
   onSelectedChange: (selected: Selection) => void
+  // e.g. "Track myself here" for members who aren't a participant yet
+  action?: React.ReactNode
 }) {
   const { session } = useAuth()
 
@@ -82,6 +85,7 @@ export function SubjectsSection({
       {filters && selected !== null && (
         <ShowAllButton onClick={() => onSelectedChange(null)} />
       )}
+      {action}
     </section>
   )
 }

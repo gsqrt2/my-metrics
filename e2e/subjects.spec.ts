@@ -1,6 +1,11 @@
 import { expect, test, type Page } from '@playwright/test'
 
-import { deleteOwnedGroups, users } from './support/local-supabase'
+import {
+  createAccount,
+  deleteAccounts,
+  deleteOwnedGroups,
+  users,
+} from './support/local-supabase'
 import { logIn, openLogbookOption } from './support/login'
 
 test('a group shows its subjects; managing them shows archived ones on request', async ({
@@ -64,6 +69,7 @@ test.describe('managing subjects', () => {
     await logIn(page, users.ari.email)
     await page.getByRole('link', { name: 'New logbook' }).click()
     await page.getByLabel('Name').fill('Ari Kids')
+    await page.getByLabel('Track myself here').uncheck()
     await page.getByRole('button', { name: 'Create logbook' }).click()
     await expect(
       page.getByRole('region', { name: 'Participants' }),
@@ -158,5 +164,55 @@ test.describe('managing subjects', () => {
       await page.getByRole('button', { name: 'Save changes' }).click()
       await expect(subjects).toContainText(users.ari.displayName)
     }
+  })
+})
+
+// Backlog: members who aren't a participant yet add themselves, on creating
+// a logbook or later on its page. A fresh account, so nothing else interferes.
+test.describe('tracking myself', () => {
+  test.use({ storageState: { cookies: [], origins: [] } })
+  test.beforeEach(({ isMobile }) => {
+    test.skip(isMobile, 'runs on desktop only')
+  })
+  let email = ''
+  test.afterEach(async ({ isMobile }) => {
+    if (isMobile) return
+    await deleteOwnedGroups(email)
+    await deleteAccounts('e2e-tracker-%@example.com')
+  })
+
+  test('the creator is a participant by default, others add themselves', async ({
+    page,
+  }) => {
+    email = `e2e-tracker-${Date.now()}@example.com`
+    await createAccount(email, 'Tia Tracker')
+    await logIn(page, email)
+    const participants = page.getByRole('region', { name: 'Participants' })
+    const trackMyself = page.getByRole('button', { name: 'Track myself here' })
+
+    // On creating: ticked by default.
+    await page.getByRole('link', { name: 'New logbook' }).click()
+    await expect(page.getByLabel('Track myself here')).toBeChecked()
+    await page.getByLabel('Name').fill('Tia Club')
+    await page.getByRole('button', { name: 'Create logbook' }).click()
+    await expect(participants).toContainText('Tia Tracker(you)')
+    await expect(trackMyself).toHaveCount(0)
+    await openLogbookOption(page, 'Privacy')
+    await expect(
+      page.getByText('This logbook has no metrics yet.'),
+    ).toBeVisible()
+
+    // Left off: added later from the logbook page.
+    await page.goto('/logbooks/new')
+    await page.getByLabel('Name').fill('Tia Watch')
+    await page.getByLabel('Track myself here').uncheck()
+    await page.getByRole('button', { name: 'Create logbook' }).click()
+    await expect(participants).toContainText('None yet.')
+    await trackMyself.click()
+    await expect(
+      page.getByText("You're now a participant in Tia Watch."),
+    ).toBeVisible()
+    await expect(participants).toContainText('Tia Tracker(you)')
+    await expect(trackMyself).toHaveCount(0)
   })
 })

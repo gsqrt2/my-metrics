@@ -162,8 +162,9 @@ export function useCreateGroup() {
   return useMutation({
     mutationFn: async ({
       ownSubjectOnly,
+      trackMyself,
       ...fields
-    }: GroupFields & { ownSubjectOnly: boolean }) => {
+    }: GroupFields & { ownSubjectOnly: boolean; trackMyself: boolean }) => {
       // The id is made here because the new row can't be read back in the same
       // request: the owner membership that makes it visible is added by a
       // trigger after the insert (see the groups migration).
@@ -174,7 +175,12 @@ export function useCreateGroup() {
         members_edit_own_subject_only: ownSubjectOnly,
       })
       if (error) throw error
-      return id
+      // The logbook exists by now, so a failure here doesn't undo it: the
+      // page says so, and "Track myself here" on the logbook page retries.
+      const tracked = trackMyself
+        ? !(await supabase.rpc('track_myself', { target_group_id: id })).error
+        : true
+      return { id, tracked }
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: groupKeys.all }),
   })

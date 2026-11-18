@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router'
+import { toast } from 'sonner'
 
 import { BackLink } from '@/app/layout/back-link'
 import { PageHeader } from '@/app/layout/page-header'
@@ -26,11 +27,19 @@ export function NewGroupPage() {
         isPending={create.isPending}
         error={create.error ? groupErrorMessage(create.error) : undefined}
         offerOwnSubjectOnly
-        onSubmit={(fields, ownSubjectOnly) =>
+        offerTrackMyself
+        onSubmit={(fields, ownSubjectOnly, trackMyself) =>
           create.mutate(
-            { ...fields, ownSubjectOnly },
+            { ...fields, ownSubjectOnly, trackMyself },
             {
-              onSuccess: (id) => navigate(`/logbooks/${id}`),
+              onSuccess: ({ id, tracked }) => {
+                if (!tracked) {
+                  toast.error(
+                    'The logbook was created, but you couldn\'t be added as a participant. Use "Track myself here" on its page.',
+                  )
+                }
+                navigate(`/logbooks/${id}`)
+              },
             },
           )
         }

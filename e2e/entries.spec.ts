@@ -111,6 +111,7 @@ test.describe('logging', () => {
     // A logbook with a participant and two metrics
     await page.getByRole('link', { name: 'New logbook' }).click()
     await page.getByLabel('Name').fill('Eli Log')
+    await page.getByLabel('Track myself here').uncheck()
     await page.getByRole('button', { name: 'Create logbook' }).click()
     await openLogbookOption(page, 'Participants')
     await page.getByRole('link', { name: 'Add participant' }).click()

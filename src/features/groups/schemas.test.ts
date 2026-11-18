@@ -103,6 +103,7 @@ describe('saving a group', () => {
       }),
     ).toEqual({
       ownSubjectOnly: false,
+      trackMyself: false,
       name: 'Diet',
       description: '',
       hasDuration: true,

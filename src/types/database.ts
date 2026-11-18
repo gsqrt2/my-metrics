@@ -644,6 +644,7 @@ export type Database = {
       }
       shares_group_with: { Args: { target_user_id: string }; Returns: boolean }
       subject_group_id: { Args: { target_subject_id: string }; Returns: string }
+      track_myself: { Args: { target_group_id: string }; Returns: string }
       transfer_ownership: {
         Args: { new_owner_id: string; target_group_id: string }
         Returns: undefined

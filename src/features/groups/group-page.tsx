@@ -3,6 +3,7 @@ import { lazy, Suspense, useState } from 'react'
 import { Link, useParams } from 'react-router'
 
 import { BackLink } from '@/app/layout/back-link'
+import { useAuth } from '@/features/auth/use-auth'
 import { PageHeader } from '@/app/layout/page-header'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -19,6 +20,7 @@ import { useChartMode } from '@/features/dashboard/chart-mode'
 import type { Selection } from '@/features/dashboard/selection'
 import { PendingRequestsNotice } from '@/features/invites/pending-requests-notice'
 import { SubjectsSection } from '@/features/subjects/subjects-section'
+import { TrackMyselfButton } from '@/features/subjects/track-myself'
 import { useSubjects } from '@/features/subjects/use-subjects'
 
 // The charts bring in Recharts, a large library, so they load only when a
@@ -76,6 +78,13 @@ export function GroupPage() {
 
 function GroupHome({ group }: { group: GroupRow }) {
   const subjects = useSubjects(group.id)
+  const { session } = useAuth()
+  // Members who aren't a participant yet (archived ones included) can add
+  // themselves.
+  const canTrackMyself =
+    !group.isArchived &&
+    subjects.data !== undefined &&
+    !subjects.data.some((s) => s.linked_user_id === session?.user.id)
   const attributes = useAttributes(group.id)
   const activeSubjects = subjects.data?.filter((s) => !s.archived_at)
   const activeAttributes = attributes.data?.filter((a) => !a.archived_at)
@@ -120,6 +129,11 @@ function GroupHome({ group }: { group: GroupRow }) {
       <div className="flex flex-col gap-4">
         <SubjectsSection
           subjects={activeSubjects}
+          action={
+            canTrackMyself && (
+              <TrackMyselfButton groupId={group.id} groupName={group.name} />
+            )
+          }
           isError={subjects.isError}
           filters={mode === 'metric' && canSwitch}
           selected={subjectFilter}

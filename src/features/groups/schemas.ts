@@ -30,6 +30,8 @@ export const groupSchema = z
     endsOn: z.string(),
     // §5 "Members can only edit their own subject"; offered to the owner only.
     ownSubjectOnly: z.boolean(),
+    // On creating: add the creator as a participant linked to their account.
+    trackMyself: z.boolean(),
   })
   .superRefine((values, ctx) => {
     if (!values.hasDuration) return
@@ -65,6 +67,7 @@ export const emptyGroupForm: GroupFormValues = {
   startsOn: '',
   endsOn: '',
   ownSubjectOnly: false,
+  trackMyself: true,
 }
 
 export function toGroupForm(
@@ -78,6 +81,7 @@ export function toGroupForm(
     startsOn: group.starts_on ?? '',
     endsOn: group.ends_on ?? '',
     ownSubjectOnly,
+    trackMyself: false,
   }
 }
 

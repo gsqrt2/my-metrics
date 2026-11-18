@@ -24,6 +24,7 @@ test.describe('members', () => {
     await logIn(page, users.val.email)
     await page.getByRole('link', { name: 'New logbook' }).click()
     await page.getByLabel('Name').fill('Val Club')
+    await page.getByLabel('Track myself here').uncheck()
     await page.getByRole('button', { name: 'Create logbook' }).click()
     await expect(page).toHaveURL(/\/logbooks\/[0-9a-f-]{36}$/)
     const url = page.url()
