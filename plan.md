@@ -43,6 +43,7 @@ Status: ✅ done · 🚧 in progress · ⏸️ paused with open items · ⬜ not
 | "Log entry" above the charts | ✅ | `4e7c627` | in the logbook header |
 | "Track myself here" for the creator and watching members | ✅ | `1de35dd` | `track_myself` SQL function |
 | Log entry fixed to the logbook it's opened from; floating button only on browsing pages | ✅ | `a568866` | |
+| Duplicate-code cleanup: date helpers, Confirm, shared entry form fields and validation, shared Edge Function code (`_shared/http.ts`), NotAllowed page | ✅ | `f2b3ff5` | textual repetitions left on purpose |
 | "Remember me" on login | dropped | | users already stay logged in until they log out |
 
 **Next:** new items in `backlog.md`.
@@ -56,7 +57,7 @@ Anything left unfinished, deferred or worth knowing before the next step. Each i
 - **`subjects.visibility_frozen` not added yet** (step 4). tech.md's data model has it for former members' subjects (FR-23); it's added with leaving and removing members in step 10.
 - **App bundle size** (step 7). The main JavaScript bundle is about 285 KB gzipped (Supabase client, UI primitives, forms); the charts load separately (about 110 KB) on group pages only. Consider splitting by route before going live (step 16).
 - **Local end-to-end runs use 4 browsers at a time** (step 9, `playwright.config.ts`). With 8 (the default on a 16-core machine) tests got slow and timed out at random once the Edge Function runtime joined the stack. CI keeps the default and its 2 retries.
-- **CI**: green on `main` through the backlog items (`a568866`), and the Deploy workflow green after it. Chromium is cached per Playwright version and installed without `--with-deps`; if a runner image update ever breaks Chromium with missing libraries, add `pnpm exec playwright install-deps chromium` back. The slowest e2e step is now starting Supabase (~80 s).
+- **CI**: green on `main` through the duplicate-code cleanup (`f2b3ff5`), and the Deploy workflow green after it. Chromium is cached per Playwright version and installed without `--with-deps`; if a runner image update ever breaks Chromium with missing libraries, add `pnpm exec playwright install-deps chromium` back. The slowest e2e step is now starting Supabase (~80 s).
 
 ---
 
