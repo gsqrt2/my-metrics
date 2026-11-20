@@ -1,13 +1,16 @@
 import { Button } from '@/components/ui/button'
 
-// An inline confirmation step: the question, then the action and Cancel.
+// An inline confirmation step: the question, then the action and a way back.
+// Every "are you sure?" in the app uses it, so they look and work alike.
 export function Confirm({
   label,
   text,
   action,
+  cancelLabel = 'Cancel',
   destructive = false,
   disabled = false,
   pending,
+  submit = false,
   children,
   onConfirm,
   onCancel,
@@ -15,12 +18,17 @@ export function Confirm({
   label: string
   text: string
   action: string
+  // e.g. "Keep it" or "Keep editing", where that says more than "Cancel".
+  cancelLabel?: string
   destructive?: boolean
   pending: boolean
+  // The action submits the surrounding form (e.g. with a password field in
+  // children, so Enter confirms too) instead of calling onConfirm.
+  submit?: boolean
   // Extra content between the text and the buttons, e.g. a field to type.
   children?: React.ReactNode
   disabled?: boolean
-  onConfirm: () => void
+  onConfirm?: () => void
   onCancel: () => void
 }) {
   return (
@@ -33,15 +41,16 @@ export function Confirm({
       {children}
       <div className="flex flex-wrap gap-2">
         <Button
+          type={submit ? 'submit' : 'button'}
           size="sm"
           variant={destructive ? 'destructive' : 'default'}
           disabled={pending || disabled}
-          onClick={onConfirm}
+          onClick={submit ? undefined : onConfirm}
         >
           {action}
         </Button>
-        <Button size="sm" variant="ghost" onClick={onCancel}>
-          Cancel
+        <Button type="button" size="sm" variant="ghost" onClick={onCancel}>
+          {cancelLabel}
         </Button>
       </div>
     </div>

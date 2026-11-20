@@ -15,6 +15,13 @@ describe('formatting', () => {
       '09/11/2026, 19:05',
     )
   })
+
+  it('takes database timestamps and milliseconds as well', () => {
+    const moment = new Date(2026, 10, 9, 19, 5)
+    expect(formatDateTime(moment.toISOString())).toBe('09/11/2026, 19:05')
+    expect(formatDateTime(moment.getTime())).toBe('09/11/2026, 19:05')
+    expect(formatDate(moment.toISOString())).toBe('09/11/2026')
+  })
 })
 
 describe('typed dates', () => {

@@ -1,6 +1,5 @@
 import { Check, Copy, Link2, Mail } from 'lucide-react'
 import { useState } from 'react'
-import { Link } from 'react-router'
 import { toast } from 'sonner'
 
 import { BackLink } from '@/app/layout/back-link'
@@ -15,6 +14,7 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { useAuth } from '@/features/auth/use-auth'
 import { WithGroup } from '@/features/groups/group-page'
+import { NotAllowed } from '@/features/groups/not-allowed'
 import {
   canEditGroup,
   cantManageText,
@@ -68,19 +68,15 @@ function Invites({ group }: { group: GroupRow }) {
 
   if (!canEditGroup(group)) {
     return (
-      <>
-        {back}
-        <PageHeader
-          title="Invite people"
-          description={cantManageText(
-            group,
-            "Only the logbook's owner and editors can invite people.",
-          )}
-        />
-        <Button asChild variant="outline">
-          <Link to={groupPath}>Back to {group.name}</Link>
-        </Button>
-      </>
+      <NotAllowed
+        group={group}
+        back={back}
+        title="Invite people"
+        description={cantManageText(
+          group,
+          "Only the logbook's owner and editors can invite people.",
+        )}
+      />
     )
   }
 
@@ -282,7 +278,7 @@ function OpenInvites({ group }: { group: GroupRow }) {
                   {invite.email ? `invite to ${invite.email}` : 'link'}
                 </span>
                 <span className="text-muted-foreground">
-                  Until {formatDate(new Date(invite.expires_at))}
+                  Until {formatDate(invite.expires_at)}
                   {invite.created_by !== session?.user.id &&
                     ` · by ${invite.creator?.display_name ?? 'a former member'}`}
                 </span>

@@ -1,8 +1,7 @@
-import { Link, useNavigate } from 'react-router'
+import { useNavigate } from 'react-router'
 
 import { BackLink } from '@/app/layout/back-link'
 import { PageHeader } from '@/app/layout/page-header'
-import { Button } from '@/components/ui/button'
 import { AttributeForm } from '@/features/attributes/attribute-form'
 import { emptyAttributeForm } from '@/features/attributes/schemas'
 import {
@@ -10,6 +9,7 @@ import {
   useCreateAttribute,
 } from '@/features/attributes/use-attributes'
 import { WithGroup } from '@/features/groups/group-page'
+import { NotAllowed } from '@/features/groups/not-allowed'
 import {
   canEditGroup,
   cantManageText,
@@ -29,19 +29,15 @@ function NewAttribute({ group }: { group: GroupRow }) {
 
   if (!canEditGroup(group)) {
     return (
-      <>
-        {back}
-        <PageHeader
-          title="Add metric"
-          description={cantManageText(
-            group,
-            "Only the logbook's owner and editors can add metrics.",
-          )}
-        />
-        <Button asChild variant="outline">
-          <Link to={`/logbooks/${group.id}`}>Back to {group.name}</Link>
-        </Button>
-      </>
+      <NotAllowed
+        group={group}
+        back={back}
+        title="Add metric"
+        description={cantManageText(
+          group,
+          "Only the logbook's owner and editors can add metrics.",
+        )}
+      />
     )
   }
 

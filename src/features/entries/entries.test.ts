@@ -16,6 +16,7 @@ import {
 import {
   commentError,
   measuredAtError,
+  validateMoment,
   valueError,
 } from '@/features/entries/validation'
 
@@ -78,6 +79,53 @@ describe('commentError', () => {
   it('allows up to 500 characters', () => {
     expect(commentError('x'.repeat(500))).toBeUndefined()
     expect(commentError('x'.repeat(501))).toBe('Use at most 500 characters.')
+  })
+})
+
+describe('validateMoment', () => {
+  const weight = { id: 'w', precision: 1, min_value: 2, max_value: 150 }
+  const height = { id: 'h', precision: 0, min_value: null, max_value: null }
+  const moment = {
+    fields: [weight, height],
+    measuredAt: '2026-11-09T08:00',
+    comment: '',
+  }
+
+  it('checks each value, the time and the comment', () => {
+    expect(
+      validateMoment({
+        ...moment,
+        values: { w: '500', h: '12.5' },
+        measuredAt: '',
+        comment: 'x'.repeat(501),
+      }),
+    ).toEqual({
+      w: 'Use a value from 2 to 150.',
+      h: 'Use a whole number.',
+      measuredAt: 'Enter the date as dd/mm/yyyy and the time as hh:mm.',
+      comment: 'Use at most 500 characters.',
+    })
+  })
+
+  it('needs at least one value, with the message given', () => {
+    expect(validateMoment({ ...moment, values: {} })).toEqual({
+      form: 'Enter at least one value.',
+    })
+    expect(
+      validateMoment({
+        ...moment,
+        values: { w: ' ' },
+        emptyMessage: 'Or delete it.',
+      }),
+    ).toEqual({ form: 'Or delete it.' })
+  })
+
+  it('lets saved values that stay the same past the limits (FR-40)', () => {
+    const saved = new Map([['w', 1]])
+    expect(validateMoment({ ...moment, values: { w: '1' }, saved })).toEqual({})
+    expect(validateMoment({ ...moment, values: { w: '1.5' }, saved })).toEqual({
+      w: 'Use a value from 2 to 150.',
+    })
   })
 })
 

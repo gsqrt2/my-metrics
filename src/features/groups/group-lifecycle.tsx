@@ -98,8 +98,8 @@ export function ArchivedNotice({ group }: { group: GroupRow }) {
         <Archive aria-hidden className="mt-0.5 size-4 shrink-0" />
         <span>
           Archived
-          {group.archivedAt && ` on ${formatDate(new Date(group.archivedAt))}`}.
-          It's read-only: nothing can be logged or changed
+          {group.archivedAt && ` on ${formatDate(group.archivedAt)}`}. It's
+          read-only: nothing can be logged or changed
           {group.role === 'owner' ? ' until you restore it' : ''}.
         </span>
       </p>

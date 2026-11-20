@@ -8,44 +8,15 @@
 //   3. delete the auth user; the foreign keys remove the profile, the
 //      default group, memberships and linked subjects with their entries, and
 //      clear the user's name on entries logged for others
-import { createClient } from 'npm:@supabase/supabase-js@2.119.0'
+import { adminClient, reply, serveJson, userClient } from '../_shared/http.ts'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
-
-function reply(status: number, body: Record<string, unknown>) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  })
-}
-
-const noSession = { persistSession: false, autoRefreshToken: false }
-
-Deno.serve(async (request) => {
-  if (request.method === 'OPTIONS')
-    return new Response('ok', { headers: corsHeaders })
-  if (request.method !== 'POST')
-    return reply(405, { error: 'method_not_allowed' })
-
-  let password = ''
-  try {
-    const body = await request.json()
-    if (typeof body?.password === 'string') password = body.password
-  } catch {
-    return reply(400, { error: 'invalid_input' })
+serveJson(async (body, request) => {
+  const { password } = (body ?? {}) as { password?: unknown }
+  if (typeof password !== 'string' || !password) {
+    return reply(400, { error: 'wrong_password' })
   }
-  if (!password) return reply(400, { error: 'wrong_password' })
 
-  const url = Deno.env.get('SUPABASE_URL')!
-  const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!
-  const admin = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {
-    auth: noSession,
-  })
+  const admin = adminClient()
 
   // 1. The user, and their password.
   const token = (request.headers.get('Authorization') ?? '').replace(
@@ -56,7 +27,7 @@ Deno.serve(async (request) => {
   if (meError || !me.user?.email) return reply(401, { error: 'not_signed_in' })
   const user = me.user
 
-  const check = createClient(url, anonKey, { auth: noSession })
+  const check = userClient()
   const signIn = await check.auth.signInWithPassword({
     email: user.email!,
     password,

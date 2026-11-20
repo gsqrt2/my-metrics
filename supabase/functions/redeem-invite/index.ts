@@ -9,24 +9,16 @@
 //   3. sign in as them and call accept_invite, like any member joining
 //   4. if joining fails, delete the user again, so no account is left
 //      without its group
-import { createClient } from 'npm:@supabase/supabase-js@2.119.0'
+import {
+  adminClient,
+  isEmail,
+  reply,
+  serveJson,
+  userClient,
+} from '../_shared/http.ts'
 
 const MIN_PASSWORD_LENGTH = 8 // supabase/config.toml, spec FR-1
 const MAX_NAME_LENGTH = 80 // spec FR-80
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
-
-function reply(status: number, body: Record<string, unknown>) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  })
-}
 
 type Input = {
   token: string
@@ -51,7 +43,7 @@ function readInput(body: unknown): Input | string {
     subjectId: typeof b.subjectId === 'string' ? b.subjectId : null,
   }
   if (!input.token) return 'invite_invalid'
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.email)) return 'invalid_email'
+  if (!isEmail(input.email)) return 'invalid_email'
   if (input.password.length < MIN_PASSWORD_LENGTH) return 'weak_password'
   if (!input.displayName || input.displayName.length > MAX_NAME_LENGTH) {
     return 'invalid_display_name'
@@ -61,25 +53,11 @@ function readInput(body: unknown): Input | string {
   return input
 }
 
-Deno.serve(async (request) => {
-  if (request.method === 'OPTIONS')
-    return new Response('ok', { headers: corsHeaders })
-  if (request.method !== 'POST')
-    return reply(405, { error: 'method_not_allowed' })
-
-  let body: unknown
-  try {
-    body = await request.json()
-  } catch {
-    return reply(400, { error: 'invalid_input' })
-  }
+serveJson(async (body) => {
   const input = readInput(body)
   if (typeof input === 'string') return reply(400, { error: input })
 
-  const url = Deno.env.get('SUPABASE_URL')!
-  const admin = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  })
+  const admin = adminClient()
 
   // 1. The invite must be valid (and, for email invites, for this address).
   const preview = await admin.rpc('get_invite_preview', {
@@ -114,9 +92,7 @@ Deno.serve(async (request) => {
   const userId = created.data.user.id
 
   // 3. Join as the new user, through the same function as everyone else.
-  const asUser = createClient(url, Deno.env.get('SUPABASE_ANON_KEY')!, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  })
+  const asUser = userClient()
   const signIn = await asUser.auth.signInWithPassword({
     email: input.email,
     password: input.password,

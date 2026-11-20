@@ -1,12 +1,12 @@
-import { Link, useNavigate } from 'react-router'
+import { useNavigate } from 'react-router'
 
 import { BackLink } from '@/app/layout/back-link'
 import { PageHeader } from '@/app/layout/page-header'
-import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { GroupForm } from '@/features/groups/group-form'
 import { ArchiveDeleteSection } from '@/features/groups/group-lifecycle'
 import { WithGroup } from '@/features/groups/group-page'
+import { NotAllowed } from '@/features/groups/not-allowed'
 import { toGroupForm } from '@/features/groups/schemas'
 import {
   canEditGroup,
@@ -30,19 +30,15 @@ function EditGroup({ group }: { group: GroupRow }) {
 
   if (!canEditGroup(group)) {
     return (
-      <>
-        {back}
-        <PageHeader
-          title="Edit logbook"
-          description={cantManageText(
-            group,
-            "Only the logbook's owner and editors can change it.",
-          )}
-        />
-        <Button asChild variant="outline">
-          <Link to={groupPath}>Back to {group.name}</Link>
-        </Button>
-      </>
+      <NotAllowed
+        group={group}
+        back={back}
+        title="Edit logbook"
+        description={cantManageText(
+          group,
+          "Only the logbook's owner and editors can change it.",
+        )}
+      />
     )
   }
 

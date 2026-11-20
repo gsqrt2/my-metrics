@@ -10,22 +10,15 @@
 // [edge_runtime.secrets]), the provider set with `supabase secrets set` in
 // the cloud. Supabase blocks outgoing ports 25 and 587, so the cloud uses 465
 // (TLS from the start).
-import { createClient } from 'npm:@supabase/supabase-js@2.119.0'
 import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
-
-function reply(status: number, body: Record<string, unknown>) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  })
-}
+import {
+  adminClient,
+  isEmail,
+  reply,
+  serveJson,
+  userClient,
+} from '../_shared/http.ts'
 
 type Input = {
   groupId: string
@@ -38,9 +31,7 @@ function readInput(body: unknown): Input | string {
   if (typeof body !== 'object' || body === null) return 'invalid_input'
   const b = body as Record<string, unknown>
   const email = typeof b.email === 'string' ? b.email.trim().toLowerCase() : ''
-  if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return 'invalid_email'
-  }
+  if (!isEmail(email)) return 'invalid_email'
   if (typeof b.groupId !== 'string') return 'invalid_input'
   if (b.role !== 'editor' && b.role !== 'viewer') return 'invalid_input'
   if (b.days !== 1 && b.days !== 7 && b.days !== 30) return 'invalid_input'
@@ -122,28 +113,11 @@ const knownErrors: Record<string, [number, string]> = {
   email_invite_limit: [429, 'email_invite_limit'],
 }
 
-Deno.serve(async (request) => {
-  if (request.method === 'OPTIONS')
-    return new Response('ok', { headers: corsHeaders })
-  if (request.method !== 'POST')
-    return reply(405, { error: 'method_not_allowed' })
-
-  let body: unknown
-  try {
-    body = await request.json()
-  } catch {
-    return reply(400, { error: 'invalid_input' })
-  }
+serveJson(async (body, request) => {
   const input = readInput(body)
   if (typeof input === 'string') return reply(400, { error: input })
 
-  const url = Deno.env.get('SUPABASE_URL')!
-  const asUser = createClient(url, Deno.env.get('SUPABASE_ANON_KEY')!, {
-    auth: { persistSession: false, autoRefreshToken: false },
-    global: {
-      headers: { Authorization: request.headers.get('Authorization') ?? '' },
-    },
-  })
+  const asUser = userClient(request.headers.get('Authorization') ?? '')
 
   // The invite, as the caller: the database checks who may invite whom.
   const expires = new Date(Date.now() + input.days * 24 * 3600 * 1000)
@@ -189,12 +163,7 @@ Deno.serve(async (request) => {
     )
   } catch (error) {
     console.error('send-invite: mail failed', error)
-    const admin = createClient(
-      url,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-      { auth: { persistSession: false, autoRefreshToken: false } },
-    )
-    await admin.from('invites').delete().eq('id', invite.id)
+    await adminClient().from('invites').delete().eq('id', invite.id)
     return reply(502, { error: 'send_failed' })
   }
 

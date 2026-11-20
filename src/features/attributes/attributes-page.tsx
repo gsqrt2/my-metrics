@@ -16,6 +16,7 @@ import {
   type Attribute,
 } from '@/features/attributes/use-attributes'
 import { WithGroup } from '@/features/groups/group-page'
+import { NotAllowed } from '@/features/groups/not-allowed'
 import {
   canEditGroup,
   cantManageText,
@@ -40,19 +41,15 @@ function ManageAttributes({ group }: { group: GroupRow }) {
 
   if (!canEditGroup(group)) {
     return (
-      <>
-        {back}
-        <PageHeader
-          title="Metrics"
-          description={cantManageText(
-            group,
-            "Only the logbook's owner and editors can manage metrics.",
-          )}
-        />
-        <Button asChild variant="outline">
-          <Link to={groupPath}>Back to {group.name}</Link>
-        </Button>
-      </>
+      <NotAllowed
+        group={group}
+        back={back}
+        title="Metrics"
+        description={cantManageText(
+          group,
+          "Only the logbook's owner and editors can manage metrics.",
+        )}
+      />
     )
   }
 

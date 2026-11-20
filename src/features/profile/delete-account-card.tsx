@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
 
+import { Confirm } from '@/components/confirm'
 import { FormField } from '@/components/form-field'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -114,41 +115,30 @@ export function DeleteAccountCard() {
             </ul>
           </div>
         ) : confirming ? (
-          <form
-            noValidate
-            onSubmit={deleteAccount}
-            role="group"
-            aria-label="Confirm deleting your account"
-            className="flex flex-col gap-4 rounded-lg border p-3"
-          >
-            <p className="text-sm">
-              Delete your account for good? This can't be undone.
-            </p>
-            <FormField
-              id="delete-account-password"
-              label="Your password"
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              error={error ?? undefined}
-              onChange={(event) => setPassword(event.target.value)}
-            />
-            <div className="flex flex-wrap gap-2">
-              <Button type="submit" variant="destructive" disabled={pending}>
-                {pending ? 'Deleting…' : 'Delete my account'}
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => {
-                  setConfirming(false)
-                  setPassword('')
-                  setError(null)
-                }}
-              >
-                Cancel
-              </Button>
-            </div>
+          <form noValidate onSubmit={deleteAccount}>
+            <Confirm
+              label="Confirm deleting your account"
+              text="Delete your account for good? This can't be undone."
+              action={pending ? 'Deleting…' : 'Delete my account'}
+              destructive
+              submit
+              pending={pending}
+              onCancel={() => {
+                setConfirming(false)
+                setPassword('')
+                setError(null)
+              }}
+            >
+              <FormField
+                id="delete-account-password"
+                label="Your password"
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                error={error ?? undefined}
+                onChange={(event) => setPassword(event.target.value)}
+              />
+            </Confirm>
           </form>
         ) : (
           <Button

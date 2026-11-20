@@ -1,5 +1,3 @@
-import { formatDateTime as formatDateTimeOf } from '@/lib/dates'
-
 // Entries are stored with a time zone (timestamptz) and shown and entered in
 // the viewer's local time (FR-50).
 
@@ -24,8 +22,3 @@ export function fromLocalInputValue(value: string): Date | null {
 
 // The database allows a few minutes of clock skew for "not in the future".
 export const FUTURE_SKEW_MS = 5 * 60 * 1000
-
-// "09/11/2026, 07:30" (dd/mm/yyyy, 24 hours, whatever the browser's language).
-export function formatDateTime(iso: string) {
-  return formatDateTimeOf(new Date(iso))
-}

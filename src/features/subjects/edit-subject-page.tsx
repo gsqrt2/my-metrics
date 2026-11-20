@@ -1,5 +1,5 @@
 import { Archive, ArchiveRestore } from 'lucide-react'
-import { Link, useNavigate, useParams } from 'react-router'
+import { useNavigate, useParams } from 'react-router'
 
 import { BackLink } from '@/app/layout/back-link'
 import { PageHeader } from '@/app/layout/page-header'
@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { useAuth } from '@/features/auth/use-auth'
 import { WithGroup } from '@/features/groups/group-page'
+import { NotAllowed } from '@/features/groups/not-allowed'
 import {
   canEditGroup,
   cantManageText,
@@ -38,23 +39,19 @@ function FindSubject({ group }: { group: GroupRow }) {
 
   if (!subject || !canEditGroup(group)) {
     return (
-      <>
-        {back}
-        <PageHeader
-          title={subject ? 'Edit participant' : 'Participant not found'}
-          description={
-            subject
-              ? cantManageText(
-                  group,
-                  "Only the logbook's owner and editors can change participants.",
-                )
-              : "It doesn't exist in this logbook."
-          }
-        />
-        <Button asChild variant="outline">
-          <Link to={groupPath}>Back to {group.name}</Link>
-        </Button>
-      </>
+      <NotAllowed
+        group={group}
+        back={back}
+        title={subject ? 'Edit participant' : 'Participant not found'}
+        description={
+          subject
+            ? cantManageText(
+                group,
+                "Only the logbook's owner and editors can change participants.",
+              )
+            : "It doesn't exist in this logbook."
+        }
+      />
     )
   }
   return <EditSubject group={group} subject={subject} back={back} />

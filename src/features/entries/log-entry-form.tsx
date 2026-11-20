@@ -1,19 +1,17 @@
 import { useState } from 'react'
 
-import { DateTimeField } from '@/components/date-field'
-import { FormField } from '@/components/form-field'
+import { Confirm } from '@/components/confirm'
 import { NativeSelect } from '@/components/native-select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { attributeLabel } from '@/features/attributes/format'
 import { useAuth } from '@/features/auth/use-auth'
 import {
   fromLocalInputValue,
   toLocalInputValue,
 } from '@/features/entries/datetime'
 import { readLastUsed, rememberLastUsed } from '@/features/entries/last-used'
+import { MomentFields } from '@/features/entries/moment-fields'
 import { useLogEntries, type NewEntry } from '@/features/entries/use-entries'
 import {
   defaultSubjectId,
@@ -21,11 +19,8 @@ import {
   type LoggableGroup,
 } from '@/features/entries/use-loggable-groups'
 import {
-  commentError,
   entryErrorMessage,
-  MAX_COMMENT_LENGTH,
-  measuredAtError,
-  valueError,
+  validateMoment,
 } from '@/features/entries/validation'
 import { parseDecimal } from '@/lib/numbers'
 
@@ -101,17 +96,13 @@ export function LogEntryForm({
   }
 
   function validate(): Errors {
-    const found: Errors = {}
+    const found: Errors = validateMoment({
+      fields,
+      values,
+      measuredAt,
+      comment,
+    })
     if (!subjectId) found.subject = 'Choose a participant.'
-    const when = measuredAtError(measuredAt)
-    if (when) found.measuredAt = when
-    for (const attribute of fields) {
-      const error = valueError(values[attribute.id] ?? '', attribute)
-      if (error) found[attribute.id] = error
-    }
-    if (!hasValues) found.form = 'Enter at least one value.'
-    const tooLong = commentError(comment)
-    if (tooLong) found.comment = tooLong
     return found
   }
 
@@ -176,33 +167,15 @@ export function LogEntryForm({
             <p className="text-sm text-destructive">{errors.group}</p>
           )}
           {switchTo !== null && (
-            <div
-              role="group"
-              aria-label="Confirm switching logbook"
-              className="flex flex-col gap-2 rounded-lg border p-3"
-            >
-              <p className="text-sm">
-                Switch to {groups.find((g) => g.id === switchTo)?.name}? The
-                values you've entered will be discarded.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={() => selectGroup(switchTo)}
-                >
-                  Switch and discard
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setSwitchTo(null)}
-                >
-                  Keep editing
-                </Button>
-              </div>
-            </div>
+            <Confirm
+              label="Confirm switching logbook"
+              text={`Switch to ${groups.find((g) => g.id === switchTo)?.name}? The values you've entered will be discarded.`}
+              action="Switch and discard"
+              cancelLabel="Keep editing"
+              pending={false}
+              onConfirm={() => selectGroup(switchTo)}
+              onCancel={() => setSwitchTo(null)}
+            />
           )}
         </div>
       )}
@@ -228,63 +201,30 @@ export function LogEntryForm({
             )}
           </div>
 
-          <DateTimeField
-            id="entry-measured-at"
-            label="When"
-            value={measuredAt}
-            max={toLocalInputValue(new Date())}
-            error={errors.measuredAt}
-            onChange={setMeasuredAt}
+          <MomentFields
+            fields={fields}
+            values={values}
+            onValueChange={(id, value) =>
+              setValues((current) => ({ ...current, [id]: value }))
+            }
+            measuredAt={measuredAt}
+            onMeasuredAtChange={setMeasuredAt}
+            comment={comment}
+            onCommentChange={setComment}
+            errors={errors}
+            valuesHint="Fill in what you measured; leave the rest empty."
+            valuesNote={
+              locked &&
+              locked.length > 0 &&
+              subject && (
+                <p className="text-sm text-muted-foreground">
+                  {subject.name} keeps {locked.map((a) => a.name).join(', ')}{' '}
+                  private, so only {subject.name} can log{' '}
+                  {locked.length === 1 ? 'it' : 'them'}.
+                </p>
+              )
+            }
           />
-
-          <fieldset className="flex flex-col gap-4">
-            <legend className="mb-2 text-sm leading-none font-medium">
-              Values
-            </legend>
-            <p className="-mt-1 text-sm text-muted-foreground">
-              Fill in what you measured; leave the rest empty.
-            </p>
-            {locked && locked.length > 0 && subject && (
-              <p className="text-sm text-muted-foreground">
-                {subject.name} keeps {locked.map((a) => a.name).join(', ')}{' '}
-                private, so only {subject.name} can log{' '}
-                {locked.length === 1 ? 'it' : 'them'}.
-              </p>
-            )}
-            {fields.map((attribute) => (
-              <FormField
-                key={attribute.id}
-                id={`entry-value-${attribute.id}`}
-                label={attributeLabel(attribute)}
-                inputMode="decimal"
-                autoComplete="off"
-                value={values[attribute.id] ?? ''}
-                error={errors[attribute.id]}
-                onChange={(event) =>
-                  setValues((current) => ({
-                    ...current,
-                    [attribute.id]: event.target.value,
-                  }))
-                }
-              />
-            ))}
-          </fieldset>
-
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="entry-comment">Comment (optional)</Label>
-            <Textarea
-              id="entry-comment"
-              rows={2}
-              maxLength={MAX_COMMENT_LENGTH}
-              placeholder="e.g. after breakfast"
-              value={comment}
-              aria-invalid={errors.comment ? true : undefined}
-              onChange={(event) => setComment(event.target.value)}
-            />
-            {errors.comment && (
-              <p className="text-sm text-destructive">{errors.comment}</p>
-            )}
-          </div>
         </>
       )}
 

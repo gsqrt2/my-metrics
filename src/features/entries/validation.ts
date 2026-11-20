@@ -59,6 +59,44 @@ export function commentError(text: string) {
     : undefined
 }
 
+// Checks a moment as typed, in logging and in editing (FR-40, FR-50, FR-53):
+// each value, the time, the comment, and that something is filled in. Keys
+// are the attribute ids, "measuredAt", "comment" and "form". Values that were
+// saved before and stay the same skip the limits, which apply to new and
+// changed values only (FR-40).
+export function validateMoment({
+  fields,
+  values,
+  measuredAt,
+  comment,
+  saved = new Map(),
+  emptyMessage = 'Enter at least one value.',
+}: {
+  fields: (ValueRules & { id: string })[]
+  values: Record<string, string>
+  measuredAt: string
+  comment: string
+  saved?: Map<string, number>
+  emptyMessage?: string
+}): Partial<Record<string, string>> {
+  const found: Partial<Record<string, string>> = {}
+  const when = measuredAtError(measuredAt)
+  if (when) found.measuredAt = when
+  for (const field of fields) {
+    const text = values[field.id] ?? ''
+    const unchanged =
+      saved.has(field.id) && parseDecimal(text) === saved.get(field.id)
+    const error = unchanged ? undefined : valueError(text, field)
+    if (error) found[field.id] = error
+  }
+  if (fields.every((field) => (values[field.id] ?? '').trim() === '')) {
+    found.form = emptyMessage
+  }
+  const tooLong = commentError(comment)
+  if (tooLong) found.comment = tooLong
+  return found
+}
+
 function decimalsOf(value: number) {
   return String(value).split('.')[1]?.length ?? 0
 }

@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/features/auth/use-auth'
 import { WithGroup } from '@/features/groups/group-page'
+import { NotAllowed } from '@/features/groups/not-allowed'
 import {
   canEditGroup,
   cantManageText,
@@ -33,19 +34,15 @@ function ManageSubjects({ group }: { group: GroupRow }) {
 
   if (!canEditGroup(group)) {
     return (
-      <>
-        {back}
-        <PageHeader
-          title="Participants"
-          description={cantManageText(
-            group,
-            "Only the logbook's owner and editors can manage participants.",
-          )}
-        />
-        <Button asChild variant="outline">
-          <Link to={groupPath}>Back to {group.name}</Link>
-        </Button>
-      </>
+      <NotAllowed
+        group={group}
+        back={back}
+        title="Participants"
+        description={cantManageText(
+          group,
+          "Only the logbook's owner and editors can manage participants.",
+        )}
+      />
     )
   }
 

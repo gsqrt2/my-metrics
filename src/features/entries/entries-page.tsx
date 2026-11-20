@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label'
 import { attributeLabel } from '@/features/attributes/format'
 import { useAttributes } from '@/features/attributes/use-attributes'
 import { useAuth } from '@/features/auth/use-auth'
-import { formatDateTime } from '@/features/entries/datetime'
+import { formatDateTime } from '@/lib/dates'
 import { EntryValue } from '@/features/entries/entry-value'
 import { canLogFor } from '@/features/entries/permissions'
 import {

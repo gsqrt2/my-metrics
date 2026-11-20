@@ -26,7 +26,7 @@ import {
 import { metricColors } from '@/features/dashboard/metric-colors'
 import { formatPercent } from '@/features/dashboard/chart-format'
 import type { SeriesPoint } from '@/features/dashboard/use-dashboard'
-import { formatDateTime } from '@/features/entries/datetime'
+import { formatDateTime } from '@/lib/dates'
 import { formatValue } from '@/features/entries/format'
 import { subjectColorVar } from '@/features/subjects/colors'
 import type { Subject } from '@/features/subjects/use-subjects'
@@ -119,7 +119,7 @@ function Lines({
               <div className="max-w-64 rounded-lg border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-md">
                 {time !== null && (
                   <p className="mb-1 text-muted-foreground">
-                    {formatDateTime(new Date(time).toISOString())}
+                    {formatDateTime(time)}
                   </p>
                 )}
                 {lines

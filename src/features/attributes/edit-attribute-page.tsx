@@ -1,10 +1,11 @@
 import { Archive, ArchiveRestore, Trash2 } from 'lucide-react'
 import { useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router'
+import { useNavigate, useParams } from 'react-router'
 
 import { BackLink } from '@/app/layout/back-link'
 import { PageHeader } from '@/app/layout/page-header'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Confirm } from '@/components/confirm'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { AttributeForm } from '@/features/attributes/attribute-form'
@@ -18,6 +19,7 @@ import {
 } from '@/features/attributes/use-attributes'
 import { useAttributeEntryCount } from '@/features/entries/use-entries'
 import { WithGroup } from '@/features/groups/group-page'
+import { NotAllowed } from '@/features/groups/not-allowed'
 import {
   canEditGroup,
   cantManageText,
@@ -40,23 +42,19 @@ function FindAttribute({ group }: { group: GroupRow }) {
 
   if (!attribute || !canEditGroup(group)) {
     return (
-      <>
-        {back}
-        <PageHeader
-          title={attribute ? 'Edit metric' : 'Metric not found'}
-          description={
-            attribute
-              ? cantManageText(
-                  group,
-                  "Only the logbook's owner and editors can change metrics.",
-                )
-              : "It doesn't exist in this logbook."
-          }
-        />
-        <Button asChild variant="outline">
-          <Link to={`/logbooks/${group.id}`}>Back to {group.name}</Link>
-        </Button>
-      </>
+      <NotAllowed
+        group={group}
+        back={back}
+        title={attribute ? 'Edit metric' : 'Metric not found'}
+        description={
+          attribute
+            ? cantManageText(
+                group,
+                "Only the logbook's owner and editors can change metrics.",
+              )
+            : "It doesn't exist in this logbook."
+        }
+      />
     )
   }
   return (
@@ -176,33 +174,20 @@ function EditAttribute({
             </Alert>
           )}
           {confirmingDelete ? (
-            <div
-              role="group"
-              aria-label="Confirm deleting"
-              className="flex flex-col gap-3 rounded-lg border border-destructive/40 p-4"
-            >
-              <p className="text-sm font-medium">
-                {entryCount === 0
+            <Confirm
+              label="Confirm deleting"
+              text={
+                entryCount === 0
                   ? `Delete “${attribute.name}”? This can't be undone.`
-                  : `Delete “${attribute.name}” and its ${entries}? This can't be undone.`}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="destructive"
-                  disabled={remove.isPending}
-                  onClick={() => remove.mutate(undefined, done)}
-                >
-                  <Trash2 aria-hidden />
-                  Delete for good
-                </Button>
-                <Button
-                  variant="ghost"
-                  onClick={() => setConfirmingDelete(false)}
-                >
-                  Keep it
-                </Button>
-              </div>
-            </div>
+                  : `Delete “${attribute.name}” and its ${entries}? This can't be undone.`
+              }
+              action="Delete for good"
+              cancelLabel="Keep it"
+              destructive
+              pending={remove.isPending}
+              onConfirm={() => remove.mutate(undefined, done)}
+              onCancel={() => setConfirmingDelete(false)}
+            />
           ) : (
             (entryCount === 0 || isOwner) && (
               <Button

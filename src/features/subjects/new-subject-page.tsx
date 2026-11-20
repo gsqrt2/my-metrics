@@ -1,9 +1,9 @@
-import { Link, useNavigate } from 'react-router'
+import { useNavigate } from 'react-router'
 
 import { BackLink } from '@/app/layout/back-link'
 import { PageHeader } from '@/app/layout/page-header'
-import { Button } from '@/components/ui/button'
 import { WithGroup } from '@/features/groups/group-page'
+import { NotAllowed } from '@/features/groups/not-allowed'
 import {
   canEditGroup,
   cantManageText,
@@ -28,19 +28,15 @@ function NewSubject({ group }: { group: GroupRow }) {
 
   if (!canEditGroup(group)) {
     return (
-      <>
-        {back}
-        <PageHeader
-          title="Add participant"
-          description={cantManageText(
-            group,
-            "Only the logbook's owner and editors can add participants.",
-          )}
-        />
-        <Button asChild variant="outline">
-          <Link to={groupPath}>Back to {group.name}</Link>
-        </Button>
-      </>
+      <NotAllowed
+        group={group}
+        back={back}
+        title="Add participant"
+        description={cantManageText(
+          group,
+          "Only the logbook's owner and editors can add participants.",
+        )}
+      />
     )
   }
   // Wait for the existing subjects, to start with an unused colour.

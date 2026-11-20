@@ -4,21 +4,17 @@ import { Link, useNavigate, useParams } from 'react-router'
 
 import { BackLink } from '@/app/layout/back-link'
 import { PageHeader } from '@/app/layout/page-header'
-import { DateTimeField } from '@/components/date-field'
-import { FormField } from '@/components/form-field'
+import { Confirm } from '@/components/confirm'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
-import { Textarea } from '@/components/ui/textarea'
-import { attributeLabel } from '@/features/attributes/format'
 import { useAuth } from '@/features/auth/use-auth'
 import {
-  formatDateTime,
   fromLocalInputValue,
   toLocalInputValue,
 } from '@/features/entries/datetime'
 import { EntryValue } from '@/features/entries/entry-value'
+import { MomentFields } from '@/features/entries/moment-fields'
 import { canLogFor } from '@/features/entries/permissions'
 import {
   useEntry,
@@ -31,15 +27,14 @@ import {
   type LoggableAttribute,
 } from '@/features/entries/use-loggable-groups'
 import {
-  commentError,
   entryErrorMessage,
-  MAX_COMMENT_LENGTH,
-  measuredAtError,
-  valueError,
+  validateMoment,
 } from '@/features/entries/validation'
 import { WithGroup } from '@/features/groups/group-page'
+import { NotAllowed } from '@/features/groups/not-allowed'
 import type { GroupRow } from '@/features/groups/types'
 import { SubjectAvatar } from '@/features/subjects/subject-avatar'
+import { formatDateTime } from '@/lib/dates'
 import { parseDecimal } from '@/lib/numbers'
 
 type Errors = Partial<Record<string, string>>
@@ -69,20 +64,16 @@ function FindEntry({ group }: { group: GroupRow }) {
 
   if (!found || !editable) {
     return (
-      <>
-        {back}
-        <PageHeader
-          title={found ? 'Edit entry' : 'Entry not found'}
-          description={
-            found
-              ? "You can't change entries for this participant or metric."
-              : "It doesn't exist in this logbook, or it was deleted."
-          }
-        />
-        <Button asChild variant="outline">
-          <Link to={groupPath}>Back to {group.name}</Link>
-        </Button>
-      </>
+      <NotAllowed
+        group={group}
+        back={back}
+        title={found ? 'Edit entry' : 'Entry not found'}
+        description={
+          found
+            ? "You can't change entries for this participant or metric."
+            : "It doesn't exist in this logbook, or it was deleted."
+        }
+      />
     )
   }
   return <LoadMoment entry={found} groupPath={groupPath} back={back} />
@@ -180,25 +171,15 @@ function EditMoment({
   const history = momentHistory(entries.length > 0 ? entries : [entry])
 
   function validate(): Errors {
-    const found: Errors = {}
-    for (const field of fields) {
-      const text = values[field.id] ?? ''
-      // Limits only apply to new and changed values (FR-40).
-      const unchanged =
-        before.has(field.id) &&
-        parseDecimal(text) === before.get(field.id)!.value
-      const error = unchanged ? undefined : valueError(text, field)
-      if (error) found[field.id] = error
-    }
-    if (fields.every((field) => (values[field.id] ?? '').trim() === '')) {
-      found.form =
-        'Enter at least one value. To remove them all, delete the entry below.'
-    }
-    const when = measuredAtError(measuredAt)
-    if (when) found.measuredAt = when
-    const tooLong = commentError(comment)
-    if (tooLong) found.comment = tooLong
-    return found
+    return validateMoment({
+      fields,
+      values,
+      measuredAt,
+      comment,
+      saved: new Map(entries.map((e) => [e.attribute.id, e.value])),
+      emptyMessage:
+        'Enter at least one value. To remove them all, delete the entry below.',
+    })
   }
 
   function submit(event: React.FormEvent) {
@@ -256,82 +237,58 @@ function EditMoment({
               </AlertDescription>
             </Alert>
           )}
-          <fieldset className="flex flex-col gap-4">
-            <legend className="mb-3 text-sm font-medium">Values</legend>
-            {fields.map((field) => (
-              <FormField
-                key={field.id}
-                id={`entry-value-${field.id}`}
-                label={attributeLabel(field)}
-                inputMode="decimal"
-                autoComplete="off"
-                value={values[field.id] ?? ''}
-                error={errors[field.id]}
-                onChange={(event) =>
-                  setValues((current) => ({
-                    ...current,
-                    [field.id]: event.target.value,
-                  }))
-                }
-              />
-            ))}
-            <p className="text-sm text-muted-foreground">
-              Leave a field empty to remove its value.
-            </p>
-            {errors.form && (
-              <p className="text-sm text-destructive">{errors.form}</p>
-            )}
-          </fieldset>
-          {fixed.length > 0 && (
-            <div className="flex flex-col gap-2 text-sm">
-              <p className="text-muted-foreground">
-                Also logged at this time, and not changed here:
-              </p>
-              <ul className="flex flex-col gap-1">
-                {fixed.map((e) => (
-                  <li key={e.id} className="flex flex-wrap gap-x-2">
-                    <span>{e.attribute.name}</span>
-                    <EntryValue
-                      value={e.value}
-                      pctChange={null}
-                      attribute={e.attribute}
-                    />
-                    {e.attribute.archived_at && (
-                      <span className="text-muted-foreground">(archived)</span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          <DateTimeField
-            id="entry-measured-at"
-            label="When"
-            value={measuredAt}
-            max={toLocalInputValue(new Date())}
-            error={errors.measuredAt}
-            onChange={setMeasuredAt}
+          <MomentFields
+            fields={fields}
+            values={values}
+            onValueChange={(id, value) =>
+              setValues((current) => ({ ...current, [id]: value }))
+            }
+            measuredAt={measuredAt}
+            onMeasuredAtChange={setMeasuredAt}
+            comment={comment}
+            onCommentChange={setComment}
+            errors={errors}
+            valuesHint="Change, add or clear values; an empty field removes its value."
+            afterValues={
+              <>
+                {errors.form && (
+                  <p className="text-sm text-destructive">{errors.form}</p>
+                )}
+                {fixed.length > 0 && (
+                  <div className="flex flex-col gap-2 text-sm">
+                    <p className="text-muted-foreground">
+                      Also logged at this time, and not changed here:
+                    </p>
+                    <ul className="flex flex-col gap-1">
+                      {fixed.map((e) => (
+                        <li key={e.id} className="flex flex-wrap gap-x-2">
+                          <span>{e.attribute.name}</span>
+                          <EntryValue
+                            value={e.value}
+                            pctChange={null}
+                            attribute={e.attribute}
+                          />
+                          {e.attribute.archived_at && (
+                            <span className="text-muted-foreground">
+                              (archived)
+                            </span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </>
+            }
+            commentNote={
+              comments.size > 1 && (
+                <p className="text-sm text-muted-foreground">
+                  These values had different comments. Saving gives them all
+                  this one.
+                </p>
+              )
+            }
           />
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="entry-comment">Comment (optional)</Label>
-            <Textarea
-              id="entry-comment"
-              rows={2}
-              maxLength={MAX_COMMENT_LENGTH}
-              value={comment}
-              aria-invalid={errors.comment ? true : undefined}
-              onChange={(event) => setComment(event.target.value)}
-            />
-            {comments.size > 1 && (
-              <p className="text-sm text-muted-foreground">
-                These values had different comments. Saving gives them all this
-                one.
-              </p>
-            )}
-            {errors.comment && (
-              <p className="text-sm text-destructive">{errors.comment}</p>
-            )}
-          </div>
           <div className="flex flex-wrap items-center gap-3">
             <Button type="submit" disabled={save.isPending}>
               {save.isPending && !confirmingDelete ? 'Saving…' : 'Save changes'}
@@ -370,36 +327,23 @@ function EditMoment({
             </Alert>
           )}
           {confirmingDelete ? (
-            <div
-              role="group"
-              aria-label="Confirm deleting"
-              className="flex flex-col gap-3 rounded-lg border border-destructive/40 p-4"
-            >
-              <p className="text-sm font-medium">
-                {savedCount === 1
+            <Confirm
+              label="Confirm deleting"
+              text={
+                savedCount === 1
                   ? "Delete this entry? This can't be undone."
-                  : `Delete the ${savedCount} values logged at this time? This can't be undone.`}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="destructive"
-                  disabled={save.isPending}
-                  onClick={deleteAll}
-                >
-                  <Trash2 aria-hidden />
-                  Delete for good
-                </Button>
-                <Button
-                  variant="ghost"
-                  onClick={() => {
-                    setConfirmingDelete(false)
-                    save.reset()
-                  }}
-                >
-                  Keep it
-                </Button>
-              </div>
-            </div>
+                  : `Delete the ${savedCount} values logged at this time? This can't be undone.`
+              }
+              action="Delete for good"
+              cancelLabel="Keep it"
+              destructive
+              pending={save.isPending}
+              onConfirm={deleteAll}
+              onCancel={() => {
+                setConfirmingDelete(false)
+                save.reset()
+              }}
+            />
           ) : (
             <Button
               variant="outline"

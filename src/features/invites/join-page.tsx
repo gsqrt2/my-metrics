@@ -423,7 +423,7 @@ function JoinNew({ token, invite }: { token: string; invite: InvitePreview }) {
       </form>
       <p className="text-xs text-muted-foreground">
         {roleLabels[invite.role ?? 'viewer']} access. The invite expires{' '}
-        {invite.expires_at ? formatDate(new Date(invite.expires_at)) : 'soon'}.
+        {invite.expires_at ? formatDate(invite.expires_at) : 'soon'}.
       </p>
     </div>
   )

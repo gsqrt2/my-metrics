@@ -19,14 +19,19 @@ const dateTimeFormat = new Intl.DateTimeFormat(DATE_LOCALE, {
   hourCycle: 'h23',
 })
 
+// A moment: a Date, a timestamp from the database (ISO text) or milliseconds.
+// Not a plain day ("2026-11-09"), which JavaScript reads as UTC midnight:
+// those go through parseISO (see formatDuration).
+type Moment = Date | string | number
+
 // "09/11/2026"
-export function formatDate(date: Date) {
-  return dateFormat.format(date)
+export function formatDate(moment: Moment) {
+  return dateFormat.format(new Date(moment))
 }
 
 // "09/11/2026, 07:30"
-export function formatDateTime(date: Date) {
-  return dateTimeFormat.format(date)
+export function formatDateTime(moment: Moment) {
+  return dateTimeFormat.format(new Date(moment))
 }
 
 // "05/10/2026 – 27/12/2026"
